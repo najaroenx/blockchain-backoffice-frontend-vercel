@@ -4,8 +4,40 @@ import { FormControl } from "@mui/material";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import Image from "next/image";
+import { useLogin, useNotify } from "react-admin";
+import React, { useState } from "react";
+
+type FormValues = {
+  email: string;
+  password: string;
+};
 
 export const Login = () => {
+  const [formValues, setFormValues] = useState<FormValues>({
+    email: "",
+    password: "",
+  });
+
+  const login = useLogin();
+  const notify = useNotify();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      await login({ email: formValues.email, password: formValues.password });
+    } catch (error) {
+      notify("Invalid email or password. Please try again.");
+    }
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValues({
+      ...formValues,
+      [event.target.name]: event.target.value,
+    });
+  };
+
   return (
     <div className="h-screen flex">
       <div className="flex w-full md:w-1/2 justify-center items-center bg-white">
@@ -17,7 +49,7 @@ export const Login = () => {
             Enter to get unlimited access to loyalty program
           </p>
 
-          <div className="flex w-full flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
             <FormControl>
               <div className="flex flex-col gap-2">
                 <FormLabel htmlFor="email" sx={{ fontWeight: "bold" }}>
@@ -34,6 +66,7 @@ export const Login = () => {
                   fullWidth
                   size="small"
                   variant="outlined"
+                  onChange={handleInputChange}
                 />
               </div>
             </FormControl>
@@ -53,17 +86,18 @@ export const Login = () => {
                   fullWidth
                   variant="outlined"
                   size="small"
+                  onChange={handleInputChange}
                 />
               </div>
             </FormControl>
 
             <button
-              type="button"
+              type="submit"
               className="block w-full bg-indigo-600 hover:bg-indigo-500 mt-5 py-2.5 px-5 rounded-lg text-white font-semibold mb-2 shadow-md"
             >
               Login
             </button>
-          </div>
+          </form>
 
           <div className="flex w-full items-center gap-5 py-6 text-sm text-slate-600 mt-5">
             <div className="h-px w-full bg-slate-200"></div>

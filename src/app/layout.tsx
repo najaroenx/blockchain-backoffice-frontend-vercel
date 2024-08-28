@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { StyledEngineProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import SessionWrapper from "@/components/SessionWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="en">
       <StyledEngineProvider injectFirst>
         <CssBaseline />
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          <SessionWrapper>{children}</SessionWrapper>
+        </body>
       </StyledEngineProvider>
     </html>
   );
