@@ -4,6 +4,8 @@ import { Admin, Resource, ListGuesser, EditGuesser } from "react-admin";
 import { Login } from "../layout/Login";
 import { authProvider } from "./authProvider";
 import { useSession } from "next-auth/react";
+import { CustomLayout } from "../layout/Layout";
+import { Dashboard } from "../layout/DashBoard";
 
 const dataProvider = jsonServerProvider("https://jsonplaceholder.typicode.com");
 
@@ -16,6 +18,8 @@ const AdminApp = () => {
       defaultTheme="light"
       loginPage={Login}
       authProvider={authProvider(session)}
+      layout={CustomLayout}
+      dashboard={Dashboard}
     >
       <Resource
         name="users"
