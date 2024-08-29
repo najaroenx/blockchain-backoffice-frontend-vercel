@@ -8,7 +8,8 @@ export const CustomLayout = ({ children }: { children: React.ReactNode }) => (
     menu={CustomMenu}
     sx={{
       "& .RaLayout-content": {
-        minWidth: "100vw",
+        width: "100%",
+        padding: 0,
       },
     }}
   >
