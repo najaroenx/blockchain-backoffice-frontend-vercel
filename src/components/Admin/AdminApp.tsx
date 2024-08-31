@@ -5,7 +5,7 @@ import { Login } from "../layout/Login";
 import { authProvider } from "./authProvider";
 import { useSession } from "next-auth/react";
 import { CustomLayout } from "../layout/Layout";
-import { Dashboard } from "../layout/DashBoard";
+import { Index } from "../dashboard";
 
 const dataProvider = jsonServerProvider("https://jsonplaceholder.typicode.com");
 
@@ -19,7 +19,7 @@ const AdminApp = () => {
       loginPage={Login}
       authProvider={authProvider(session)}
       layout={CustomLayout}
-      dashboard={Dashboard}
+      dashboard={Index}
     >
       <Resource
         name="users"
