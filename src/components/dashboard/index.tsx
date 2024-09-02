@@ -81,13 +81,9 @@ export const Index = () => {
             <TopHolderTable />
           </div>
           <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5  w-full">
-            <h6 className="font-medium text-black">Top 5 Holders</h6>
+            <h6 className="font-medium text-black">Top Transaction</h6>
             <div className="w-full">
-              <div className="w-80 md:w-full">
-                <div>
-                  <TopBranchStaticsChart chart={topBranchTransaction} />
-                </div>
-              </div>
+              <TopBranchStaticsChart chart={topBranchTransaction} />
             </div>
           </div>
         </div>
