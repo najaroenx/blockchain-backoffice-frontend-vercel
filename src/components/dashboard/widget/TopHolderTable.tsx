@@ -1,19 +1,27 @@
 import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Box } from "@mui/material";
 
 const columns: GridColDef<(typeof rows)[number]>[] = [
-  { field: "id", headerName: "ID", width: 90 },
+  {
+    field: "id",
+    headerName: "ID",
+    width: 50,
+    resizable: false,
+  },
   {
     field: "firstName",
     headerName: "First name",
     width: 150,
     editable: false,
+    resizable: false,
   },
   {
     field: "lastName",
     headerName: "Last name",
     width: 150,
     editable: false,
+    resizable: false,
   },
 
   {
@@ -22,6 +30,7 @@ const columns: GridColDef<(typeof rows)[number]>[] = [
     type: "number",
     width: 110,
     editable: false,
+    resizable: false,
   },
 ];
 
@@ -73,10 +82,6 @@ export const TopHolderTable = () => {
         }}
         pageSizeOptions={[5]}
         disableRowSelectionOnClick
-        sx={{
-          width: "100%",
-          maxWidth: "100%",
-        }}
       />
     </div>
   );

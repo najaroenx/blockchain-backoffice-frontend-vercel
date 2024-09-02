@@ -75,9 +75,8 @@ export const Index = () => {
             chart={dailySalesChart}
           />
         </div>
-
         <div className="flex flex-col md:flex-row gap-10">
-          <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5  w-full">
+          <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5 overflow-hidden  w-full">
             <h6 className="font-medium text-black">Top 5 Holders</h6>
             <TopHolderTable />
           </div>
@@ -92,9 +91,11 @@ export const Index = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col bg-white py-5 px-5 w-full mt-10 shadow-lg rounded-lg gap-5">
+        <div className="flex flex-col bg-white w-full py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Point transactions</h6>
-          <PointTransactionTable />
+          <div className="flex w-full justify-center">
+            <PointTransactionTable />
+          </div>
         </div>
       </div>
     </div>

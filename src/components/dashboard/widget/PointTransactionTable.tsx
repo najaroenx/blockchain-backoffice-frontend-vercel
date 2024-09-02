@@ -2,32 +2,36 @@ import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
 const columns: GridColDef<(typeof rows)[number]>[] = [
-  { field: "id", headerName: "ID", width: 90 },
+  { field: "id", headerName: "ID", width: 50, resizable: false },
   {
     field: "firstName",
     headerName: "First name",
     width: 150,
     editable: false,
+    resizable: false,
   },
   {
     field: "lastName",
     headerName: "Last name",
     width: 150,
     editable: false,
+    resizable: false,
   },
   {
     field: "txHash",
     headerName: "Transaction ID",
     type: "string",
-    width: 650,
+    width: 550,
     editable: false,
+    resizable: false,
   },
   {
     field: "txType",
-    headerName: "Transaction Type",
+    headerName: "Type",
     type: "string",
-    width: 200,
+    width: 90,
     editable: false,
+    resizable: false,
   },
   {
     field: "amount",
@@ -35,6 +39,7 @@ const columns: GridColDef<(typeof rows)[number]>[] = [
     type: "number",
     width: 110,
     editable: false,
+    resizable: false,
   },
 ];
 
@@ -136,6 +141,13 @@ export const PointTransactionTable = () => {
       }}
       pageSizeOptions={[10]}
       disableRowSelectionOnClick
+      sx={{
+        "& .MuiDataGrid-columnSeparator:not(.MuiDataGrid-columnSeparator--resizable)":
+          {
+            display: "none !important",
+          },
+        maxWidth: { md: "1100px", xl: "1440px" },
+      }}
     />
   );
 };

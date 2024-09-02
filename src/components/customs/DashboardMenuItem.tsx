@@ -19,7 +19,7 @@ export const DashboardMenuItem = (props: DashboardMenuItemProps) => {
       to={to}
       primaryText={primaryText}
       {...rest}
-      className="rounded-r-xl py-3 px-3 hover:bg-[#FF8901] hover:text-white"
+      className="rounded-r-xl px-3 hover:bg-[#fabe79] hover:text-white"
       sx={{
         "&.RaMenuItemLink-active": {
           color: "white",
