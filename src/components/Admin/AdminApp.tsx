@@ -6,8 +6,9 @@ import { authProvider } from "./authProvider";
 import { useSession } from "next-auth/react";
 import { CustomLayout } from "../layout/Layout";
 import { Index } from "../dashboard";
+import PointList from "../point/PointList";
 
-const dataProvider = jsonServerProvider("https://jsonplaceholder.typicode.com");
+const dataProvider = jsonServerProvider("/api");
 
 const AdminApp = () => {
   const { data: session } = useSession();
@@ -21,19 +22,7 @@ const AdminApp = () => {
       layout={CustomLayout}
       dashboard={Index}
     >
-      <Resource
-        name="users"
-        list={ListGuesser}
-        edit={EditGuesser}
-        recordRepresentation="name"
-      />
-      <Resource
-        name="posts"
-        list={ListGuesser}
-        edit={EditGuesser}
-        recordRepresentation="title"
-      />
-      <Resource name="comments" list={ListGuesser} edit={EditGuesser} />
+      <Resource name="point" list={PointList} />
     </Admin>
   );
 };
