@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useListContext } from "react-admin";
 import { PointCard } from "./PointCard";
+import { Empty } from "../layout/Empty";
 
 export const GridList = () => {
   const { isPending } = useListContext();
@@ -10,7 +11,7 @@ export const GridList = () => {
 const LoadedGridList = () => {
   const { data } = useListContext();
 
-  if (!data) return null;
+  if (!data || data.length === 0) return <Empty />;
 
   return (
     <div className="flex flex-row flex-wrap py-5 gap-5 items-center">
@@ -18,7 +19,7 @@ const LoadedGridList = () => {
         <PointCard
           key={record.id}
           name={record.name}
-          description={record.description}
+          contractAddress={record.contractAddress}
         />
       ))}
     </div>

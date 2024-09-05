@@ -1,9 +1,9 @@
 interface Props {
   name: string;
-  description: string;
+  contractAddress: string;
 }
 
-export const PointCard: React.FC<Props> = ({ name, description }) => {
+export const PointCard: React.FC<Props> = ({ name, contractAddress }) => {
   return (
     <div className="relative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-80">
       <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white bg-clip-border rounded-xl h-44">
@@ -20,7 +20,7 @@ export const PointCard: React.FC<Props> = ({ name, description }) => {
           </p>
         </div>
         <p className="block font-sans text-sm antialiased font-normal leading-normal text-gray-700 opacity-75">
-          {description}
+          {contractAddress}
         </p>
       </div>
       <div className="p-2 pt-0">
