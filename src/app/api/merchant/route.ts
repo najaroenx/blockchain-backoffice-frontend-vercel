@@ -5,14 +5,27 @@ import { authOptions } from "../auth/options";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session?.user.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id as string;
 
     const [count, merchants] = await db.$transaction([
-      db.merchant.count(),
+      db.merchant.count({
+        where: {
+          userMerchant: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+      }),
       db.merchant.findMany({
         where: {
           userMerchant: {
-            every: {
-              userId: session?.user.id as string,
+            some: {
+              userId: userId,
             },
           },
         },
@@ -33,7 +46,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, website } = body;
+
     const session = await getServerSession(authOptions);
+    if (!session?.user.id) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id as string;
 
     await db.merchant.create({
       data: {
@@ -41,7 +60,7 @@ export async function POST(req: Request) {
         website,
         userMerchant: {
           create: {
-            userId: session?.user.id as string,
+            userId: userId,
           },
         },
       },
