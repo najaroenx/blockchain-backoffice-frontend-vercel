@@ -1,5 +1,6 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
+import { db } from "@/db";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,10 +12,18 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          return {
-            id: "1",
-            email: "test@email.com",
-          };
+          const user = await db.user.findFirst({
+            where: {
+              email: credentials?.email,
+              password: credentials?.password,
+            },
+          });
+
+          if (user) {
+            return { id: user.id, email: user.email };
+          } else {
+            return null;
+          }
         } catch (e) {
           return null;
         }
