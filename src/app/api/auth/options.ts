@@ -33,15 +33,27 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/#/login",
   },
+
   session: {
     strategy: "jwt",
     maxAge: 1 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async session({ session, token }: { session: any; token: any }) {
-      session.user.name = token.sub;
-      session.user.image = "https://www.fillmurray.com/128/128";
+      if (token) {
+        session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.image = "https://www.fillmurray.com/128/128";
+      }
+
       return session;
     },
   },
