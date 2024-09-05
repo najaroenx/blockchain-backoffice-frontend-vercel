@@ -8,6 +8,8 @@ import { CustomLayout } from "../layout/Layout";
 import { Index } from "../dashboard";
 import PointList from "../point/PointList";
 import { PointCreate } from "../point";
+import MerchantList from "../merchant/MerchantList";
+import { MerchantCreate } from "../merchant";
 
 const dataProvider = jsonServerProvider("/api");
 
@@ -24,6 +26,7 @@ const AdminApp = () => {
       dashboard={Index}
     >
       <Resource name="point" list={PointList} create={PointCreate} />
+      <Resource name="merchant" list={MerchantList} create={MerchantCreate} />
     </Admin>
   );
 };
