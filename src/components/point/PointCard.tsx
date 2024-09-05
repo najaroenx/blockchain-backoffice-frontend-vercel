@@ -5,10 +5,10 @@ interface Props {
 
 export const PointCard: React.FC<Props> = ({ name, contractAddress }) => {
   return (
-    <div className="relative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-80">
+    <div className=" elative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-full md:w-1/3">
       <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white bg-clip-border rounded-xl h-44">
         <img
-          src="https://images.unsplash.com/photo-1629367494173-c78a56567877?ixlib=rb-4.0.3&amp;ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;auto=format&amp;fit=crop&amp;w=927&amp;q=80"
+          src="https://media.discordapp.net/attachments/1033975412444893264/1072422794983378974/Component_4.png?ex=66dab30e&is=66d9618e&hm=05e67adc927bdc2664f904a5840ae42cc4831674ece516f030265a3aaccd120b&=&format=webp&quality=lossless&width=1170&height=1170"
           alt="card-image"
           className="object-cover w-full h-full"
         />
@@ -19,7 +19,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress }) => {
             {name}
           </p>
         </div>
-        <p className="block font-sans text-sm antialiased font-normal leading-normal text-gray-700 opacity-75">
+        <p className="block font-sans text-sm font-normal text-gray-700 opacity-75 text-wrap">
           {contractAddress}
         </p>
       </div>
