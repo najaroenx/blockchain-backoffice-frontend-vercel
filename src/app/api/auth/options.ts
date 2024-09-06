@@ -1,6 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
-import { db } from "@/db";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,13 +10,19 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        const BACKEND_URL =
+          process.env.MERCHANT_BACKEND || "http://localhost:4000";
+
         try {
-          const user = await db.user.findFirst({
-            where: {
+          const response = await fetch(`${BACKEND_URL}/user/login`, {
+            method: "POST",
+            body: JSON.stringify({
               email: credentials?.email,
               password: credentials?.password,
-            },
+            }),
           });
+
+          const user = await response.json();
 
           if (user) {
             return { id: user.id, email: user.email };

@@ -1,7 +1,7 @@
-import { db } from "@/db";
-import { createNewPointToken } from "@/service/blockchain/createNewPointToken";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
+
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: Request) {
   try {
@@ -13,34 +13,15 @@ export async function GET(req: Request) {
 
     const userId = session.user.id as string;
 
-    const [count, points] = await db.$transaction([
-      db.point.count({
-        where: {
-          Merchant: {
-            userMerchant: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-        },
-      }),
-      db.point.findMany({
-        where: {
-          Merchant: {
-            userMerchant: {
-              some: {
-                userId: session?.user.id as string,
-              },
-            },
-          },
-        },
-      }),
-    ]);
+    const response = await fetch(`${BACKEND_URL}/point/${userId}`, {
+      method: "get",
+    });
+
+    const { points, counts } = await response.json();
 
     return Response.json(points, {
       headers: {
-        "X-Total-Count": count.toString(),
+        "X-Total-Count": counts.toString(),
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
@@ -50,40 +31,20 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   const body = await req.json();
-  const {
-    name,
-    symbol,
-    initialSupply,
-    decimal,
-    frameSize,
-    slotSize,
-    merchantId,
-  } = body;
 
   try {
     // TODO: authorize user before create point
 
-    const pointContractAddress = await createNewPointToken({
-      name,
-      symbol,
-      decimal,
-      slotSize,
-      frameSize,
-      initialSupply,
+    await fetch(`${BACKEND_URL}/point`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...body,
+      }),
     });
 
-    await db.point.create({
-      data: {
-        name,
-        symbol,
-        initialSupply,
-        decimal,
-        frameSize,
-        slotSize,
-        contractAddress: pointContractAddress,
-        merchantId: merchantId,
-      },
-    });
     return Response.json({ message: "success" }, { status: 200 });
   } catch (error) {
     console.log(error);

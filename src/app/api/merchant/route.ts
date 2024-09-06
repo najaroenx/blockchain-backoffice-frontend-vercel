@@ -1,40 +1,27 @@
-import { db } from "@/db";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
+
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+
     if (!session?.user.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = session.user.id as string;
 
-    const [count, merchants] = await db.$transaction([
-      db.merchant.count({
-        where: {
-          userMerchant: {
-            some: {
-              userId: userId,
-            },
-          },
-        },
-      }),
-      db.merchant.findMany({
-        where: {
-          userMerchant: {
-            some: {
-              userId: userId,
-            },
-          },
-        },
-      }),
-    ]);
+    const response = await fetch(`${BACKEND_URL}/merchant/${userId}`, {
+      method: "get",
+    });
+
+    const { merchants, counts } = await response.json();
 
     return Response.json(merchants, {
       headers: {
-        "X-Total-Count": count.toString(),
+        "X-Total-Count": counts.toString(),
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
@@ -44,26 +31,25 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { name, website } = body;
-
     const session = await getServerSession(authOptions);
+
+    const body = await req.json();
+
     if (!session?.user.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = session.user.id as string;
 
-    await db.merchant.create({
-      data: {
-        name,
-        website,
-        userMerchant: {
-          create: {
-            userId: userId,
-          },
-        },
+    await fetch(`${BACKEND_URL}/merchant`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        ...body,
+        userId,
+      }),
     });
 
     return Response.json({ message: "success" }, { status: 200 });
