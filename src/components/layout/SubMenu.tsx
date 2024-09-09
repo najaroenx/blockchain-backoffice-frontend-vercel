@@ -1,15 +1,8 @@
 import * as React from "react";
 import { ReactElement, ReactNode } from "react";
-import {
-  List,
-  MenuItem,
-  ListItemIcon,
-  Typography,
-  Collapse,
-  Tooltip,
-} from "@mui/material";
+import { List, MenuItem, Collapse, Tooltip } from "@mui/material";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import { useTranslate, useSidebarState } from "react-admin";
+import { useSidebarState } from "react-admin";
 
 interface Props {
   dense: boolean;
@@ -34,7 +27,7 @@ const SubMenu: React.FC<Props> = ({
     <MenuItem
       dense={dense}
       onClick={handleToggle}
-      className="rounded-r-xl px-3 py-3 hover:bg-[#fabe79] hover:text-white gap-4 mb-2"
+      className="rounded-r-xl px-3 py-3 hover:bg-[#fabe79] hover:text-white gap-4 mb-1"
     >
       <div>{isOpen ? <ExpandMore /> : icon}</div>
       <p>{name}</p>

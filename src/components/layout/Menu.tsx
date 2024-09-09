@@ -1,21 +1,24 @@
 import * as React from "react";
 import { useSidebarState, MenuProps, MenuItemLink } from "react-admin";
 import { DashboardMenuItem } from "../customs/DashboardMenuItem";
+
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
 import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
-
+import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
+
 import SubMenu from "./SubMenu";
 import { useState } from "react";
 
-type MenuName = "menuSetting";
+type MenuName = "menuSetting" | "menuLoyalty";
 
 export const CustomMenu = ({ dense = false }: MenuProps) => {
   const [open] = useSidebarState();
 
   const [state, setState] = useState({
     menuSetting: true,
+    menuLoyalty: true,
   });
 
   const handleToggle = (menu: MenuName) => {
@@ -60,15 +63,26 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
           dense={dense}
           sx={menuItemStyle}
         />
-        <MenuItemLink
-          to="/point"
-          state={{ _scrollToTop: true }}
-          primaryText={"Points"}
-          leftIcon={<MonetizationOnIcon />}
-          className="rounded-r-xl px-3 py-3 hover:bg-[#fabe79] hover:text-white"
+
+        <SubMenu
+          handleToggle={() => handleToggle("menuLoyalty")}
+          isOpen={state.menuLoyalty}
+          name="Loyalty Module"
+          icon={<LoyaltyIcon />}
           dense={dense}
-          sx={menuItemStyle}
-        />
+        >
+          <MenuItemLink
+            to="/point"
+            state={{ _scrollToTop: true }}
+            primaryText={"Points"}
+            leftIcon={<MonetizationOnIcon />}
+            className={`${
+              open ? "pl-10" : "pl-4"
+            } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
+            dense={dense}
+            sx={menuItemStyle}
+          />
+        </SubMenu>
 
         <SubMenu
           handleToggle={() => handleToggle("menuSetting")}
@@ -82,7 +96,6 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
             state={{ _scrollToTop: true }}
             primaryText={"API Keys"}
             leftIcon={<KeyIcon />}
-            // className="rounded-r-xl pl-10 py-3 hover:bg-[#fabe79] hover:text-white"
             className={`${
               open ? "pl-10" : "pl-4"
             } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
