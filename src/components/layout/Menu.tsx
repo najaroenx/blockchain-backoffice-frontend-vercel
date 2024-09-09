@@ -3,10 +3,24 @@ import { useSidebarState, MenuProps, MenuItemLink } from "react-admin";
 import { DashboardMenuItem } from "../customs/DashboardMenuItem";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
 import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
+import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+
 import KeyIcon from "@mui/icons-material/KeyOutlined";
+import SubMenu from "./SubMenu";
+import { useState } from "react";
+
+type MenuName = "menuSetting";
 
 export const CustomMenu = ({ dense = false }: MenuProps) => {
   const [open] = useSidebarState();
+
+  const [state, setState] = useState({
+    menuSetting: true,
+  });
+
+  const handleToggle = (menu: MenuName) => {
+    setState((state) => ({ ...state, [menu]: !state[menu] }));
+  };
 
   const menuItemStyle = {
     "&.RaMenuItemLink-active": {
@@ -56,15 +70,26 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
           sx={menuItemStyle}
         />
 
-        <MenuItemLink
-          to="/api-key"
-          state={{ _scrollToTop: true }}
-          primaryText={"API Keys"}
-          leftIcon={<KeyIcon />}
-          className="rounded-r-xl px-3 py-3 hover:bg-[#fabe79] hover:text-white"
+        <SubMenu
+          handleToggle={() => handleToggle("menuSetting")}
+          isOpen={state.menuSetting}
+          name="Setting"
+          icon={<SettingsOutlined />}
           dense={dense}
-          sx={menuItemStyle}
-        />
+        >
+          <MenuItemLink
+            to="/api-key"
+            state={{ _scrollToTop: true }}
+            primaryText={"API Keys"}
+            leftIcon={<KeyIcon />}
+            // className="rounded-r-xl pl-10 py-3 hover:bg-[#fabe79] hover:text-white"
+            className={`${
+              open ? "pl-10" : "pl-4"
+            } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
+            dense={dense}
+            sx={menuItemStyle}
+          />
+        </SubMenu>
       </div>
     </div>
   );
