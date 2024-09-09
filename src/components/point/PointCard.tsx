@@ -19,7 +19,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress }) => {
             {name}
           </p>
         </div>
-        <p className="block font-sans text-sm font-normal text-gray-700 opacity-75">
+        <p className="block font-sans text-sm font-normal text-gray-700 opacity-75 overflow-hidden text-ellipsis whitespace-nowrap">
           {contractAddress}
         </p>
       </div>
