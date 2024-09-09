@@ -10,6 +10,7 @@ import PointList from "../point/PointList";
 import { PointCreate } from "../point";
 import MerchantList from "../merchant/MerchantList";
 import { MerchantCreate } from "../merchant";
+import { ApiKeyCreate, ApiKeyList } from "../api-key";
 
 const dataProvider = jsonServerProvider("/api");
 
@@ -27,6 +28,7 @@ const AdminApp = () => {
     >
       <Resource name="point" list={PointList} create={PointCreate} />
       <Resource name="merchant" list={MerchantList} create={MerchantCreate} />
+      <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
     </Admin>
   );
 };
