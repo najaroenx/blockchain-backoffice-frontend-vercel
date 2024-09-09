@@ -5,7 +5,7 @@ import { Login } from "../layout/Login";
 import { authProvider } from "./authProvider";
 import { useSession } from "next-auth/react";
 import { CustomLayout } from "../layout/Layout";
-import { Index } from "../dashboard";
+import { Dashboard } from "../dashboard/Dashboard";
 import PointList from "../point/PointList";
 import { PointCreate } from "../point";
 import MerchantList from "../merchant/MerchantList";
@@ -24,7 +24,7 @@ const AdminApp = () => {
       loginPage={Login}
       authProvider={authProvider(session)}
       layout={CustomLayout}
-      dashboard={Index}
+      dashboard={Dashboard}
     >
       <Resource name="point" list={PointList} create={PointCreate} />
       <Resource name="merchant" list={MerchantList} create={MerchantCreate} />

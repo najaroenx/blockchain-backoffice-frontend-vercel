@@ -12,7 +12,7 @@ import {
 import { TopHolderTable } from "./widget/TopHolderTable";
 import { TopBranchStaticsChart } from "./widget/TopBranchStaticsChart";
 
-export const Index = () => {
+export const Dashboard = () => {
   return (
     <div className="bg-slate-100 h-full max-w-sm md:max-w-full">
       <div className="container mx-auto px-5 py-10">
