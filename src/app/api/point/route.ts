@@ -11,9 +11,20 @@ export async function GET(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = session.user.id as string;
+    // const userId = session.user.id as string;
 
-    const response = await fetch(`${BACKEND_URL}/point/${userId}`, {
+    const merchantId = req.headers.get("Merchant-Id");
+
+    if (!merchantId) {
+      return Response.json([], {
+        headers: {
+          "X-Total-Count": "0",
+          "Access-Control-Expose-Headers": "X-Total-Count",
+        },
+      });
+    }
+
+    const response = await fetch(`${BACKEND_URL}/point/${merchantId}`, {
       method: "get",
     });
 
