@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
+import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -13,11 +14,12 @@ export async function GET(req: Request) {
 
     const userId = session.user.id as string;
 
-    const response = await fetch(`${BACKEND_URL}/merchant/${userId}`, {
-      method: "get",
-    });
-
-    const { merchants, counts } = await response.json();
+    const { merchants, counts } = await api(
+      `${BACKEND_URL}/merchant/${userId}`,
+      {
+        method: "GET",
+      }
+    );
 
     return Response.json(merchants, {
       headers: {
@@ -41,15 +43,12 @@ export async function POST(req: Request) {
 
     const userId = session.user.id as string;
 
-    await fetch(`${BACKEND_URL}/merchant`, {
+    await api(`${BACKEND_URL}/merchant`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         ...body,
         userId,
-      }),
+      },
     });
 
     return Response.json({ message: "success" }, { status: 200 });

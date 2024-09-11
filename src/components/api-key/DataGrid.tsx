@@ -15,7 +15,14 @@ const LoadedDataGrid = () => {
   return (
     <div className="px-5 py-5 bg-white rounded-lg shadow-lg">
       <Datagrid bulkActionButtons={false}>
-        <TextField source="name" label="Name" />
+        <TextField source="name" label="Name" className="font-bold" />
+        <TextField
+          source="description"
+          label="Description"
+          emptyText="-"
+          className="font-bold"
+        />
+        <TextField source="apiKey" label="API Key" className="font-bold" />
       </Datagrid>
     </div>
   );

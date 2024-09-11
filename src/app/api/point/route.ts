@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
+import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -24,11 +25,9 @@ export async function GET(req: Request) {
       });
     }
 
-    const response = await fetch(`${BACKEND_URL}/point/${merchantId}`, {
-      method: "get",
+    const { points, counts } = await api(`${BACKEND_URL}/point/${merchantId}`, {
+      method: "GET",
     });
-
-    const { points, counts } = await response.json();
 
     return Response.json(points, {
       headers: {
@@ -46,14 +45,11 @@ export async function POST(req: Request) {
   try {
     // TODO: authorize user before create point
 
-    await fetch(`${BACKEND_URL}/point`, {
+    await api(`${BACKEND_URL}/point`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         ...body,
-      }),
+      },
     });
 
     return Response.json({ message: "success" }, { status: 200 });
