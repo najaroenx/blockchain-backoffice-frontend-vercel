@@ -1,10 +1,15 @@
 import { api } from "@/libs/api";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/options";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: Request) {
   try {
     const merchantId = req.headers.get("Merchant-Id");
+
+    const session = await getServerSession(authOptions);
+    const token = session?.user.accessToken;
 
     if (!merchantId) {
       return Response.json([], {
@@ -19,6 +24,9 @@ export async function GET(req: Request) {
       `${BACKEND_URL}/api-key/${merchantId}`,
       {
         method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 

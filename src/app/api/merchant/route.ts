@@ -1,23 +1,23 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
 import { api } from "@/libs/api";
+import { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id as string;
+    const userId = session?.user.id;
+    const token = session?.user.accessToken;
 
     const { merchants, counts } = await api(
       `${BACKEND_URL}/merchant/${userId}`,
       {
         method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 

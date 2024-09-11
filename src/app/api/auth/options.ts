@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
           process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
         try {
-          const response = await fetch(`${BACKEND_URL}/user/login`, {
+          const response = await fetch(`${BACKEND_URL}/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -25,13 +25,18 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
-          const user = await response.json();
-
-          if (user) {
-            return { id: user.id, email: user.email };
-          } else {
+          if (!response.ok) {
             return null;
           }
+
+          const { accessToken, userId } = await response.json();
+
+          const user = {
+            accessToken,
+            id: userId,
+          };
+
+          return user;
         } catch (e) {
           return null;
         }
@@ -44,24 +49,20 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 1 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (account && user) {
         token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }: { session: any; token: any }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.image = "https://www.fillmurray.com/128/128";
+        token.accessToken = user.accessToken;
       }
 
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.accessToken = token.accessToken as string;
       return session;
     },
   },

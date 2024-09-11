@@ -7,12 +7,7 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session?.user.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // const userId = session.user.id as string;
+    const token = session?.user.accessToken;
 
     const merchantId = req.headers.get("Merchant-Id");
 
@@ -27,6 +22,9 @@ export async function GET(req: Request) {
 
     const { points, counts } = await api(`${BACKEND_URL}/point/${merchantId}`, {
       method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     return Response.json(points, {
