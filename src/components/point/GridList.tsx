@@ -1,11 +1,11 @@
 import * as React from "react";
-import { useListContext } from "react-admin";
+import { Loading, useListContext } from "react-admin";
 import { PointCard } from "./PointCard";
 import { Empty } from "../layout/Empty";
 
 export const GridList = () => {
   const { isPending } = useListContext();
-  return isPending ? null : <LoadedGridList />;
+  return isPending ? <Loading /> : <LoadedGridList />;
 };
 
 const LoadedGridList = () => {

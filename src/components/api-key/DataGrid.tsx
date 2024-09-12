@@ -1,10 +1,11 @@
 import * as React from "react";
 import { TextField, useListContext, Datagrid } from "react-admin";
 import { Empty } from "../layout/Empty";
+import { Loading } from "../layout/Loading";
 
 export const DataGrid = () => {
   const { isPending } = useListContext();
-  return isPending ? null : <LoadedDataGrid />;
+  return isPending ? <Loading /> : <LoadedDataGrid />;
 };
 
 const LoadedDataGrid = () => {

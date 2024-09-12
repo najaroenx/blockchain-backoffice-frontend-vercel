@@ -2,10 +2,11 @@ import * as React from "react";
 import { useListContext } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { MerchantCard } from "./MerchantCard";
+import { Loading } from "../layout/Loading";
 
 export const GridList = () => {
   const { isPending } = useListContext();
-  return isPending ? null : <LoadedGridList />;
+  return isPending ? <Loading /> : <LoadedGridList />;
 };
 
 const LoadedGridList = () => {
