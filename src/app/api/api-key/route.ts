@@ -46,6 +46,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const merchantId = req.headers.get("Merchant-Id");
 
+    const session = await getServerSession(authOptions);
+    const token = session?.user.accessToken;
+
     if (!merchantId) {
       return Response.json({ error: "Bad Request" }, { status: 400 });
     }
@@ -54,6 +57,9 @@ export async function POST(req: Request) {
       method: "POST",
       body: {
         ...body,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     });
 

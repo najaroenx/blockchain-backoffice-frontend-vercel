@@ -39,14 +39,17 @@ export async function GET(req: Request) {
 }
 export async function POST(req: Request) {
   const body = await req.json();
+  const session = await getServerSession(authOptions);
+  const token = session?.user.accessToken;
 
   try {
-    // TODO: authorize user before create point
-
     await api(`${BACKEND_URL}/point`, {
       method: "POST",
       body: {
         ...body,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     });
 

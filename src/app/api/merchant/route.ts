@@ -33,21 +33,19 @@ export async function GET(req: NextRequest) {
 }
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
     const body = await req.json();
-
-    if (!session?.user.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id as string;
+    const session = await getServerSession(authOptions);
+    const token = session?.user.accessToken;
+    const userId = session?.user.id;
 
     await api(`${BACKEND_URL}/merchant`, {
       method: "POST",
       body: {
         ...body,
         userId,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
     });
 
