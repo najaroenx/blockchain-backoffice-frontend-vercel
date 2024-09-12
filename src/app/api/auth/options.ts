@@ -1,5 +1,43 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
+import { jwtDecode } from "jwt-decode";
+import type { JWT } from "next-auth/jwt";
+import { api } from "@/libs/api";
+
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  try {
+    // Get a new access token from backend using the refresh token
+    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: token.data.refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      return token;
+    }
+
+    const { accessToken } = await response.json();
+
+    const access = jwtDecode(accessToken) as any;
+
+    token.data.valid_until = access.exp;
+    token.data.accessToken = accessToken;
+
+    return token;
+  } catch (error) {
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -29,11 +67,16 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          const { accessToken, userId } = await response.json();
+          const { accessToken, refreshToken } = await response.json();
+
+          const access = jwtDecode(accessToken) as any;
 
           const user = {
+            id: access.id,
+            email: access.email,
             accessToken,
-            id: userId,
+            refreshToken,
+            valid_until: access.exp,
           };
 
           return user;
@@ -54,15 +97,23 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, account }) {
       if (account && user) {
-        token.id = user.id;
-        token.accessToken = user.accessToken;
+        return { ...token, data: user };
       }
 
-      return token;
+      if (Date.now() < token.data.valid_until * 1000) {
+        return token;
+      }
+
+      if (Date.now() > token.data.valid_until * 1000) {
+        await refreshAccessToken(token);
+        return token;
+      }
+
+      return { ...token, error: "RefreshTokenExpired" } as JWT;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.accessToken = token.accessToken as string;
+      session.user.id = token.data.id as string;
+      session.user.accessToken = token.data.accessToken as string;
       return session;
     },
   },
