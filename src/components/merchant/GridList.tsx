@@ -16,13 +16,15 @@ const LoadedGridList = () => {
 
   return (
     <div className="flex flex-row flex-wrap py-5 gap-5 items-center">
-      {data.map((record) => (
-        <MerchantCard
-          key={record.id}
-          name={record.name}
-          website={record.website}
-        />
-      ))}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+        {data.map((record) => (
+          <MerchantCard
+            key={record.id}
+            name={record.name}
+            website={record.website}
+          />
+        ))}
+      </div>
     </div>
   );
 };

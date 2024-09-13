@@ -14,8 +14,18 @@ const LoadedDataGrid = () => {
   if (!data || data.length === 0) return <Empty />;
 
   return (
-    <div className="px-5 py-5 bg-white rounded-lg shadow-lg">
-      <Datagrid bulkActionButtons={false}>
+    <div className="py-5 bg-white rounded-lg shadow-lg">
+      <Datagrid
+        bulkActionButtons={false}
+        sx={{
+          "& .MuiDataGrid-columnSeparator:not(.MuiDataGrid-columnSeparator--resizable)":
+            {
+              display: "none !important",
+            },
+          maxWidth: { md: "1100px", xl: "1440px" },
+        }}
+        className="mx-auto"
+      >
         <TextField source="name" label="Name" className="font-bold" />
         <TextField
           source="description"

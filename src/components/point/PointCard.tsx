@@ -5,7 +5,7 @@ interface Props {
 
 export const PointCard: React.FC<Props> = ({ name, contractAddress }) => {
   return (
-    <div className="relative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-full md:w-1/3 px-5">
+    <div className="relative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-full px-5">
       <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white bg-clip-border rounded-xl h-44">
         <img
           src="https://media.discordapp.net/attachments/1033975412444893264/1072422794983378974/Component_4.png?ex=66df504e&is=66ddfece&hm=0cbe457939b17f6a98dee84d9e9b80aad61ad79842c863959cf0fae169530a3c&=&format=webp&quality=lossless&width=1170&height=1170"
