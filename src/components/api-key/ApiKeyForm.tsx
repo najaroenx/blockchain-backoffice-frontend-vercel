@@ -1,4 +1,5 @@
 import { TextInput, NumberInput, required } from "react-admin";
+import MerchantReferenceInput from "../merchant/MerchantReferenceInput";
 
 const styleTextField = {
   "& .MuiOutlinedInput-root": {

@@ -4,9 +4,10 @@ import { DashboardMenuItem } from "../customs/DashboardMenuItem";
 
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
 import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
-import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+// import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
 import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
+import ViewModuleIcon from "@mui/icons-material/ViewModuleOutlined";
 
 import SubMenu from "./SubMenu";
 import { useState, Suspense } from "react";
@@ -56,15 +57,40 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-1"></div>
           <DashboardMenuItem className="font-black " />
-          <MenuItemLink
-            to="/merchant"
-            state={{ _scrollToTop: true }}
-            primaryText={"Merchants"}
-            leftIcon={<StorefrontIcon />}
-            className="rounded-r-xl px-3 py-3 hover:bg-[#fabe79] hover:text-white"
+
+          <SubMenu
+            handleToggle={() => handleToggle("menuSetting")}
+            isOpen={state.menuSetting}
+            name="Merchant Module"
+            icon={<ViewModuleIcon />}
             dense={dense}
-            sx={menuItemStyle}
-          />
+          >
+            <div className="flex flex-col gap-y-3">
+              <MenuItemLink
+                to="/merchant"
+                state={{ _scrollToTop: true }}
+                primaryText={"Merchants"}
+                leftIcon={<StorefrontIcon />}
+                className={`${
+                  open ? "pl-10" : "pl-4"
+                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
+                dense={dense}
+                sx={menuItemStyle}
+              />
+
+              <MenuItemLink
+                to="/api-key"
+                state={{ _scrollToTop: true }}
+                primaryText={"API Keys"}
+                leftIcon={<KeyIcon />}
+                className={`${
+                  open ? "pl-10" : "pl-4"
+                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
+                dense={dense}
+                sx={menuItemStyle}
+              />
+            </div>
+          </SubMenu>
 
           <SubMenu
             handleToggle={() => handleToggle("menuLoyalty")}
@@ -78,26 +104,6 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
               state={{ _scrollToTop: true }}
               primaryText={"Points"}
               leftIcon={<MonetizationOnIcon />}
-              className={`${
-                open ? "pl-10" : "pl-4"
-              } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
-              dense={dense}
-              sx={menuItemStyle}
-            />
-          </SubMenu>
-
-          <SubMenu
-            handleToggle={() => handleToggle("menuSetting")}
-            isOpen={state.menuSetting}
-            name="Setting"
-            icon={<SettingsOutlined />}
-            dense={dense}
-          >
-            <MenuItemLink
-              to="/api-key"
-              state={{ _scrollToTop: true }}
-              primaryText={"API Keys"}
-              leftIcon={<KeyIcon />}
               className={`${
                 open ? "pl-10" : "pl-4"
               } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
