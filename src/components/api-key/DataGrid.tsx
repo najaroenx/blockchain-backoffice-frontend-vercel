@@ -2,6 +2,7 @@ import * as React from "react";
 import { TextField, useListContext, Datagrid } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
+import MerchantReferenceField from "../merchant/MerchantReferenceField";
 
 export const DataGrid = () => {
   const { isPending } = useListContext();
@@ -34,6 +35,7 @@ const LoadedDataGrid = () => {
           className="font-bold"
         />
         <TextField source="apiKey" label="API Key" className="font-bold" />
+        <MerchantReferenceField />
       </Datagrid>
     </div>
   );

@@ -58,39 +58,15 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
           <div className="flex flex-1"></div>
           <DashboardMenuItem className="font-black " />
 
-          <SubMenu
-            handleToggle={() => handleToggle("menuSetting")}
-            isOpen={state.menuSetting}
-            name="Merchant Module"
-            icon={<ViewModuleIcon />}
+          <MenuItemLink
+            to="/merchant"
+            state={{ _scrollToTop: true }}
+            primaryText={"Merchants"}
+            leftIcon={<StorefrontIcon />}
+            className="rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white"
             dense={dense}
-          >
-            <div className="flex flex-col gap-y-3">
-              <MenuItemLink
-                to="/merchant"
-                state={{ _scrollToTop: true }}
-                primaryText={"Merchants"}
-                leftIcon={<StorefrontIcon />}
-                className={`${
-                  open ? "pl-10" : "pl-4"
-                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
-                dense={dense}
-                sx={menuItemStyle}
-              />
-
-              <MenuItemLink
-                to="/api-key"
-                state={{ _scrollToTop: true }}
-                primaryText={"API Keys"}
-                leftIcon={<KeyIcon />}
-                className={`${
-                  open ? "pl-10" : "pl-4"
-                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
-                dense={dense}
-                sx={menuItemStyle}
-              />
-            </div>
-          </SubMenu>
+            sx={menuItemStyle}
+          />
 
           <SubMenu
             handleToggle={() => handleToggle("menuLoyalty")}
@@ -110,6 +86,28 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
               dense={dense}
               sx={menuItemStyle}
             />
+          </SubMenu>
+
+          <SubMenu
+            handleToggle={() => handleToggle("menuSetting")}
+            isOpen={state.menuSetting}
+            name="Setting"
+            icon={<ViewModuleIcon />}
+            dense={dense}
+          >
+            <div className="flex flex-col gap-y-3">
+              <MenuItemLink
+                to="/api-key"
+                state={{ _scrollToTop: true }}
+                primaryText={"API Keys"}
+                leftIcon={<KeyIcon />}
+                className={`${
+                  open ? "pl-10" : "pl-4"
+                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
+                dense={dense}
+                sx={menuItemStyle}
+              />
+            </div>
           </SubMenu>
         </div>
       </Suspense>
