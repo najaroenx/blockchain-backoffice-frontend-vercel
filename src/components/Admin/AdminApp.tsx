@@ -46,6 +46,7 @@ const AdminApp = () => {
       <Resource name="point" list={PointList} create={PointCreate} />
       <Resource name="merchant" list={MerchantList} create={MerchantCreate} />
       <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
+      <Resource name="transaction" />
     </Admin>
   );
 };

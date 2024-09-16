@@ -11,8 +11,23 @@ import {
 } from "@heroicons/react/24/solid";
 import { TopHolderTable } from "./widget/TopHolderTable";
 import { TopBranchStaticsChart } from "./widget/TopBranchStaticsChart";
+import { useGetList } from "react-admin";
+import { useMemo } from "react";
+
+interface State {
+  transactions?: any[];
+}
 
 export const Dashboard = () => {
+  const { data: transactions } = useGetList<any>("transaction");
+
+  const aggregation = useMemo<State>(() => {
+    if (!transactions) return {};
+    return {
+      transactions,
+    };
+  }, [transactions]);
+
   return (
     <div className="bg-slate-100 h-full max-w-sm md:max-w-full">
       <div className="container mx-auto px-5 py-10">
@@ -88,9 +103,9 @@ export const Dashboard = () => {
           </div>
         </div>
         <div className="flex flex-col bg-white w-full py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
-          <h6 className="font-medium text-black">Point transactions</h6>
+          <h6 className="font-medium text-black">Transactions</h6>
           <div className="flex w-full justify-center">
-            <PointTransactionTable />
+            <PointTransactionTable transactions={aggregation.transactions} />
           </div>
         </div>
       </div>
