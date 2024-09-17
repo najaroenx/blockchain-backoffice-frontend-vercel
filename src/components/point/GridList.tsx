@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Loading, useListContext } from "react-admin";
+import { Loading, useListContext, RecordContextProvider } from "react-admin";
 import { PointCard } from "./PointCard";
 import { Empty } from "../layout/Empty";
 
@@ -17,11 +17,14 @@ const LoadedGridList = () => {
     <div className="flex flex-row flex-wrap py-5 gap-3 items-center">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {data.map((record) => (
-          <PointCard
-            key={record.id}
-            name={record.name}
-            contractAddress={record.contractAddress}
-          />
+          <RecordContextProvider key={record.id} value={record}>
+            <PointCard
+              id={record.id}
+              key={record.id}
+              name={record.name}
+              contractAddress={record.contractAddress}
+            />
+          </RecordContextProvider>
         ))}
       </div>
     </div>

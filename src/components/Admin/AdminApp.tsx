@@ -12,6 +12,7 @@ import { PointCreate } from "../point";
 import MerchantList from "../merchant/MerchantList";
 import { MerchantCreate } from "../merchant";
 import { ApiKeyCreate, ApiKeyList } from "../api-key";
+import { PointEdit } from "../point/PointEdit";
 
 const fetchJson = (url: string, options: fetchUtils.Options = {}) => {
   const customHeaders = (options.headers ||
@@ -43,7 +44,12 @@ const AdminApp = () => {
       dashboard={Dashboard}
       store={localStorageStore()}
     >
-      <Resource name="point" list={PointList} create={PointCreate} />
+      <Resource
+        name="point"
+        list={PointList}
+        create={PointCreate}
+        edit={PointEdit}
+      />
       <Resource name="merchant" list={MerchantList} create={MerchantCreate} />
       <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
       <Resource name="transaction" />

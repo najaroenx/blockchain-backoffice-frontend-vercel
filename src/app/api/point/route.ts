@@ -20,12 +20,15 @@ export async function GET(req: Request) {
       });
     }
 
-    const { points, counts } = await api(`${BACKEND_URL}/point/${merchantId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const { points, counts } = await api(
+      `${BACKEND_URL}/${merchantId}/point/`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return Response.json(points, {
       headers: {
@@ -42,8 +45,14 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const token = session?.user.accessToken;
 
+  const merchantId = req.headers.get("Merchant-Id");
+
+  if (!merchantId) {
+    return Response.json({ message: "bad request" }, { status: 400 });
+  }
+
   try {
-    await api(`${BACKEND_URL}/point`, {
+    await api(`${BACKEND_URL}/${merchantId}/point`, {
       method: "POST",
       body: {
         ...body,
@@ -53,7 +62,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json({ message: "success" }, { status: 200 });
+    return Response.json({ message: "success" }, { status: 201 });
   } catch (error) {
     console.log(error);
     return Response.json({ error: "failed to load data" }, { status: 500 });

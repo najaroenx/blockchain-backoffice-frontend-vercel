@@ -1,5 +1,4 @@
 import { TextInput, NumberInput, required } from "react-admin";
-import MerchantReferenceInput from "../merchant/MerchantReferenceInput";
 
 const styleTextField = {
   "& .MuiOutlinedInput-root": {
@@ -17,7 +16,11 @@ const styleTextField = {
   },
 };
 
-export const PointForm = () => {
+interface Props {
+  isCreate: boolean;
+}
+
+export const PointForm = ({ isCreate = true }: Props) => {
   return (
     <div className="flex flex-col w-full gap-5">
       <div className="flex flex-row gap-3 items-center">
@@ -35,6 +38,7 @@ export const PointForm = () => {
           variant="outlined"
           validate={[required()]}
           sx={styleTextField}
+          disabled={!isCreate}
         />
 
         <TextInput
@@ -44,6 +48,7 @@ export const PointForm = () => {
           variant="outlined"
           validate={[required()]}
           sx={styleTextField}
+          disabled={!isCreate}
         />
         <NumberInput
           source="initialSupply"
@@ -53,6 +58,7 @@ export const PointForm = () => {
           label="Initial Supply"
           variant="outlined"
           sx={styleTextField}
+          disabled={!isCreate}
         />
         <NumberInput
           source="decimal"
@@ -62,6 +68,7 @@ export const PointForm = () => {
           onWheel={(e: any) => e.target.blur()}
           variant="outlined"
           sx={styleTextField}
+          disabled={!isCreate}
         />
       </div>
 
@@ -92,17 +99,6 @@ export const PointForm = () => {
           variant="outlined"
           sx={styleTextField}
         />
-      </div>
-
-      <div className="flex flex-row gap-3 items-center">
-        <p className="w-10 h-10 px-2 py-2 rounded-full bg-[#FF8901] text-white font-semibold text-center">
-          3
-        </p>
-        <p className="text-[#1C2A53] font-semibold">Select Merchant</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-        <MerchantReferenceInput />
       </div>
 
       <hr className="border-slate-200" />
