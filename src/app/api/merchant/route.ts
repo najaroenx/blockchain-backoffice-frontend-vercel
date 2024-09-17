@@ -8,18 +8,14 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    const userId = session?.user.id;
     const token = session?.user.accessToken;
 
-    const { merchants, counts } = await api(
-      `${BACKEND_URL}/merchant/${userId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const { merchants, counts } = await api(`${BACKEND_URL}/merchant`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return Response.json(merchants, {
       headers: {
