@@ -1,4 +1,4 @@
-import { SimpleForm, Create, EditProps, Edit } from "react-admin";
+import { SimpleForm, EditProps, Edit } from "react-admin";
 import { PointForm } from "./PointForm";
 import { CreateContainer } from "../layout/CreateContainer";
 import { SaveToolbar } from "../customs/SaveToolbar";
