@@ -8,9 +8,14 @@ export const PointEdit = (props: EditProps) => {
     <div className="bg-slate-100 h-full max-w-sm md:max-w-full">
       <div className="container mx-auto px-5 py-10">
         <h1 className="font-medium text-xl text-[#1C2A53] pb-5 md:pb-0">
-          Edit Point Token
+          Edit Point
         </h1>
-        <Edit {...props} component={CreateContainer} title={false}>
+        <Edit
+          {...props}
+          component={CreateContainer}
+          title={false}
+          actions={false}
+        >
           <SimpleForm toolbar={<SaveToolbar />}>
             <PointForm isCreate={false} />
           </SimpleForm>

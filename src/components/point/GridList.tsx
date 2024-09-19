@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Loading, useListContext, RecordContextProvider } from "react-admin";
+import { useListContext, RecordContextProvider } from "react-admin";
 import { PointCard } from "./PointCard";
 import { Empty } from "../layout/Empty";
+import { Loading } from "../layout/Loading";
 
 export const GridList = () => {
   const { isPending } = useListContext();

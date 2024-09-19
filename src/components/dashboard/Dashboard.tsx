@@ -19,7 +19,7 @@ interface State {
 }
 
 export const Dashboard = () => {
-  const { data: transactions } = useGetList<any>("transaction");
+  const { data: transactions, isLoading } = useGetList<any>("transaction");
 
   const aggregation = useMemo<State>(() => {
     if (!transactions) return {};
@@ -105,7 +105,10 @@ export const Dashboard = () => {
         <div className="flex flex-col bg-white w-full py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Transactions</h6>
           <div className="flex w-full justify-center">
-            <PointTransactionTable transactions={aggregation.transactions} />
+            <PointTransactionTable
+              isLoading={isLoading}
+              transactions={aggregation.transactions}
+            />
           </div>
         </div>
       </div>

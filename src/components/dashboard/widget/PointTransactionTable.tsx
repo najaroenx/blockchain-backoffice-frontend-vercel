@@ -1,9 +1,9 @@
 import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Transaction } from "../types/transaction.type";
+import moment from "moment";
 
 const columns: GridColDef<Transaction>[] = [
-  { field: "id", headerName: "ID", width: 250, resizable: false },
   {
     field: "email",
     headerName: "Email",
@@ -42,17 +42,29 @@ const columns: GridColDef<Transaction>[] = [
     editable: false,
     resizable: false,
   },
+  {
+    field: "createdAt",
+    headerName: "Date",
+    valueFormatter: (params: any) =>
+      moment(new Date(params)).format("DD/MM/YYYY"),
+    width: 110,
+    editable: false,
+    resizable: false,
+  },
 ];
 
 interface Props {
   transactions: Transaction[] | [] | undefined;
+  isLoading: boolean;
 }
 
-export const PointTransactionTable: React.FC<Props> = ({ transactions }) => {
-  console.log(transactions);
-
+export const PointTransactionTable: React.FC<Props> = ({
+  transactions,
+  isLoading,
+}) => {
   return (
     <DataGrid
+      loading={isLoading}
       rows={transactions}
       columns={columns}
       initialState={{
@@ -60,6 +72,9 @@ export const PointTransactionTable: React.FC<Props> = ({ transactions }) => {
           paginationModel: {
             pageSize: 10,
           },
+        },
+        sorting: {
+          sortModel: [{ field: "createdAt", sort: "desc" }],
         },
       }}
       pageSizeOptions={[10]}
