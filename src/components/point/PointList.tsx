@@ -9,7 +9,7 @@ const PointList = () => {
         <div className="flex flex-col">
           {/* <ListBase perPage={24} sort={{ field: "reference", order: "ASC" }}> */}
           <ListBase>
-            <ListActions />
+            <ListActions title="Points" />
             <GridList />
           </ListBase>
         </div>
