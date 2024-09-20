@@ -73,6 +73,7 @@ export const SendPointDialog: React.FC<SendPointDialogProps> = (props) => {
             </FormControl>
             <div className="w-full flex justify-between gap-4">
               <button
+                type="button"
                 onClick={onCancel}
                 disabled={loading}
                 className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
