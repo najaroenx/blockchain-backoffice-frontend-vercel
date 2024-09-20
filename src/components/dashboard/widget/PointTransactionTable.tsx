@@ -55,16 +55,11 @@ const columns: GridColDef<Transaction>[] = [
 
 interface Props {
   transactions: Transaction[] | [] | undefined;
-  isLoading: boolean;
 }
 
-export const PointTransactionTable: React.FC<Props> = ({
-  transactions,
-  isLoading,
-}) => {
+export const PointTransactionTable: React.FC<Props> = ({ transactions }) => {
   return (
     <DataGrid
-      loading={isLoading}
       rows={transactions}
       columns={columns}
       initialState={{

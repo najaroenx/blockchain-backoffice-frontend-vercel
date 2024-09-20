@@ -26,27 +26,6 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
     setState((state) => ({ ...state, [menu]: !state[menu] }));
   };
 
-  const menuItemStyle = {
-    "&.RaMenuItemLink-active": {
-      color: "white",
-      backgroundColor: "#FF8901",
-      ":hover": {
-        color: "white",
-      },
-      "& .RaMenuItemLink-icon": {
-        color: "white",
-      },
-    },
-    "&:hover": {
-      "& .RaMenuItemLink-icon": {
-        color: "white",
-      },
-    },
-    "& .RaMenuItemLink-icon": {
-      color: "black",
-    },
-  };
-
   return (
     <div
       className={`transition-width ${
@@ -113,4 +92,25 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
       </Suspense>
     </div>
   );
+};
+
+const menuItemStyle = {
+  "&.RaMenuItemLink-active": {
+    color: "white",
+    backgroundColor: "#FF8901",
+    ":hover": {
+      color: "white",
+    },
+    "& .RaMenuItemLink-icon": {
+      color: "white",
+    },
+  },
+  "&:hover": {
+    "& .RaMenuItemLink-icon": {
+      color: "white",
+    },
+  },
+  "& .RaMenuItemLink-icon": {
+    color: "black",
+  },
 };

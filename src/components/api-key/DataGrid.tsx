@@ -5,14 +5,11 @@ import { Loading } from "../layout/Loading";
 import MerchantReferenceField from "../merchant/MerchantReferenceField";
 
 export const DataGrid = () => {
-  const { isPending } = useListContext();
-  return isPending ? <Loading /> : <LoadedDataGrid />;
-};
+  const { data, isPending } = useListContext();
 
-const LoadedDataGrid = () => {
-  const { data } = useListContext();
+  if (isPending) return <Loading />;
 
-  if (!data || data.length === 0) return <Empty />;
+  if (!data || data.length === 0) return <Empty isMerchant={false} />;
 
   return (
     <div className="py-5 bg-white rounded-lg shadow-lg">

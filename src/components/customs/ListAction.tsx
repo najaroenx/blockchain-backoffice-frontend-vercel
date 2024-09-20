@@ -1,0 +1,20 @@
+import { TopToolbar, CreateButton } from "react-admin";
+import { useStore } from "react-admin";
+
+export const ListActions = () => {
+  const [merchant] = useStore("currentMerchant");
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between">
+        <h1 className="font-medium text-2xl text-[#1C2A53]">Points</h1>
+        <TopToolbar className="bg-slate-100">
+          {merchant && (
+            <CreateButton className="py-3 px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a]" />
+          )}
+        </TopToolbar>
+      </div>
+      <hr className="border-slate-200 border-2" />
+    </div>
+  );
+};

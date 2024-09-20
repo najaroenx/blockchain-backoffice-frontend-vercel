@@ -5,14 +5,11 @@ import { MerchantCard } from "./MerchantCard";
 import { Loading } from "../layout/Loading";
 
 export const GridList = () => {
-  const { isPending } = useListContext();
-  return isPending ? <Loading /> : <LoadedGridList />;
-};
+  const { data, isPending } = useListContext();
 
-const LoadedGridList = () => {
-  const { data } = useListContext();
+  if (isPending) return <Loading />;
 
-  if (!data || data.length === 0) return <Empty />;
+  if (!data || data.length === 0) return <Empty isMerchant={true} />;
 
   return (
     <div className="flex flex-row flex-wrap py-5 gap-5 items-center">
