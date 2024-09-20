@@ -11,7 +11,7 @@ import TextField from "@mui/material/TextField";
 interface SendPointDialogProps {
   onCancel: () => void;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onConfirm: () => void;
+  onConfirm: (e: React.FormEvent<HTMLFormElement>) => void;
   open: boolean;
   loading?: boolean;
 }

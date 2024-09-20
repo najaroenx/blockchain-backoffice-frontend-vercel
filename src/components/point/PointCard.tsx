@@ -55,10 +55,15 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
     handleOpen();
   }, [handleOpen]);
 
-  const handleConfirm = useCallback(() => {
-    if (mutation.isPending) return;
-    mutation.mutate();
-  }, []);
+  const handleConfirm = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (mutation.isPending) return;
+      mutation.mutate();
+    },
+    []
+  );
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({
