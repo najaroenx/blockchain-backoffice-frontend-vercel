@@ -17,26 +17,33 @@ import { Loading } from "../layout/Loading";
 
 interface State {
   transactions?: any[];
+  customers?: any[];
 }
 
 export const Dashboard = () => {
   const { data: transactions, isLoading: transactionLoading } =
     useGetList<any>("transaction");
 
+  const { data: customers, isLoading: customerLoading } =
+    useGetList<any>("customer");
+
   const aggregation = useMemo<State>(() => {
-    if (!transactions) return {};
+    if (!transactions && !customers) return {};
     return {
       transactions,
+      customers,
     };
-  }, [transactions]);
+  }, [transactions, customers]);
 
-  if (transactionLoading) return <Loading />;
+  if (transactionLoading || customerLoading) return <Loading />;
 
   return (
     <div className="bg-slate-100 h-full max-w-sm md:max-w-full">
       <div className="container mx-auto px-5 py-10">
         <div className="flex flex-col">
-          <h1 className="font-medium text-2xl text-[#1C2A53]">Dashboard</h1>
+          <h1 className="font-medium text-2xl text-[#1C2A53] py-3">
+            Dashboard
+          </h1>
           <div className="flex flex-wrap md:flex-nowrap mt-5 gap-4">
             <StaticCard
               logo={
@@ -45,7 +52,7 @@ export const Dashboard = () => {
                 </>
               }
               title="Customer Wallets"
-              value={1000}
+              value={aggregation.customers?.length || 0}
             />
             <StaticCard
               logo={
@@ -54,7 +61,7 @@ export const Dashboard = () => {
                 </>
               }
               title="Today's Transactions"
-              value={1000}
+              value={aggregation.transactions?.length || 0}
             />
             <StaticCard
               logo={

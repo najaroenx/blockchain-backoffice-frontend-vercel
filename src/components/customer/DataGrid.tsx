@@ -2,7 +2,6 @@ import * as React from "react";
 import { TextField, useListContext, Datagrid } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
-import MerchantReferenceField from "../merchant/MerchantReferenceField";
 
 export const DataGrid = () => {
   const { data, isPending } = useListContext();
@@ -24,15 +23,25 @@ export const DataGrid = () => {
         }}
         className="mx-auto"
       >
-        <TextField source="name" label="Name" className="font-bold" />
+        <TextField source="email" label="Email" className="font-bold" />
         <TextField
-          source="description"
-          label="Description"
+          source="walletAddress"
+          label="Wallet Address"
           emptyText="-"
           className="font-bold"
         />
-        <TextField source="apiKey" label="API Key" className="font-bold" />
-        <MerchantReferenceField />
+        <TextField
+          source="firstName"
+          label="First Name"
+          className="font-bold"
+          emptyText="-"
+        />
+        <TextField
+          source="lastName"
+          label="Last Name"
+          className="font-bold"
+          emptyText="-"
+        />
       </Datagrid>
     </div>
   );

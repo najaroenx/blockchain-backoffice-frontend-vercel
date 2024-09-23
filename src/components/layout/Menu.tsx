@@ -8,6 +8,7 @@ import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
 import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
 import ViewModuleIcon from "@mui/icons-material/ViewModuleOutlined";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutlined";
 
 import SubMenu from "./SubMenu";
 import { useState, Suspense } from "react";
@@ -42,6 +43,16 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
             state={{ _scrollToTop: true }}
             primaryText={"Merchants"}
             leftIcon={<StorefrontIcon />}
+            className="rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white"
+            dense={dense}
+            sx={menuItemStyle}
+          />
+
+          <MenuItemLink
+            to="/customer"
+            state={{ _scrollToTop: true }}
+            primaryText={"Customers"}
+            leftIcon={<PersonOutlineIcon />}
             className="rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white"
             dense={dense}
             sx={menuItemStyle}
