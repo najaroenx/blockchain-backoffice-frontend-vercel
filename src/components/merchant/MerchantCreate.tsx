@@ -1,5 +1,5 @@
 import { CreateProps, SimpleForm, Create, useRedirect } from "react-admin";
-import { CreateContainer } from "../layout/CreateContainer";
+import { ComponentWrapper } from "../layout/ComponentWrapper";
 import { SaveToolbar } from "../customs/SaveToolbar";
 import { MerchantForm } from "./MerchantForm";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ export const MerchantCreate = (props: CreateProps) => {
         </h1>
         <Create
           {...props}
-          component={CreateContainer}
+          component={ComponentWrapper}
           title={false}
           mutationOptions={{ onSuccess }}
         >

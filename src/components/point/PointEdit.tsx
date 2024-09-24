@@ -1,6 +1,6 @@
 import { SimpleForm, EditProps, Edit } from "react-admin";
 import { PointForm } from "./PointForm";
-import { CreateContainer } from "../layout/CreateContainer";
+import { ComponentWrapper } from "../layout/ComponentWrapper";
 import { SaveToolbar } from "../customs/SaveToolbar";
 
 export const PointEdit = (props: EditProps) => {
@@ -12,7 +12,7 @@ export const PointEdit = (props: EditProps) => {
         </h1>
         <Edit
           {...props}
-          component={CreateContainer}
+          component={ComponentWrapper}
           title={false}
           actions={false}
         >

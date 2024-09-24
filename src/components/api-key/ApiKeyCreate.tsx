@@ -1,5 +1,5 @@
 import { CreateProps, SimpleForm, Create } from "react-admin";
-import { CreateContainer } from "../layout/CreateContainer";
+import { ComponentWrapper } from "../layout/ComponentWrapper";
 import { SaveToolbar } from "../customs/SaveToolbar";
 import { ApiKeyForm } from "./ApiKeyForm";
 
@@ -10,7 +10,7 @@ export const ApiKeyCreate = (props: CreateProps) => {
         <h1 className="font-medium text-xl text-[#1C2A53] pb-5 md:pb-0">
           Create New Api Key
         </h1>
-        <Create {...props} component={CreateContainer} title={false}>
+        <Create {...props} component={ComponentWrapper} title={false}>
           <SimpleForm toolbar={<SaveToolbar />}>
             <ApiKeyForm />
           </SimpleForm>
