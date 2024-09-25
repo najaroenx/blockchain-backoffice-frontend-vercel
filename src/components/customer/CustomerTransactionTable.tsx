@@ -1,7 +1,8 @@
 import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Transaction } from "../types/transaction.type";
+import { Transaction } from "./types/transaction.type";
 import moment from "moment";
+import { ShowProps, useRecordContext } from "react-admin";
 
 const columns: GridColDef<Transaction>[] = [
   {
@@ -53,14 +54,12 @@ const columns: GridColDef<Transaction>[] = [
   },
 ];
 
-interface Props {
-  transactions: Transaction[] | [] | undefined;
-}
+export const CustomerTransactionTable: React.FC<any> = () => {
+  const record = useRecordContext();
 
-export const PointTransactionTable: React.FC<Props> = ({ transactions }) => {
   return (
     <DataGrid
-      rows={transactions}
+      rows={record?.transaction}
       columns={columns}
       initialState={{
         pagination: {

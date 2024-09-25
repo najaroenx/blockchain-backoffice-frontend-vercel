@@ -65,3 +65,37 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
     return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }
+
+export async function POST(req: Request, { params }: { params: any }) {
+  const body = await req.json();
+  const session = await getServerSession(authOptions);
+  const token = session?.user.accessToken;
+
+  const merchantId = req.headers.get("Merchant-Id");
+
+  const pointId = params.id;
+
+  if (!merchantId) {
+    return Response.json({ message: "bad request" }, { status: 400 });
+  }
+
+  try {
+    await api(`${BACKEND_URL}/${merchantId}/transaction/${pointId}`, {
+      method: "POST",
+      body: {
+        ...body,
+        senderAddress: "0x32D5a21376C0dF3F98200a00380b06adeE341B91", // TODO: remove hard code wallet address
+        transactionTypeId: "redeem",
+        amount: parseInt(body.amount),
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return Response.json({ message: "success" }, { status: 201 });
+  } catch (error) {
+    console.log(error);
+    return Response.json({ error: "failed to load data" }, { status: 500 });
+  }
+}

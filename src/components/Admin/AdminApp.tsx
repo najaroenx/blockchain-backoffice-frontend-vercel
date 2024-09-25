@@ -14,6 +14,7 @@ import { MerchantCreate } from "../merchant";
 import { ApiKeyCreate, ApiKeyList } from "../api-key";
 import { PointEdit } from "../point/PointEdit";
 import { CustomerList } from "../customer/CustomerList";
+import { CustomerShow } from "../customer/CustomerShow";
 
 const fetchJson = (url: string, options: fetchUtils.Options = {}) => {
   const customHeaders = (options.headers ||
@@ -54,7 +55,7 @@ const AdminApp = () => {
       <Resource name="merchant" list={MerchantList} create={MerchantCreate} />
       <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
       <Resource name="transaction" />
-      <Resource name="customer" list={CustomerList} />
+      <Resource name="customer" list={CustomerList} show={CustomerShow} />
     </Admin>
   );
 };

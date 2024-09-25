@@ -34,7 +34,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
 
   const mutation = useMutation({
     mutationFn: () => {
-      return api(`/api/point/${record?.id}/transaction`, {
+      return api(`/api/point/${record?.id}`, {
         method: "POST",
         body: {
           receiverAddress: formValues.to,
