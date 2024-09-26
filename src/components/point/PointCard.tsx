@@ -94,7 +94,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
           CA : {contractAddress}
         </p>
       </div>
-      <div className="flex gap-2 p-5 pt-0 ">
+      <div className="flex flex-col md:flex-row gap-2 p-5 pt-0 ">
         <EditButton
           label="Edit Point"
           icon={<></>}
