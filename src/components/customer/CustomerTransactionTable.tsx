@@ -59,7 +59,7 @@ export const CustomerTransactionTable: React.FC<any> = () => {
 
   return (
     <DataGrid
-      rows={record?.transaction}
+      rows={record?.transactions}
       columns={columns}
       initialState={{
         pagination: {
