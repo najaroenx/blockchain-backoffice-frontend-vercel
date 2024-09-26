@@ -1,14 +1,16 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/options";
 import { api } from "@/libs/api";
 import { NextRequest } from "next/server";
+import { getSessionToken } from "@/libs/auth";
+import { handleError } from "@/libs/errorHandler";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const token = session?.user.accessToken;
+    const token = await getSessionToken();
+    if (!token) {
+      return handleError("Unauthorized access", 401);
+    }
 
     const merchantId = req.headers.get("Merchant-Id");
 
@@ -21,19 +23,20 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { customers, counts } = await api(
-      `${BACKEND_URL}/${merchantId}/customer`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    return Response.json(customers, {
+    const response = await api(`${BACKEND_URL}/${merchantId}/customer`, {
+      method: "GET",
       headers: {
-        "X-Total-Count": counts.toString(),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.statusCode) {
+      return handleError(response.message, response.statusCode);
+    }
+
+    return Response.json(response.customers, {
+      headers: {
+        "X-Total-Count": response.counts.toString(),
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
