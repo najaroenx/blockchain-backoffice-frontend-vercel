@@ -13,14 +13,14 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     }
 
     const merchantId = req.headers.get("Merchant-Id");
-    const pointId = params.id;
+    const customerId = params.id;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });
     }
 
     const response = await api(
-      `${BACKEND_URL}/${merchantId}/customer/${pointId}`,
+      `${BACKEND_URL}/${merchantId}/customer/${customerId}`,
       {
         method: "GET",
         headers: {
