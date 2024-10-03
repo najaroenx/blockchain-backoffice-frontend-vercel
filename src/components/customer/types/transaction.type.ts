@@ -1,11 +1,8 @@
 export type Transaction = {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
+  sender: string;
+  receiver: string;
   txHash: string;
-  senderAddress: string;
-  receiverAddress: string;
   amount: number;
-  type: string;
+  transactionTypeId: string;
+  createdAt: string;
 };

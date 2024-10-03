@@ -6,18 +6,20 @@ import { ShowProps, useRecordContext } from "react-admin";
 
 const columns: GridColDef<Transaction>[] = [
   {
-    field: "senderAddress",
-    headerName: "Sender Address",
-    width: 400,
+    field: "sender",
+    headerName: "Sender",
+    width: 250,
     editable: false,
     resizable: false,
+    valueGetter: (value, row) => `${row.sender || ""}`,
   },
   {
-    field: "receiverAddress",
-    headerName: "Receiver Address",
-    width: 400,
+    field: "receiver",
+    headerName: "Receiver",
+    width: 250,
     editable: false,
     resizable: false,
+    valueGetter: (value, row) => `${row.receiver || ""}`,
   },
   {
     field: "txHash",
@@ -31,7 +33,7 @@ const columns: GridColDef<Transaction>[] = [
     field: "transactionTypeId",
     headerName: "Type",
     type: "string",
-    width: 90,
+    width: 100,
     editable: false,
     resizable: false,
   },
@@ -39,7 +41,7 @@ const columns: GridColDef<Transaction>[] = [
     field: "amount",
     headerName: "Amount",
     type: "number",
-    width: 110,
+    width: 150,
     editable: false,
     resizable: false,
   },
@@ -48,7 +50,7 @@ const columns: GridColDef<Transaction>[] = [
     headerName: "Date",
     valueFormatter: (params: any) =>
       moment(new Date(params)).format("DD/MM/YYYY"),
-    width: 110,
+    width: 150,
     editable: false,
     resizable: false,
   },

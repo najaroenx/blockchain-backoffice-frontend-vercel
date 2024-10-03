@@ -1,12 +1,19 @@
-import { number } from "react-admin";
-
 export type Transaction = {
   id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
   txHash: string;
+  senderAddress: string;
   receiverAddress: string;
+  transactionTypeId: string;
   amount: number;
-  type: string;
+  sender: {
+    id: string;
+    walletAddress: string;
+    emailOrWebsite: string;
+  };
+  receiver: {
+    id: string;
+    walletAddress: string;
+    emailOrWebsite: string;
+  };
+  createdAt: string;
 };
