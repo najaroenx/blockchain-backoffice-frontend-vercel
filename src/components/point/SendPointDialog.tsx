@@ -37,12 +37,12 @@ export const SendPointDialog: React.FC<SendPointDialogProps> = (props) => {
           <form className="flex w-full flex-col gap-5" onSubmit={onConfirm}>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel htmlFor="to">To Address</FormLabel>
+                <FormLabel htmlFor="email">To Email</FormLabel>
                 <TextField
-                  id="to"
+                  id="email"
                   type="text"
-                  name="to"
-                  placeholder="0x00000000000000"
+                  name="email"
+                  placeholder="user@email.com"
                   autoFocus
                   required
                   fullWidth

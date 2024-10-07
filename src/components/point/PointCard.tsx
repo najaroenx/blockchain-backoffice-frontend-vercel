@@ -12,7 +12,7 @@ interface Props {
 }
 
 type FormValues = {
-  to: string;
+  email: string;
   amount: string;
 };
 
@@ -28,7 +28,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
   const cleanedMerchantId = merchantId ? merchantId.replace(/"/g, "") : "";
 
   const [formValues, setFormValues] = useState<FormValues>({
-    to: "",
+    email: "",
     amount: "",
   });
 
@@ -37,7 +37,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
       return api(`/api/point/${record?.id}`, {
         method: "POST",
         body: {
-          receiverAddress: formValues.to,
+          email: formValues.email,
           amount: formValues.amount,
         },
         headers: {
