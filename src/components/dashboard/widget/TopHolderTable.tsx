@@ -1,6 +1,5 @@
 import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Box } from "@mui/material";
 
 const columns: GridColDef<(typeof rows)[number]>[] = [
   {

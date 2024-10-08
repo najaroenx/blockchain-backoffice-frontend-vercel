@@ -3,7 +3,7 @@ import { TextField, useListContext, Datagrid } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
 
-export const DataGrid = () => {
+export const DesktopDataGrid = () => {
   const { data, isPending } = useListContext();
 
   if (isPending) return <Loading />;
