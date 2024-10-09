@@ -81,7 +81,7 @@ export const PointTransactionTable: React.FC<Props> = ({ transactions }) => {
           {
             display: "none !important",
           },
-        maxWidth: { md: "1100px", xl: "1440px" },
+        maxWidth: { xs: "350px", sm: "800px", md: "1100px", xl: "1440px" },
       }}
     />
   );

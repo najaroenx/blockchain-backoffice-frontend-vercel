@@ -68,7 +68,7 @@ const rows = [
 
 export const TopHolderTable = () => {
   return (
-    <div className="overflow-hidden" style={{ overflowX: "auto" }}>
+    <div className="bg-white rounded-lg shadow-lg overflow-x-scroll">
       <DataGrid
         rows={rows}
         columns={columns}
@@ -81,6 +81,13 @@ export const TopHolderTable = () => {
         }}
         pageSizeOptions={[5]}
         disableRowSelectionOnClick
+        sx={{
+          "& .MuiDataGrid-columnSeparator:not(.MuiDataGrid-columnSeparator--resizable)":
+            {
+              display: "none !important",
+            },
+          maxWidth: { xs: "350px", sm: "800px", md: "1100px", xl: "1440px" },
+        }}
       />
     </div>
   );

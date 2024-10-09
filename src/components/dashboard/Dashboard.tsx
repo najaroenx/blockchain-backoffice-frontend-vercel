@@ -38,13 +38,11 @@ export const Dashboard = () => {
   if (transactionLoading || customerLoading) return <Loading />;
 
   return (
-    <div className="bg-slate-100 h-full max-w-sm md:max-w-full">
+    <div className="bg-slate-100 h-full w-full md:max-w-full">
       <div className="container mx-auto px-5 py-10">
         <div className="flex flex-col">
-          <h1 className="font-medium text-2xl text-[#1C2A53] py-3">
-            Dashboard
-          </h1>
-          <div className="flex flex-wrap md:flex-nowrap mt-5 gap-4">
+          <h1 className="font-medium text-2xl text-[#1C2A53]">Dashboard</h1>
+          <div className="flex flex-wrap md:flex-nowrap mt-5 gap-5">
             <StaticCard
               logo={
                 <>
@@ -84,7 +82,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2 xl:grid-cols-3 my-10">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3">
           <DailyStaticsChart
             title="Daily Claimed"
             description="information daily claimed"
@@ -101,23 +99,21 @@ export const Dashboard = () => {
             chart={dailySalesChart}
           />
         </div>
-        <div className="flex flex-col md:flex-row gap-10">
-          <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5 overflow-hidden  w-full">
+        <div className="flex flex-col md:flex-row gap-10 mt-10">
+          <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5 overflow-hidden">
             <h6 className="font-medium text-black">Top 5 Holders</h6>
             <TopHolderTable />
           </div>
-          <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5  w-full">
+          <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5">
             <h6 className="font-medium text-black">Top Transaction</h6>
             <div className="w-full">
               <TopBranchStaticsChart chart={topBranchTransaction} />
             </div>
           </div>
         </div>
-        <div className="flex flex-col bg-white w-full py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
+        <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Transactions</h6>
-          <div className="flex w-full justify-center">
-            <PointTransactionTable transactions={aggregation.transactions} />
-          </div>
+          <PointTransactionTable transactions={aggregation.transactions} />
         </div>
       </div>
     </div>
