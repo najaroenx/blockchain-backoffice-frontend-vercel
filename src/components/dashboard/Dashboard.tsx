@@ -82,7 +82,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3 md:mt-10">
           <DailyStaticsChart
             title="Daily Claimed"
             description="information daily claimed"
@@ -99,15 +99,11 @@ export const Dashboard = () => {
             chart={dailySalesChart}
           />
         </div>
-        <div className="flex flex-col md:flex-row gap-10 mt-10">
+        <div className="gap-10 mt-10">
           <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5 overflow-hidden">
             <h6 className="font-medium text-black">Top 5 Holders</h6>
-            <TopHolderTable />
-          </div>
-          <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5">
-            <h6 className="font-medium text-black">Top Transaction</h6>
             <div className="w-full">
-              <TopBranchStaticsChart chart={topBranchTransaction} />
+              <TopHolderTable />
             </div>
           </div>
         </div>

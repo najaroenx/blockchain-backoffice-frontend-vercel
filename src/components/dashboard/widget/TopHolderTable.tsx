@@ -86,7 +86,7 @@ export const TopHolderTable = () => {
             {
               display: "none !important",
             },
-          maxWidth: { xs: "350px", sm: "800px", md: "1100px", xl: "1440px" },
+          maxWidth: { xs: "350px", sm: "800px", md: "100%", xl: "1440px" },
         }}
       />
     </div>
