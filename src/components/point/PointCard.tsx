@@ -97,7 +97,6 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
       <div className="flex flex-col md:flex-row gap-2 p-5 pt-0 ">
         <EditButton
           label="Edit Point"
-          icon={<></>}
           className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
         />
 

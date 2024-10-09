@@ -1,4 +1,4 @@
-import { ListBase, ListProps } from "react-admin";
+import { ListBase, ListProps, Pagination } from "react-admin";
 import { DataGrid } from "./DataGrid";
 import { ListActions } from "../customs/ListAction";
 
@@ -8,6 +8,7 @@ export const ApiKeyList = (props: ListProps) => (
       <ListBase>
         <ListActions title="API-Keys" />
         <DataGrid />
+        <Pagination />
       </ListBase>
     </div>
   </div>

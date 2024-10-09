@@ -12,7 +12,7 @@ export const DataGrid = () => {
   if (!data || data.length === 0) return <Empty isMerchant={false} />;
 
   return (
-    <div className="py-5 bg-white rounded-lg shadow-lg mt-4">
+    <div className="py-5 bg-white rounded-lg shadow-lg mt-4 overflow-x-scroll">
       <Datagrid
         bulkActionButtons={false}
         sx={{
@@ -20,9 +20,8 @@ export const DataGrid = () => {
             {
               display: "none !important",
             },
-          maxWidth: { md: "1100px", xl: "1440px" },
+          maxWidth: { xs: "350px", sm: "800px", md: "1100px", xl: "1440px" },
         }}
-        className="mx-auto"
       >
         <TextField source="name" label="Name" className="font-bold" />
         <TextField
