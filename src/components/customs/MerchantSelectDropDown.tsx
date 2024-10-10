@@ -5,11 +5,16 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { Merchant } from "@prisma/client";
 import * as React from "react";
 
 interface Props {
-  merchants: Merchant[];
+  merchants: {
+    id: string;
+    name: string;
+    website: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
   currentMerchant: string;
   changeMerchant: (merchantId: string) => void;
 }

@@ -2,6 +2,8 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 
+export const dynamic = "force-dynamic";
+
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: Request) {
