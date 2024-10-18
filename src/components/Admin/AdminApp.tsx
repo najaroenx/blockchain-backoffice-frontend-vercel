@@ -1,7 +1,13 @@
 "use client";
 
 import jsonServerProvider from "ra-data-json-server";
-import { Admin, Resource, localStorageStore, fetchUtils } from "react-admin";
+import {
+  Admin,
+  Resource,
+  localStorageStore,
+  fetchUtils,
+  CustomRoutes,
+} from "react-admin";
 import { Login } from "../layout/Login";
 import { authProvider } from "./authProvider";
 import { useSession } from "next-auth/react";
@@ -15,6 +21,9 @@ import { ApiKeyCreate, ApiKeyList } from "../api-key";
 import { PointEdit } from "../point/PointEdit";
 import { CustomerList } from "../customer/CustomerList";
 import { CustomerShow } from "../customer/CustomerShow";
+import { Loading } from "../layout/Loading";
+import { Register } from "../layout/Register";
+import { Route } from "react-router-dom";
 
 const fetchJson = (url: string, options: fetchUtils.Options = {}) => {
   const customHeaders = (options.headers ||
@@ -45,6 +54,7 @@ const AdminApp = () => {
       layout={CustomLayout}
       dashboard={Dashboard}
       store={localStorageStore()}
+      loading={Loading}
     >
       <Resource
         name="point"
@@ -56,6 +66,9 @@ const AdminApp = () => {
       <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
       <Resource name="transaction" />
       <Resource name="customer" list={CustomerList} show={CustomerShow} />
+      <CustomRoutes noLayout>
+        <Route path="/register" element={<Register />} />
+      </CustomRoutes>
     </Admin>
   );
 };

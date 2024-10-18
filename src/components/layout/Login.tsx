@@ -4,7 +4,7 @@ import { FormControl } from "@mui/material";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import Image from "next/image";
-import { useLogin, useNotify } from "react-admin";
+import { Link, useLogin, useNotify } from "react-admin";
 import React, { useState } from "react";
 
 type FormValues = {
@@ -48,62 +48,6 @@ export const Login = () => {
           <p className="text-sm font-normal text-gray-600 mb-7 text-center md:text-left">
             Enter to get unlimited access to loyalty program
           </p>
-
-          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
-            <FormControl>
-              <div className="flex flex-col gap-2">
-                <FormLabel htmlFor="email" sx={{ fontWeight: "bold" }}>
-                  Email
-                </FormLabel>
-                <TextField
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="your@email.com"
-                  autoComplete="email"
-                  autoFocus
-                  required
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  onChange={handleInputChange}
-                />
-              </div>
-            </FormControl>
-            <FormControl>
-              <div className="flex flex-col gap-2">
-                <FormLabel htmlFor="password" sx={{ fontWeight: "bold" }}>
-                  Password
-                </FormLabel>
-                <TextField
-                  name="password"
-                  placeholder="••••••"
-                  type="password"
-                  id="password"
-                  autoComplete="current-password"
-                  autoFocus
-                  required
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  onChange={handleInputChange}
-                />
-              </div>
-            </FormControl>
-
-            <button
-              type="submit"
-              className="block w-full bg-[#FF8901] hover:bg-[#fbbf7a] mt-5 py-2.5 px-5 rounded-lg text-white font-semibold mb-2 shadow-md"
-            >
-              Login
-            </button>
-          </form>
-
-          <div className="flex w-full items-center gap-5 py-6 text-sm text-slate-600 mt-5">
-            <div className="h-px w-full bg-slate-200"></div>
-            <p className="text-center font-semibold text-gray-600">OR</p>
-            <div className="h-px w-full bg-slate-200"></div>
-          </div>
 
           <button className="flex justify-center items-center bg-white border border-gray-300 rounded-lg shadow-md mt-5 py-2.5 px-5 font-semibold text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
             <svg
@@ -161,6 +105,69 @@ export const Login = () => {
             </svg>
             <span>Continue with Google</span>
           </button>
+
+          <div className="flex w-full items-center gap-5 py-6 text-sm text-slate-600 mt-5">
+            <div className="h-px w-full bg-slate-200"></div>
+            <p className="text-center font-semibold text-gray-600">OR</p>
+            <div className="h-px w-full bg-slate-200"></div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel htmlFor="email" sx={{ fontWeight: "bold" }}>
+                  Email
+                </FormLabel>
+                <TextField
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </div>
+            </FormControl>
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel htmlFor="password" sx={{ fontWeight: "bold" }}>
+                  Password
+                </FormLabel>
+                <TextField
+                  name="password"
+                  placeholder="••••••"
+                  type="password"
+                  id="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  required
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  onChange={handleInputChange}
+                />
+              </div>
+            </FormControl>
+
+            <button
+              type="submit"
+              className="block w-full bg-[#FF8901] hover:bg-[#fbbf7a] mt-5 py-2.5 px-5 rounded-lg text-white font-semibold mb-2 shadow-md"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <p className="mt-5 text-sm font-bold">
+            Don’t have an account?{" "}
+            <Link className="text-[#FF8901]" to="/register" underline="none">
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-tr from-blue-800 to-purple-700 justify-around items-center">
