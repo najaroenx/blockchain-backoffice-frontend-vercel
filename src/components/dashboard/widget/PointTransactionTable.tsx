@@ -11,6 +11,8 @@ const columns: GridColDef<Transaction>[] = [
     editable: false,
     resizable: false,
     valueGetter: (value, row) => `${row.sender.emailOrWebsite || ""}`,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "receiver",
@@ -19,6 +21,8 @@ const columns: GridColDef<Transaction>[] = [
     editable: false,
     resizable: false,
     valueGetter: (value, row) => `${row.receiver.emailOrWebsite || ""}`,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "txHash",
@@ -27,6 +31,8 @@ const columns: GridColDef<Transaction>[] = [
     width: 550,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "transactionTypeId",
@@ -35,6 +41,8 @@ const columns: GridColDef<Transaction>[] = [
     width: 110,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "amount",
@@ -43,6 +51,8 @@ const columns: GridColDef<Transaction>[] = [
     width: 110,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "createdAt",
@@ -52,6 +62,8 @@ const columns: GridColDef<Transaction>[] = [
     width: 150,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
 ];
 

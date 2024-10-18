@@ -14,6 +14,8 @@ import { TopBranchStaticsChart } from "./widget/TopBranchStaticsChart";
 import { useGetList } from "react-admin";
 import { useMemo } from "react";
 import { Loading } from "../layout/Loading";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/libs/api";
 
 interface State {
   transactions?: any[];
@@ -21,21 +23,32 @@ interface State {
 }
 
 export const Dashboard = () => {
+  const merchantId = localStorage.getItem("RaStore.currentMerchant");
+  const cleanedMerchantId = merchantId ? merchantId.replace(/"/g, "") : "";
+
   const { data: transactions, isLoading: transactionLoading } =
     useGetList<any>("transaction");
 
-  const { data: customers, isLoading: customerLoading } =
-    useGetList<any>("customer");
+  const { isPending, data } = useQuery({
+    queryKey: ["dashboard"],
+    queryFn: () => {
+      return api(`/api/dashboard`, {
+        method: "GET",
+        headers: {
+          "Merchant-Id": cleanedMerchantId,
+        },
+      });
+    },
+  });
 
   const aggregation = useMemo<State>(() => {
-    if (!transactions && !customers) return {};
+    if (!transactions) return {};
     return {
       transactions,
-      customers,
     };
-  }, [transactions, customers]);
+  }, [transactions]);
 
-  if (transactionLoading || customerLoading) return <Loading />;
+  if (transactionLoading || isPending) return <Loading />;
 
   return (
     <div className="bg-slate-100 h-full w-full md:max-w-full">
@@ -50,7 +63,7 @@ export const Dashboard = () => {
                 </>
               }
               title="Customer Wallets"
-              value={aggregation.customers?.length || 0}
+              value={data.customerWallet || 0}
             />
             <StaticCard
               logo={
@@ -59,7 +72,7 @@ export const Dashboard = () => {
                 </>
               }
               title="Today's Transactions"
-              value={aggregation.transactions?.length || 0}
+              value={data.transactionsToday || 0}
             />
             <StaticCard
               logo={
@@ -67,8 +80,8 @@ export const Dashboard = () => {
                   <CurrencyDollarIcon />
                 </>
               }
-              title="Today's Customer Earns"
-              value={1000}
+              title="Today's Customer Redeem"
+              value={data.totalRedeem || 0}
             />
             <StaticCard
               logo={
@@ -76,8 +89,8 @@ export const Dashboard = () => {
                   <ShoppingBagIcon />
                 </>
               }
-              title="Today's Customer Spends"
-              value={1000}
+              title="Today's Customer Transfer"
+              value={data.totalTransfer || 0}
             />
           </div>
         </div>
@@ -99,14 +112,14 @@ export const Dashboard = () => {
             chart={dailySalesChart}
           />
         </div>
-        <div className="gap-10 mt-10">
+        {/* <div className="gap-10 mt-10">
           <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5 overflow-hidden">
             <h6 className="font-medium text-black">Top 5 Holders</h6>
             <div className="w-full">
               <TopHolderTable />
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Transactions</h6>
           <PointTransactionTable transactions={aggregation.transactions} />

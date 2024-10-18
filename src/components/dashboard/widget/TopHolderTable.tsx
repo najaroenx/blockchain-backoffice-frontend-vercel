@@ -3,33 +3,42 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 
 const columns: GridColDef<(typeof rows)[number]>[] = [
   {
-    field: "id",
-    headerName: "ID",
-    width: 50,
+    field: "firstName",
+    headerName: "Email",
+    width: 300,
+    editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "firstName",
     headerName: "First name",
-    width: 150,
+    width: 350,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
   {
     field: "lastName",
     headerName: "Last name",
-    width: 150,
+    width: 350,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
 
   {
     field: "amount",
     headerName: "Amount",
     type: "number",
-    width: 110,
+    width: 300,
     editable: false,
     resizable: false,
+    headerAlign: "center",
+    align: "center",
   },
 ];
 
@@ -86,7 +95,7 @@ export const TopHolderTable = () => {
             {
               display: "none !important",
             },
-          maxWidth: { xs: "350px", sm: "800px", md: "100%", xl: "1440px" },
+          maxWidth: { xs: "350px", sm: "800px", md: "1100px", xl: "1440px" },
         }}
       />
     </div>
