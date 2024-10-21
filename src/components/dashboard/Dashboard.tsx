@@ -2,15 +2,12 @@ import { PointTransactionTable } from "./widget/PointTransactionTable";
 import { StaticCard } from "./widget/StaticCard";
 import { DailyStaticsChart } from "./widget/DailyStaticsChart";
 import { dailySalesChart } from "@/data/statistics-charts-data";
-import { topBranchTransaction } from "@/data/statistics-branch-data";
 import {
   WalletIcon,
   ShoppingBagIcon,
   ChartBarIcon,
   CurrencyDollarIcon,
 } from "@heroicons/react/24/solid";
-import { TopHolderTable } from "./widget/TopHolderTable";
-import { TopBranchStaticsChart } from "./widget/TopBranchStaticsChart";
 import { useGetList } from "react-admin";
 import { useMemo } from "react";
 import { Loading } from "../layout/Loading";
@@ -97,29 +94,22 @@ export const Dashboard = () => {
 
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 xl:grid-cols-3 md:mt-10">
           <DailyStaticsChart
-            title="Daily Claimed"
-            description="information daily claimed"
-            chart={dailySalesChart}
+            title="Monthly Transaction"
+            description="information monthly transaction"
+            chart={dailySalesChart(data.transactionsMonthly)}
           />
           <DailyStaticsChart
-            title="Daily Earned"
-            description="information daily earned"
-            chart={dailySalesChart}
+            title="Monthly Redeem Transaction"
+            description="information monthly redeem"
+            chart={dailySalesChart(data.transactionsRedeemMonthly)}
           />
           <DailyStaticsChart
-            title="Daily Spend"
-            description="information daily spend"
-            chart={dailySalesChart}
+            title="Monthly Transfer Transaction"
+            description="information monthly transfer"
+            chart={dailySalesChart(data.transactionsTransferMonthly)}
           />
         </div>
-        {/* <div className="gap-10 mt-10">
-          <div className="flex flex-col bg-white py-5 px-5 shadow-lg rounded-lg gap-5 overflow-hidden">
-            <h6 className="font-medium text-black">Top 5 Holders</h6>
-            <div className="w-full">
-              <TopHolderTable />
-            </div>
-          </div>
-        </div> */}
+
         <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Transactions</h6>
           <PointTransactionTable transactions={aggregation.transactions} />

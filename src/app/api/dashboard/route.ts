@@ -38,6 +38,9 @@ export async function GET(req: Request) {
       transactionsToday: response.transactionsToday,
       totalRedeem: response.totalRedeem,
       totalTransfer: response.totalTransfer,
+      transactionsMonthly: response.transactionsMonthly,
+      transactionsRedeemMonthly: response.transactionsRedeemMonthly,
+      transactionsTransferMonthly: response.transactionsTransferMonthly,
     });
   } catch (err) {
     return Response.json({ error: "failed to load data" }, { status: 500 });

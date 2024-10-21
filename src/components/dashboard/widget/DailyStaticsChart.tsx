@@ -1,5 +1,4 @@
 import Chart from "react-apexcharts";
-import { ClockIcon } from "@heroicons/react/24/solid";
 
 type Props = {
   description: string;
@@ -17,15 +16,9 @@ export const DailyStaticsChart: React.FC<Props> = ({
       <div>
         <Chart {...chart} />
       </div>
-      <div className="px-6 pt-0">
+      <div className="px-6 pt-0 py-2">
         <h6 className="text-black font-semibold">{title}</h6>
         <p className="font-normal text-gray-400 text-sm">{description}</p>
-      </div>
-      <div className="border-t border-blue-gray-50 px-6 py-2 mt-5">
-        <p className="flex items-center font-normal text-gray-400 gap-2">
-          <ClockIcon strokeWidth={2} className="h-4 w-4 text-gray-400" />
-          updated 4 min ago
-        </p>
       </div>
     </div>
   );

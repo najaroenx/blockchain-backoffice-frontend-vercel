@@ -1,36 +1,40 @@
 import chartsConfig from "@/configs/charts-config";
 
-export const dailySalesChart = {
-  type: "line",
-  height: 220,
-  series: [
-    {
-      name: "Sales",
-      data: [50, 40, 300, 320, 500, 350, 200, 230, 500],
-    },
-  ],
-  options: {
-    ...chartsConfig,
-    colors: ["#0288d1"],
-    stroke: {
-      lineCap: "round",
-    },
-    markers: {
-      size: 5,
-    },
-    xaxis: {
-      ...chartsConfig.xaxis,
-      categories: [
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+export const dailySalesChart = (
+  data: { months: string[]; amountTransactions: number[] },
+  chartOptions: any = {}
+) => {
+  return {
+    type: "line",
+    height: chartOptions.height || 220,
+    series: [
+      {
+        name: chartOptions.seriesName || "Txs",
+        data: data.amountTransactions,
+      },
+    ],
+    options: {
+      ...chartsConfig,
+      colors: chartOptions.colors || ["#0288d1"],
+      stroke: {
+        lineCap: "round",
+      },
+      markers: {
+        size: 5,
+      },
+      xaxis: {
+        ...chartsConfig.xaxis,
+        categories: data.months,
+      },
+      yaxis: [
+        {
+          labels: {
+            formatter: function (val: number) {
+              return val.toFixed(0);
+            },
+          },
+        },
       ],
     },
-  },
+  };
 };
