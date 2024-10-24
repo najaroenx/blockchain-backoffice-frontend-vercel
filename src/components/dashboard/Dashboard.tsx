@@ -8,23 +8,14 @@ import {
   ChartBarIcon,
   CurrencyDollarIcon,
 } from "@heroicons/react/24/solid";
-import { useGetList } from "react-admin";
-import { useMemo } from "react";
 import { Loading } from "../layout/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/libs/api";
-
-interface State {
-  transactions?: any[];
-  customers?: any[];
-}
+import { useStore } from "react-admin";
+import { Empty } from "../layout/Empty";
 
 export const Dashboard = () => {
-  const merchantId = localStorage.getItem("RaStore.currentMerchant");
-  const cleanedMerchantId = merchantId ? merchantId.replace(/"/g, "") : "";
-
-  const { data: transactions, isLoading: transactionLoading } =
-    useGetList<any>("transaction");
+  const [merchant] = useStore("currentMerchant");
 
   const { isPending, data } = useQuery({
     queryKey: ["dashboard"],
@@ -32,20 +23,30 @@ export const Dashboard = () => {
       return api(`/api/dashboard`, {
         method: "GET",
         headers: {
-          "Merchant-Id": cleanedMerchantId,
+          "Merchant-Id": merchant,
         },
       });
     },
+    enabled: !!merchant,
   });
 
-  const aggregation = useMemo<State>(() => {
-    if (!transactions) return {};
-    return {
-      transactions,
-    };
-  }, [transactions]);
+  if (isPending && merchant)
+    return (
+      <div className="bg-slate-100 h-full w-full md:max-w-full">
+        <div className="container mx-auto px-5 py-10">
+          <Loading />
+        </div>
+      </div>
+    );
 
-  if (transactionLoading || isPending) return <Loading />;
+  if (!merchant)
+    return (
+      <div className="bg-slate-100 h-full w-full md:max-w-full">
+        <div className="container mx-auto px-5 py-10">
+          <Empty isMerchant={true} />
+        </div>
+      </div>
+    );
 
   return (
     <div className="bg-slate-100 h-full w-full md:max-w-full">
@@ -112,7 +113,7 @@ export const Dashboard = () => {
 
         <div className="flex flex-col bg-white py-5 px-5 mt-10 shadow-lg rounded-lg gap-5">
           <h6 className="font-medium text-black">Transactions</h6>
-          <PointTransactionTable transactions={aggregation.transactions} />
+          <PointTransactionTable transactions={data.transactions} />
         </div>
       </div>
     </div>

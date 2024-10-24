@@ -1,8 +1,12 @@
+import { Link, useCreatePath } from "react-admin";
+
 interface Props {
   isMerchant: boolean;
 }
 
 export const Empty = ({ isMerchant = true }: Props) => {
+  const createPath = useCreatePath();
+
   return (
     <div className="flex flex-col items-center justify-center h-full mt-20 md:mt-48 bg-gray-100">
       <div className="text-center">
@@ -25,10 +29,23 @@ export const Empty = ({ isMerchant = true }: Props) => {
         </h2>
 
         {isMerchant && (
-          <p className="mt-2 text-gray-500">
-            There is currently no data to display. Please check back later or
-            try again.
-          </p>
+          <div className="flex flex-col gap-5">
+            <p className="mt-2 text-gray-500">
+              There is currently no data to display. Please create new one.
+            </p>
+            <Link
+              to={createPath({
+                resource: "merchant",
+                type: "create",
+              })}
+              underline="none"
+              color="inherit"
+            >
+              <button className="py-3 px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a] rounded-lg text-sm">
+                CREATE MERCHANT
+              </button>
+            </Link>
+          </div>
         )}
 
         {!isMerchant && (

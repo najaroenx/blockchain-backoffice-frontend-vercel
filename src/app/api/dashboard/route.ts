@@ -41,6 +41,7 @@ export async function GET(req: Request) {
       transactionsMonthly: response.transactionsMonthly,
       transactionsRedeemMonthly: response.transactionsRedeemMonthly,
       transactionsTransferMonthly: response.transactionsTransferMonthly,
+      transactions: response.allTransactions.transactions,
     });
   } catch (err) {
     return Response.json({ error: "failed to load data" }, { status: 500 });
