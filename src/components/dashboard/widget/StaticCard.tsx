@@ -1,5 +1,3 @@
-import PropTypes from "prop-types";
-
 interface Props {
   logo: React.ReactNode;
   title: string;
@@ -15,7 +13,7 @@ export const StaticCard: React.FC<Props> = ({ logo, title, value }) => {
         </div>
       </div>
       <div className="flex flex-col justify-center">
-        <p className="text-gray-500">{title}</p>
+        <p className="text-gray-500 text-right">{title}</p>
         <p className="text-xl font-semibold text-right">{value}</p>
       </div>
     </div>
