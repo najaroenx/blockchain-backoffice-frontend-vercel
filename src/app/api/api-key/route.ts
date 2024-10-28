@@ -3,11 +3,18 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/options";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
+import { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
+    const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
+
+    const take = end - start;
+    const page = end / take;
+
     const merchantId = req.headers.get("Merchant-Id");
 
     const token = await getSessionToken();
@@ -29,6 +36,10 @@ export async function GET(req: Request) {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      queryParams: {
+        take,
+        page,
+      },
     });
 
     if (response.statusCode) {
@@ -38,6 +49,7 @@ export async function GET(req: Request) {
     return Response.json(response.apiKeys, {
       headers: {
         "X-Total-Count": response.counts.toString(),
+        "Content-Range": `items ${response.lower}-${response.upper}/${response.counts}`,
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });

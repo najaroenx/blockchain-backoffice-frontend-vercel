@@ -7,6 +7,12 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
   try {
+    const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
+    const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
+
+    const take = end - start;
+    const page = end / take;
+
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);
@@ -28,6 +34,10 @@ export async function GET(req: NextRequest) {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      queryParams: {
+        take,
+        page,
+      },
     });
 
     if (response.statusCode) {
@@ -37,6 +47,7 @@ export async function GET(req: NextRequest) {
     return Response.json(response.customers, {
       headers: {
         "X-Total-Count": response.counts.toString(),
+        "Content-Range": `items ${response.lower}-${response.upper}/${response.counts}`,
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });

@@ -2,10 +2,19 @@ type RequestOptions = {
   method: string;
   headers?: Record<string, string>;
   body?: Record<string, unknown>;
+  queryParams?: Record<string, string | number>;
 };
 
 export const api = async (url: string, options: RequestOptions) => {
-  const response = await fetch(url, {
+  const urlObj = new URL(url);
+
+  if (options.queryParams) {
+    Object.entries(options.queryParams).forEach(([key, value]) => {
+      urlObj.searchParams.append(key, value.toString());
+    });
+  }
+
+  const response = await fetch(urlObj.toString(), {
     method: options.method,
     headers: {
       "Content-Type": "application/json",

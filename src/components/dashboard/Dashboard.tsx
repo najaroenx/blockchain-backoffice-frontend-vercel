@@ -19,13 +19,17 @@ export const Dashboard = () => {
 
   const { isPending, data } = useQuery({
     queryKey: ["dashboard"],
-    queryFn: () => {
-      return api(`/api/dashboard`, {
+    queryFn: async () => {
+      const data = await fetch(`/api/dashboard`, {
         method: "GET",
         headers: {
           "Merchant-Id": merchant,
         },
       });
+
+      const response = await data.json();
+
+      return response;
     },
     enabled: !!merchant,
   });
