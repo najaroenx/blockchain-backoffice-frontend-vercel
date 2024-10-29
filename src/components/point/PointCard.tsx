@@ -33,17 +33,21 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
   });
 
   const mutation = useMutation({
-    mutationFn: () => {
-      return api(`/api/point/${record?.id}`, {
+    mutationFn: async () => {
+      const data = await fetch(`/api/point/${record?.id}`, {
         method: "POST",
-        body: {
+        body: JSON.stringify({
           email: formValues.email,
           amount: formValues.amount,
-        },
+        }),
         headers: {
           "Merchant-Id": cleanedMerchantId,
         },
       });
+
+      const response = await data.json();
+
+      return response;
     },
     onSuccess: () => {
       notify("Send transaction success", { type: "success" });
@@ -62,7 +66,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
       if (mutation.isPending) return;
       mutation.mutate();
     },
-    []
+    [mutation]
   );
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
