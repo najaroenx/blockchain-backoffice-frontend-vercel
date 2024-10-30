@@ -95,12 +95,12 @@ export const CustomerShowLayout = () => {
                 key={point.id}
               >
                 <div className="relative overflow-hidden text-gray-700 bg-white bg-clip-border rounded-lg h-40">
-                  {/* <Image
-                    src="https://media.discordapp.net/attachments/1033975412444893264/1072422794983378974/Component_4.png?ex=66ec7f4e&is=66eb2dce&hm=b3159e91c8076398b8f3c937f796c008d11cb13edc2c2097a6dad4ef82f212a2&=&format=webp&quality=lossless&width=1170&height=1170"
+                  <Image
+                    src="https://raw.seadn.io/files/0c714f50a4e12f2fd1375a10681e6ccc.png"
                     alt="card-image"
                     layout="fill"
                     objectFit="cover"
-                  /> */}
+                  />
                 </div>
                 <div className="flex flex-col px-5 py-2 gap-2 text-wrap">
                   <p className="text-xs font-semibold">
