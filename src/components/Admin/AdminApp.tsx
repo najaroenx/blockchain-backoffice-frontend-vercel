@@ -24,6 +24,7 @@ import { CustomerShow } from "../customer/CustomerShow";
 import { Loading } from "../layout/Loading";
 import { Register } from "../layout/Register";
 import { Route } from "react-router-dom";
+import VoucherList from "../voucher/VoucherList";
 
 const fetchJson = (url: string, options: fetchUtils.Options = {}) => {
   const customHeaders = (options.headers ||
@@ -66,6 +67,7 @@ const AdminApp = () => {
       <Resource name="api-key" list={ApiKeyList} create={ApiKeyCreate} />
       <Resource name="transaction" />
       <Resource name="customer" list={CustomerList} show={CustomerShow} />
+      <Resource name="voucher" list={VoucherList} />
       <CustomRoutes noLayout>
         <Route path="/register" element={<Register />} />
       </CustomRoutes>

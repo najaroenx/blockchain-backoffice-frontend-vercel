@@ -6,6 +6,9 @@ const nextConfig = {
     config.resolve.alias["@"] = path.resolve(process.cwd(), "src");
     return config;
   },
+  images: {
+    domains: ["raw.seadn.io"],
+  },
 };
 
 export default nextConfig;

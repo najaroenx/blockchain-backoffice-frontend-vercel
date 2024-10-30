@@ -4,7 +4,7 @@ import { DashboardMenuItem } from "../customs/DashboardMenuItem";
 
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
 import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
-// import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+import LocalActivityIcon from "@mui/icons-material/LocalActivity";
 import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
 import ViewModuleIcon from "@mui/icons-material/ViewModuleOutlined";
@@ -70,6 +70,18 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
               state={{ _scrollToTop: true }}
               primaryText={"Points"}
               leftIcon={<MonetizationOnIcon />}
+              className={`${
+                open ? "pl-10" : "pl-4"
+              } rounded-r-xl py-3 mb-3 hover:bg-[#fabe79] hover:text-white`}
+              dense={dense}
+              sx={menuItemStyle}
+            />
+
+            <MenuItemLink
+              to="/voucher"
+              state={{ _scrollToTop: true }}
+              primaryText={"Vouchers"}
+              leftIcon={<LocalActivityIcon />}
               className={`${
                 open ? "pl-10" : "pl-4"
               } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
