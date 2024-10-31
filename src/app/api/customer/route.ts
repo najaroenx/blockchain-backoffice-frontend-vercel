@@ -2,10 +2,13 @@ import { api } from "@/libs/api";
 import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
+import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
   try {
     const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
     const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
@@ -51,7 +54,9 @@ export async function GET(req: NextRequest) {
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
-  } catch (err) {
+  } catch (error) {
+    logger.error(`Error occurred: ${error}`);
+
     return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }

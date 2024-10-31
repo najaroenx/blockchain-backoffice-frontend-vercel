@@ -4,10 +4,13 @@ import { authOptions } from "../auth/options";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import { NextRequest } from "next/server";
+import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: NextRequest) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
   try {
     const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
     const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
@@ -53,12 +56,16 @@ export async function GET(req: NextRequest) {
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
-  } catch (err) {
+  } catch (error) {
+    logger.error(`Error occurred: ${error}`);
+
     return Response.json({ error: "server error" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
   try {
     const body = await req.json();
     const merchantId = req.headers.get("Merchant-Id");
@@ -82,7 +89,7 @@ export async function POST(req: Request) {
 
     return Response.json({ message: "success" }, { status: 200 });
   } catch (error) {
-    console.log(error);
+    logger.error(`Error occurred: ${error}`);
     return Response.json({ error: "server error" }, { status: 500 });
   }
 }

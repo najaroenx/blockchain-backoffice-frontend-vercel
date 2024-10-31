@@ -2,10 +2,13 @@ import { api } from "@/libs/api";
 import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
+import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(req: NextRequest, { params }: { params: any }) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
   try {
     const token = await getSessionToken();
     if (!token) {
@@ -34,7 +37,9 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     }
 
     return Response.json(response.customer, { status: 200 });
-  } catch (err) {
+  } catch (error) {
+    logger.error(`Error occurred: ${error}`);
+
     return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }

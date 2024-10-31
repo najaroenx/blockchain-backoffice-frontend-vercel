@@ -1,9 +1,12 @@
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
+import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function POST(req: Request) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
   const body = await req.json();
 
   try {
@@ -20,7 +23,7 @@ export async function POST(req: Request) {
 
     return Response.json({ message: "success" }, { status: 201 });
   } catch (error) {
-    console.log(error);
+    logger.error(`Error occurred: ${error}`);
     return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }

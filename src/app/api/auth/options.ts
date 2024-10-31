@@ -3,6 +3,7 @@ import { NextAuthOptions } from "next-auth";
 import { jwtDecode } from "jwt-decode";
 import type { JWT } from "next-auth/jwt";
 import { api } from "@/libs/api";
+import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -40,6 +41,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 }
 
 export const authOptions: NextAuthOptions = {
+  debug: true,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -52,22 +54,18 @@ export const authOptions: NextAuthOptions = {
           process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
         try {
-          const response = await fetch(`${BACKEND_URL}/auth/login`, {
+          const data = await api(`${BACKEND_URL}/auth/login`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
+            body: {
               email: credentials?.email,
               password: credentials?.password,
-            }),
+            },
           });
 
-          if (!response.ok) {
-            return null;
-          }
-
-          const { accessToken, refreshToken } = await response.json();
+          const { accessToken, refreshToken } = data;
 
           const access = jwtDecode(accessToken) as any;
 
@@ -80,7 +78,8 @@ export const authOptions: NextAuthOptions = {
           };
 
           return user;
-        } catch (e) {
+        } catch (error) {
+          logger.error(`Error occurred: ${error}`);
           return null;
         }
       },
