@@ -1,9 +1,15 @@
-import { EditButton, useNotify, useRecordContext } from "react-admin";
+import {
+  EditButton,
+  ShowButton,
+  useNotify,
+  useRecordContext,
+} from "react-admin";
 import { SendPointDialog } from "./SendPointDialog";
 import { useCallback, useState } from "react";
 import { useDialog } from "@/hooks/useDialog";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
+import { api } from "@/libs/api";
 
 interface Props {
   id: string;
@@ -34,20 +40,16 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const data = await fetch(`/api/point/${record?.id}`, {
+      return api(`/api/point/${record?.id}`, {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           email: formValues.email,
           amount: formValues.amount,
-        }),
+        },
         headers: {
           "Merchant-Id": cleanedMerchantId,
         },
       });
-
-      const response = await data.json();
-
-      return response;
     },
     onSuccess: () => {
       notify("Send transaction success", { type: "success" });
@@ -115,6 +117,11 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
             label="Edit Point"
             className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
           />
+
+          {/* <ShowButton
+            label="Show Point"
+            className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
+          /> */}
 
           <button
             onClick={handleClick}
