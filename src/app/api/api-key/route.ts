@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const response = await api(`${BACKEND_URL}/api-key/${merchantId}`, {
+    const response = await api(`${BACKEND_URL}/${merchantId}/api-key/`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Bad Request" }, { status: 400 });
     }
 
-    await api(`${BACKEND_URL}/api-key/${merchantId}`, {
+    await api(`${BACKEND_URL}/${merchantId}/api-key`, {
       method: "POST",
       body: {
         ...body,

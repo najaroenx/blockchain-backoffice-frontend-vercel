@@ -47,12 +47,6 @@ export const Empty = ({ isMerchant = true }: Props) => {
             </Link>
           </div>
         )}
-
-        {!isMerchant && (
-          <p className="mt-2 text-red-500">
-            * Please create new merchant before create data
-          </p>
-        )}
       </div>
     </div>
   );
