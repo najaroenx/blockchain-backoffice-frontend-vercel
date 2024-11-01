@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TextField, useListContext, Datagrid } from "react-admin";
+import { TextField, useListContext, Datagrid, ShowButton } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
 
@@ -22,6 +22,7 @@ export const DesktopDataGrid = () => {
           maxWidth: { md: "1100px", xl: "1440px" },
         }}
         className="mx-auto"
+        rowClick={false}
       >
         <TextField source="email" label="Email" className="font-bold" />
         <TextField
@@ -42,6 +43,7 @@ export const DesktopDataGrid = () => {
           className="font-bold"
           emptyText="-"
         />
+        <ShowButton className=" font-bold hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none" />
       </Datagrid>
     </div>
   );
