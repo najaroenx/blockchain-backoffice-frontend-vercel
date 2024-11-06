@@ -1,6 +1,6 @@
 import { ShowProps, Show } from "react-admin";
-import { ComponentCustomerWrapper } from "./ComponentCustomerWrapper";
 import { CustomerShowLayout } from "./CustomerShowLayout";
+import { ComponentCustomerWrapper } from "../customs/ComponentCustomerWrapper";
 
 export const CustomerShow = (props: ShowProps) => {
   return (
