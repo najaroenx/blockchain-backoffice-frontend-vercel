@@ -86,7 +86,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: "/#/login",
+    signIn: "/auth/login",
+    signOut: "/auth/login",
   },
 
   session: {
@@ -99,16 +100,29 @@ export const authOptions: NextAuthOptions = {
         return { ...token, data: user };
       }
 
-      if (Date.now() < token.data.valid_until * 1000) {
+      if (token.data.accessToken) {
+        const access = jwtDecode(token.data.accessToken) as any;
+
+        if (Date.now() < access.exp * 1000) {
+          token.data.valid_until = access.exp;
+          return token;
+        }
+
+        // return await refreshAccessToken(token);
         return token;
       }
 
-      if (Date.now() > token.data.valid_until * 1000) {
-        await refreshAccessToken(token);
-        return token;
-      }
+      return token;
 
-      return { ...token, error: "RefreshTokenExpired" } as JWT;
+      // if (Date.now() < token.data.valid_until * 1000) {
+      //   return token;
+      // }
+
+      // if (Date.now() > token.data.valid_until * 1000) {
+      //   return token; // Return null when the token is expired
+      // }
+
+      // return { ...token, error: "RefreshTokenExpired" } as JWT;
     },
     async session({ session, token }) {
       session.user.id = token.data.id as string;
