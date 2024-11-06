@@ -43,7 +43,7 @@ export const DesktopDataGrid = () => {
           className="font-bold"
           emptyText="-"
         />
-        <ShowButton className=" font-bold hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none" />
+        <ShowButton className="font-bold hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none" />
       </Datagrid>
     </div>
   );
