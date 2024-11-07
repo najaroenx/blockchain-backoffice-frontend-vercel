@@ -26,7 +26,7 @@ export const MerchantCreate = (props: CreateProps) => {
           mutationOptions={{ onSuccess }}
         >
           <SimpleForm toolbar={<SaveToolbar />}>
-            <MerchantForm />
+            <MerchantForm isCreate={true} />
           </SimpleForm>
         </Create>
       </div>

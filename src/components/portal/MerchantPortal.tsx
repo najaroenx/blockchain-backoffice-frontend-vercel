@@ -1,13 +1,18 @@
-import useGetMerchantsByUserId from "@/hooks/useGetMerchantByUserId";
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { Loading } from "react-admin";
 import Image from "next/image";
+import { api } from "@/libs/api";
+import Link from "next/link";
+import { Loading } from "../layout/Loading";
 
-export const MerchantPortal = () => {
-  const { handleRequestMerchant } = useGetMerchantsByUserId();
-
+const MerchantPortal = () => {
   const { data: merchants, isLoading: merchantLoading } = useQuery({
-    queryFn: async () => await handleRequestMerchant(),
+    queryFn: async () => {
+      return await api("/api/merchant", {
+        method: "GET",
+      });
+    },
     queryKey: ["merchant"],
   });
 
@@ -56,9 +61,13 @@ export const MerchantPortal = () => {
                   </p>
                 </div>
                 <div className="flex p-2 pt-0 justify-center">
-                  <button className="text-sm font-bold uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white">
+                  <Link
+                    href={`/admin/${record.id}`}
+                    target="_blank"
+                    className="text-sm font-bold uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white"
+                  >
                     Open Merchant
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -68,3 +77,5 @@ export const MerchantPortal = () => {
     </div>
   );
 };
+
+export default MerchantPortal;

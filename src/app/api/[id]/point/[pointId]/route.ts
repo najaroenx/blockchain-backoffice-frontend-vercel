@@ -15,8 +15,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return handleError("Unauthorized access", 401);
     }
 
-    const merchantId = req.headers.get("Merchant-Id");
-    const pointId = params.id;
+    const merchantId = params.id;
+    const pointId = params.pointId;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });
@@ -48,15 +48,15 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    const merchantId = params.id;
+    const pointId = params.pointId;
+
     const body = await req.json();
 
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);
     }
-
-    const merchantId = req.headers.get("Merchant-Id");
-    const pointId = params.id;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });
@@ -67,7 +67,9 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
       {
         method: "PUT",
         body: {
-          ...body,
+          frameSize: body.frameSize,
+          slotSize: body.slotSize,
+          contractAddress: body.contractAddress,
         },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -96,9 +98,8 @@ export async function POST(req: Request, { params }: { params: any }) {
     return handleError("Unauthorized access", 401);
   }
 
-  const merchantId = req.headers.get("Merchant-Id");
-
-  const pointId = params.id;
+  const merchantId = params.id;
+  const pointId = params.pointId;
 
   if (!merchantId) {
     return Response.json({ message: "bad request" }, { status: 400 });

@@ -15,8 +15,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return handleError("Unauthorized access", 401);
     }
 
-    const merchantId = req.headers.get("Merchant-Id");
-    const customerId = params.id;
+    const merchantId = params.id;
+    const customerId = params.customerId;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });

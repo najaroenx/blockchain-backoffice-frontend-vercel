@@ -1,4 +1,3 @@
-import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 
@@ -21,17 +20,6 @@ export async function GET(req: Request) {
         },
       });
     }
-
-    // const response = await api(`${BACKEND_URL}/${merchantId}/voucer/`, {
-    //   method: "GET",
-    //   headers: {
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    // });
-
-    // if (response.statusCode) {
-    //   return handleError(response.message, response.statusCode);
-    // }
 
     return Response.json([], {
       headers: {

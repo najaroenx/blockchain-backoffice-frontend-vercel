@@ -10,6 +10,7 @@ import { useDialog } from "@/hooks/useDialog";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { api } from "@/libs/api";
+import { useParams } from "next/navigation";
 
 interface Props {
   id: string;
@@ -29,9 +30,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
 
   const record = useRecordContext();
 
-  const merchantId = localStorage.getItem("RaStore.currentMerchant");
-
-  const cleanedMerchantId = merchantId ? merchantId.replace(/"/g, "") : "";
+  const { merchantId } = useParams();
 
   const [formValues, setFormValues] = useState<FormValues>({
     email: "",
@@ -40,14 +39,11 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return api(`/api/point/${record?.id}`, {
+      return api(`/api/${merchantId}/point/${record?.id}`, {
         method: "POST",
         body: {
           email: formValues.email,
           amount: formValues.amount,
-        },
-        headers: {
-          "Merchant-Id": cleanedMerchantId,
         },
       });
     },

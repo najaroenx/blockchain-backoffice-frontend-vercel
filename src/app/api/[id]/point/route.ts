@@ -1,29 +1,20 @@
 import { api } from "@/libs/api";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/options";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
-import { NextRequest } from "next/server";
 import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
-    const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
-
-    const take = end - start;
-    const page = end / take;
-
-    const merchantId = req.headers.get("Merchant-Id");
-
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);
     }
+
+    const merchantId = params.id;
 
     if (!merchantId) {
       return Response.json([], {
@@ -34,14 +25,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const response = await api(`${BACKEND_URL}/${merchantId}/api-key/`, {
+    const response = await api(`${BACKEND_URL}/${merchantId}/point/`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
-      },
-      queryParams: {
-        take,
-        page,
       },
     });
 
@@ -49,35 +36,36 @@ export async function GET(req: NextRequest) {
       return handleError(response.message, response.statusCode);
     }
 
-    return Response.json(response.apiKeys, {
+    return Response.json(response.points, {
       headers: {
         "X-Total-Count": response.counts.toString(),
-        "Content-Range": `items ${response.lower}-${response.upper}/${response.counts}`,
         "Access-Control-Expose-Headers": "X-Total-Count",
       },
     });
   } catch (error) {
     logger.error(`Error occurred: ${error}`);
 
-    return Response.json({ error: "server error" }, { status: 500 });
+    return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }
-
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
+  const body = await req.json();
+
+  const token = await getSessionToken();
+  if (!token) {
+    return handleError("Unauthorized access", 401);
+  }
+
+  const merchantId = params.id;
+
+  if (!merchantId) {
+    return Response.json({ message: "bad request" }, { status: 400 });
+  }
+
   try {
-    const body = await req.json();
-    const merchantId = req.headers.get("Merchant-Id");
-
-    const session = await getServerSession(authOptions);
-    const token = session?.user.accessToken;
-
-    if (!merchantId) {
-      return Response.json({ error: "Bad Request" }, { status: 400 });
-    }
-
-    await api(`${BACKEND_URL}/${merchantId}/api-key`, {
+    const response = await api(`${BACKEND_URL}/${merchantId}/point`, {
       method: "POST",
       body: {
         ...body,
@@ -87,9 +75,13 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json({ message: "success" }, { status: 200 });
+    if (response.statusCode) {
+      return handleError(response.message, response.statusCode);
+    }
+
+    return Response.json({ message: "success" }, { status: 201 });
   } catch (error) {
     logger.error(`Error occurred: ${error}`);
-    return Response.json({ error: "server error" }, { status: 500 });
+    return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }

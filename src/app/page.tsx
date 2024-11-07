@@ -1,15 +1,14 @@
-import { Loading } from "@/components/layout/Loading";
-import { NextPage } from "next";
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
-const AdminApp = dynamic(() => import("@/components/admin/AdminApp"), {
-  ssr: false,
-});
+"use client";
 
-const Home: NextPage = () => (
-  <Suspense fallback={<Loading />}>
-    <AdminApp />
-  </Suspense>
-);
+import MerchantPortal from "@/components/portal/MerchantPortal";
+import { NextPage } from "next";
+
+const Home: NextPage = () => {
+  return (
+    <>
+      <MerchantPortal />
+    </>
+  );
+};
 
 export default Home;

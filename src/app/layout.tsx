@@ -4,6 +4,7 @@ import "./globals.css";
 import { StyledEngineProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import SessionWrapper from "@/components/SessionWrapper";
+import Providers from "./provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
       <StyledEngineProvider injectFirst>
         <CssBaseline />
         <body className={inter.className}>
-          <SessionWrapper>{children}</SessionWrapper>
+          <SessionWrapper>
+            <Providers>{children}</Providers>
+          </SessionWrapper>
         </body>
       </StyledEngineProvider>
     </html>

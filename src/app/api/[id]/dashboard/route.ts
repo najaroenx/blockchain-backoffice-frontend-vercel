@@ -5,7 +5,7 @@ import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
       return handleError("Unauthorized access", 401);
     }
 
-    const merchantId = req.headers.get("Merchant-Id");
+    const merchantId = params.id;
 
     if (!merchantId) {
       return Response.json({

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useListContext } from "react-admin";
+import { RecordContextProvider, useListContext } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { MerchantCard } from "./MerchantCard";
 import { Loading } from "../layout/Loading";
@@ -15,11 +15,13 @@ export const GridList = () => {
     <div className="flex flex-row flex-wrap py-5 gap-5 items-center">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
         {data.map((record) => (
-          <MerchantCard
-            key={record.id}
-            name={record.name}
-            website={record.website}
-          />
+          <RecordContextProvider key={record.id} value={record}>
+            <MerchantCard
+              key={record.id}
+              name={record.name}
+              website={record.website}
+            />
+          </RecordContextProvider>
         ))}
       </div>
     </div>

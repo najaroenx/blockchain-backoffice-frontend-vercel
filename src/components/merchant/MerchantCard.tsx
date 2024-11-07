@@ -1,3 +1,5 @@
+import { EditButton } from "react-admin";
+
 interface Props {
   name: string;
   website: string;
@@ -23,13 +25,11 @@ export const MerchantCard: React.FC<Props> = ({ name, website }) => {
           {website}
         </p>
       </div>
-      <div className="p-2 pt-0">
-        <button
-          className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full bg-blue-gray-900/10 text-blue-gray-900 shadow-none hover:scale-105 hover:shadow-none focus:scale-105 focus:shadow-none active:scale-100"
-          type="button"
-        >
-          Edit Merchant
-        </button>
+      <div className="flex p-2 pt-0">
+        <EditButton
+          label="Edit Merchant"
+          className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
+        />
       </div>
     </div>
   );

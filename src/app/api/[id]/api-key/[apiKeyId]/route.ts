@@ -15,8 +15,8 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
       return handleError("Unauthorized access", 401);
     }
 
-    const merchantId = req.headers.get("Merchant-Id");
-    const apiKeyId = params.id;
+    const merchantId = params.id;
+    const apiKeyId = params.apiKeyId;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });
