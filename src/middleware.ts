@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getToken } from "next-auth/jwt";
 
-const protectedRoutes = ["/dashboard", "/"];
+const protectedRoutePatterns = [/^\/admin(\/|$)/, /^\/$/];
 const publicRoutes = ["/auth/login", "/auth/register"];
 
 const isTokenExpired = (token: any): boolean => {
-  // console.log(Date.now(), token.data.exp * 1000);
   return Date.now() >= token?.data.valid_until * 1000;
 };
 
@@ -14,7 +12,9 @@ export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   const path = req.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.includes(path);
+  const isProtectedRoute = protectedRoutePatterns.some((pattern) =>
+    pattern.test(path)
+  );
   const isPublicRoute = publicRoutes.includes(path);
 
   // Handle expired token
