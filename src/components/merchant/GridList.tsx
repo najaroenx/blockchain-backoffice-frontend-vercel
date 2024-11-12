@@ -9,7 +9,7 @@ export const GridList = () => {
 
   if (isPending) return <Loading />;
 
-  if (!data || data.length === 0) return <Empty isMerchant={true} />;
+  if (!data || data.length === 0) return <Empty />;
 
   return (
     <div className="flex flex-row flex-wrap py-5 gap-5 items-center">

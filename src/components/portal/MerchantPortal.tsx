@@ -1,20 +1,38 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { api } from "@/libs/api";
 import Link from "next/link";
 import { Loading } from "../layout/Loading";
+import { useDialog } from "@/hooks/useDialog";
+import { useCallback } from "react";
+import { CreateMerchantDialog } from "../merchant/CreateMerchantDialog";
+import { useMerchants } from "@/hooks/useMerchant";
+import { useForm } from "@/hooks/useForm";
+import { Empty } from "../layout/Empty";
 
 const MerchantPortal = () => {
-  const { data: merchants, isLoading: merchantLoading } = useQuery({
-    queryFn: async () => {
-      return await api("/api/merchant", {
-        method: "GET",
+  const [open, handleOpen, handleClose] = useDialog();
+  const { merchants, merchantLoading, createMerchant } = useMerchants();
+  const { formValues, handleInputChange } = useForm({
+    name: "",
+    website: "",
+  });
+
+  const handleClick = useCallback(() => {
+    handleOpen();
+  }, [handleOpen]);
+
+  const handleConfirm = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (createMerchant.isPending) return;
+      createMerchant.mutate(formValues, {
+        onSuccess: handleClose,
       });
     },
-    queryKey: ["merchant"],
-  });
+    [createMerchant, formValues, handleClose]
+  );
 
   if (merchantLoading || !merchants)
     return (
@@ -30,13 +48,18 @@ const MerchantPortal = () => {
       <div className="container mx-auto px-5 py-10">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl text-[#1C2A53] font-bold">Merchant Portal</h1>
-          <button className="py-3 px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a] rounded-xl font-black text-sm uppercase shadow-lg">
+          <button
+            onClick={handleClick}
+            className="py-3 px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a] rounded-xl font-black text-sm uppercase shadow-lg"
+          >
             new merchant
           </button>
         </div>
         <div className="mt-5">
           <hr className="border-slate-200 border-2" />
         </div>
+
+        {merchants.length === 0 && <Empty />}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
           {merchants.map((record: any) => (
@@ -66,13 +89,20 @@ const MerchantPortal = () => {
                     target="_blank"
                     className="text-sm font-bold uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white"
                   >
-                    Open Merchant
+                    Go To Merchant
                   </Link>
                 </div>
               </div>
             </div>
           ))}
         </div>
+        <CreateMerchantDialog
+          open={open}
+          onCancel={handleClose}
+          onConfirm={handleConfirm}
+          handleInputChange={handleInputChange}
+          loading={createMerchant.isPending}
+        />
       </div>
     </div>
   );
