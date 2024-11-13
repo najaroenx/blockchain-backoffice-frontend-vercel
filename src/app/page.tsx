@@ -1,12 +1,16 @@
 "use client";
 
-import MerchantPortal from "@/components/portal/MerchantPortal";
+import { Hero } from "@/components/layout/Hero";
+import { NavbarHero } from "@/components/layout/NavbarHero";
 import { NextPage } from "next";
 
 const Home: NextPage = () => {
   return (
     <>
-      <MerchantPortal />
+      <NavbarHero />
+      <div className="min-h-screen flex flex-col container mx-auto">
+        <Hero />
+      </div>
     </>
   );
 };
