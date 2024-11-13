@@ -32,7 +32,7 @@ const Login = () => {
       });
     },
     onSuccess: () => {
-      router.push("/");
+      router.push("/portal");
     },
   });
 
@@ -77,9 +77,9 @@ const Login = () => {
               <g
                 id="Icons"
                 stroke="none"
-                stroke-width="1"
+                strokeWidth="1"
                 fill="none"
-                fill-rule="evenodd"
+                fillRule="evenodd"
               >
                 {" "}
                 <g id="Color-" transform="translate(-401.000000, -860.000000)">
@@ -179,7 +179,7 @@ const Login = () => {
 
           <p className="mt-5 text-sm font-bold">
             Don’t have an account?{" "}
-            <Link href={"/auth/register"} className="text-[#FF8901]">
+            <Link href={"/auth/sign-up"} className="text-[#FF8901]">
               Sign Up
             </Link>
           </p>

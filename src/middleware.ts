@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedRoutePatterns = [/^\/admin(\/|$)/, /^\/$/];
-const publicRoutes = ["/auth/login", "/auth/register"];
+const protectedRoutePatterns = [/^\/admin(\/|$)/, /^\/portal(\/|$)/];
+const publicRoutes = ["/auth/sign-in", "/auth/sign-up", "/"];
 
 const isTokenExpired = (token: any): boolean => {
   return Date.now() >= token?.data.valid_until * 1000;
@@ -19,7 +19,9 @@ export default async function middleware(req: NextRequest) {
 
   // Handle expired token
   if (token && isTokenExpired(token)) {
-    const response = NextResponse.redirect(new URL("/auth/login", req.nextUrl));
+    const response = NextResponse.redirect(
+      new URL("/auth/sign-in", req.nextUrl)
+    );
 
     // Clear session cookies
     response.cookies.set("next-auth.session-token", "", { maxAge: 0 });
@@ -30,7 +32,7 @@ export default async function middleware(req: NextRequest) {
 
   // If trying to access protected routes without a valid token
   if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/auth/login", req.nextUrl));
+    return NextResponse.redirect(new URL("/auth/sign-in", req.nextUrl));
   }
 
   // Redirect logged-in users away from public routes (except the home page)

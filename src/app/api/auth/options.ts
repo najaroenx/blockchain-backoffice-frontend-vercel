@@ -50,8 +50,8 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: "/auth/login",
-    signOut: "/auth/login",
+    signIn: "/auth/sign-in",
+    signOut: "/auth/sign-in",
   },
 
   session: {

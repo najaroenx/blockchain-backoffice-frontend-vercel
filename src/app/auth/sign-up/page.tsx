@@ -34,7 +34,7 @@ const Register = () => {
       });
     },
     onSuccess: () => {
-      router.push("/auth/login");
+      router.push("/auth/sign-in");
     },
   });
 
@@ -122,7 +122,7 @@ const Register = () => {
 
           <p className="mt-5 text-sm font-bold">
             Already have an account?{" "}
-            <Link href={"/auth/login"} className="text-[#FF8901]">
+            <Link href={"/auth/sign-in"} className="text-[#FF8901]">
               Sign In
             </Link>
           </p>
