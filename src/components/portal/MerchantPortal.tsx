@@ -11,7 +11,7 @@ import { useForm } from "@/hooks/useForm";
 import { Empty } from "../layout/Empty";
 
 const MerchantPortal = () => {
-  const [open, handleOpen, handleClose] = useDialog();
+  const [open, handleToggle] = useDialog();
   const { merchants, merchantLoading, createMerchant } = useMerchants();
   const { formValues, handleInputChange } = useForm({
     name: "",
@@ -19,8 +19,8 @@ const MerchantPortal = () => {
   });
 
   const handleClick = useCallback(() => {
-    handleOpen();
-  }, [handleOpen]);
+    handleToggle();
+  }, [handleToggle]);
 
   const handleConfirm = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,31 +28,33 @@ const MerchantPortal = () => {
 
       if (createMerchant.isPending) return;
       createMerchant.mutate(formValues, {
-        onSuccess: handleClose,
+        onSuccess: handleToggle,
       });
     },
-    [createMerchant, formValues, handleClose]
+    [createMerchant, formValues, handleToggle]
   );
 
   if (merchantLoading || !merchants)
     return (
       <div className="bg-slate-100 h-full w-full md:max-w-full">
-        <div className="container mx-auto px-5 py-10">
+        <div className="container mx-auto px-5">
           <Loading />
         </div>
       </div>
     );
 
   return (
-    <div className="bg-slate-100 h-screen w-full md:max-w-full">
-      <div className="container mx-auto px-5 py-10">
+    <div className="bg-slate-100 w-full md:max-w-full py-10">
+      <div className="container mx-auto px-5">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl text-[#1C2A53] font-bold">Merchant Portal</h1>
+          <h1 className="text-lg md:text-2xl text-[#1C2A53] font-bold">
+            Merchant Portal
+          </h1>
           <button
             onClick={handleClick}
-            className="py-3 px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a] rounded-xl font-black text-sm uppercase shadow-lg"
+            className="py-2 px-2 md:py-3 md:px-2 text-white bg-[#FF8901] hover:bg-[#fbbf7a] rounded-xl font-medium text-sm uppercase shadow-lg"
           >
-            new merchant
+            create merchant
           </button>
         </div>
         <div className="mt-5">
@@ -87,7 +89,7 @@ const MerchantPortal = () => {
                   <Link
                     href={`/admin/${record.id}`}
                     target="_blank"
-                    className="text-sm font-bold uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white"
+                    className="text-sm font-medium uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white"
                   >
                     Go To Merchant
                   </Link>
@@ -98,7 +100,7 @@ const MerchantPortal = () => {
         </div>
         <CreateMerchantDialog
           open={open}
-          onCancel={handleClose}
+          onCancel={handleToggle}
           onConfirm={handleConfirm}
           handleInputChange={handleInputChange}
           loading={createMerchant.isPending}

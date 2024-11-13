@@ -12,7 +12,7 @@ export const Empty = () => {
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-width="2"
+            strokeWidth="2"
             d="M3 10h18M9 16h6M6 20h12M3 6h18"
           />
         </svg>

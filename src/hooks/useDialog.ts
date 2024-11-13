@@ -1,15 +1,10 @@
 import { useState } from "react";
 
-export const useDialog = (): [boolean, () => void, () => void] => {
+export const useDialog = (): [boolean, () => void] => {
   const [open, setOpen] = useState(false);
 
-  const handleOpen = (): void => {
-    setOpen(true);
+  const handleToggle = (): void => {
+    setOpen(!open);
   };
-
-  const handleClose = (): void => {
-    setOpen(false);
-  };
-
-  return [open, handleOpen, handleClose];
+  return [open, handleToggle];
 };

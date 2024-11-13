@@ -26,13 +26,11 @@ const Login = () => {
   const mutation = useMutation({
     mutationFn: async () => {
       return await signIn("credentials", {
-        redirect: false,
+        redirect: true,
+        callbackUrl: "/portal",
         email: formValues.email,
         password: formValues.password,
       });
-    },
-    onSuccess: () => {
-      router.push("/portal");
     },
   });
 
