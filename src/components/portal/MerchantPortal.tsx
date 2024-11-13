@@ -44,7 +44,7 @@ const MerchantPortal = () => {
     );
 
   return (
-    <div className="bg-slate-100 w-full md:max-w-full py-10">
+    <div className="bg-slate-100 w-full h-screen md:max-w-full py-10">
       <div className="container mx-auto px-5">
         <div className="flex justify-between items-center">
           <h1 className="text-lg md:text-2xl text-[#1C2A53] font-bold">
