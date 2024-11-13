@@ -22,7 +22,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
   const { open, loading, onCancel, handleInputChange, onConfirm } = props;
 
   return (
-    <Dialog open={open} as="div" onClose={onCancel} className="relative z-50">
+    <Dialog open={open} as="div" onClose={onCancel} className="relative z-50 ">
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-black/30 duration-300 ease-out data-[closed]:opacity-0"
@@ -30,7 +30,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
       <div className="fixed inset-0 flex w-screen items-center justify-center px-10">
         <DialogPanel
           transition
-          className="w-full md:w-1/4 rounded-xl space-y-4 bg-white p-10 pt-5 duration-300 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+          className="w-full md:w-1/2 rounded-xl space-y-4 bg-white p-10 pt-5 duration-300 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
         >
           <DialogTitle className="text-lg font-bold text-center">
             Create New Merchant
