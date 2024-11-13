@@ -7,6 +7,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonthOutlined";
 import { Loading } from "../layout/Loading";
 import { Point } from "./types/point.type";
 import Image from "next/image";
+import { StaticCard } from "../dashboard/widget/StaticCard";
 
 export const CustomerShowLayout = () => {
   const { record, isPending } = useShowContext();
@@ -15,6 +16,45 @@ export const CustomerShowLayout = () => {
 
   return (
     <div className="w-full h-full">
+      <div className="flex flex-wrap md:flex-nowrap mt-5 gap-5">
+        <StaticCard
+          logo={
+            <div className="flex justify-center items-center w-full h-full">
+              <WalletIcon />
+            </div>
+          }
+          title="Total Transactions"
+          value={record.transactions.length || 0}
+        />
+        <StaticCard
+          logo={
+            <div className="flex justify-center items-center w-full h-full">
+              <WalletIcon />
+            </div>
+          }
+          title="Total Assets (ERC-20)"
+          value={100}
+        />
+        <StaticCard
+          logo={
+            <div className="flex justify-center items-center w-full h-full">
+              <WalletIcon />
+            </div>
+          }
+          title="Total Vouchers (ERC-1155)"
+          value={0}
+        />
+        <StaticCard
+          logo={
+            <div className="flex justify-center items-center w-full h-full">
+              <WalletIcon />
+            </div>
+          }
+          title="Total Vouchers (ERC-721)"
+          value={0}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-10">
         <div className="flex flex-col bg-white py-4 px-5 md:px-10 mt-5 shadow-lg rounded-lg gap-4 w-full md:w-1/3">
           <div className="flex justify-center">

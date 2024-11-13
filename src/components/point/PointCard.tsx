@@ -10,6 +10,7 @@ import { useDialog } from "@/hooks/useDialog";
 import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { api } from "@/libs/api";
+import { useParams } from "next/navigation";
 
 interface Props {
   id: string;
@@ -23,15 +24,13 @@ type FormValues = {
 };
 
 export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
-  const [open, handleOpen, handleClose] = useDialog();
+  const [open, handleToggle] = useDialog();
 
   const notify = useNotify();
 
   const record = useRecordContext();
 
-  const merchantId = localStorage.getItem("RaStore.currentMerchant");
-
-  const cleanedMerchantId = merchantId ? merchantId.replace(/"/g, "") : "";
+  const { merchantId } = useParams();
 
   const [formValues, setFormValues] = useState<FormValues>({
     email: "",
@@ -40,26 +39,23 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return api(`/api/point/${record?.id}`, {
+      return api(`/api/${merchantId}/point/${record?.id}`, {
         method: "POST",
         body: {
           email: formValues.email,
           amount: formValues.amount,
         },
-        headers: {
-          "Merchant-Id": cleanedMerchantId,
-        },
       });
     },
     onSuccess: () => {
       notify("Send transaction success", { type: "success" });
-      handleClose();
+      handleToggle();
     },
   });
 
   const handleClick = useCallback(() => {
-    handleOpen();
-  }, [handleOpen]);
+    handleToggle();
+  }, [handleToggle]);
 
   const handleConfirm = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -101,7 +97,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
             fill="currentColor"
           >
             <path
-              fill-rule="evenodd"
+              fillRule="evenodd"
               d="M12 2a10 10 0 0110 10v10H2V12A10 10 0 0112 2zm5.707 7.293a1 1 0 00-1.414 0L10 15.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
               clip-rule="evenodd"
             />
@@ -132,7 +128,7 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
         </div>
         <SendPointDialog
           open={open}
-          onCancel={handleClose}
+          onCancel={handleToggle}
           onConfirm={handleConfirm}
           handleInputChange={handleInputChange}
           loading={mutation.isPending}

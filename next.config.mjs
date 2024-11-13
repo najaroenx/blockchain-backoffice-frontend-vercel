@@ -7,7 +7,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["raw.seadn.io"],
+    domains: ["raw.seadn.io", "images.unsplash.com"],
   },
 };
 

@@ -9,3 +9,13 @@
 body {
     font-family: "Prompt", sans-serif;
 }
+
+
+@keyframes scaleAnimation {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }

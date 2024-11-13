@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TextField, useListContext, Datagrid } from "react-admin";
+import { TextField, useListContext, Datagrid, DeleteButton } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
 import MerchantReferenceField from "../merchant/MerchantReferenceField";
@@ -32,6 +32,7 @@ export const DataGrid = () => {
         />
         <TextField source="apiKey" label="API Key" className="font-bold" />
         <MerchantReferenceField />
+        <DeleteButton className="font-bold hover:bg-[#ff9393] hover:text-white text-[#fd3535] shadow-none" />
       </Datagrid>
     </div>
   );

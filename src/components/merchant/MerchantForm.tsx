@@ -16,7 +16,11 @@ const styleTextField = {
   },
 };
 
-export const MerchantForm = () => {
+interface Props {
+  isCreate: boolean;
+}
+
+export const MerchantForm = ({ isCreate = true }: Props) => {
   return (
     <div className="flex flex-col w-full gap-5">
       <div className="flex flex-row gap-3 items-center">

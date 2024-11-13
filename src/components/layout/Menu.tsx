@@ -3,7 +3,6 @@ import { useSidebarState, MenuProps, MenuItemLink } from "react-admin";
 import { DashboardMenuItem } from "../customs/DashboardMenuItem";
 
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
-import StorefrontIcon from "@mui/icons-material/StorefrontOutlined";
 import LocalActivityIcon from "@mui/icons-material/LocalActivity";
 import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
@@ -37,16 +36,6 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
         <div className="flex flex-col gap-y-3">
           <div className="flex flex-1"></div>
           <DashboardMenuItem className="font-black " />
-
-          <MenuItemLink
-            to="/merchant"
-            state={{ _scrollToTop: true }}
-            primaryText={"Merchants"}
-            leftIcon={<StorefrontIcon />}
-            className="rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white"
-            dense={dense}
-            sx={menuItemStyle}
-          />
 
           <MenuItemLink
             to="/customer"

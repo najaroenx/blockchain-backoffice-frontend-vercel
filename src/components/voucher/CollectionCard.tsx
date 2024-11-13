@@ -24,7 +24,7 @@ export const CollectionCard = () => {
             fill="currentColor"
           >
             <path
-              fill-rule="evenodd"
+              fillRule="evenodd"
               d="M12 2a10 10 0 0110 10v10H2V12A10 10 0 0112 2zm5.707 7.293a1 1 0 00-1.414 0L10 15.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
               clip-rule="evenodd"
             />

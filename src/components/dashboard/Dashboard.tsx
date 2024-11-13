@@ -11,39 +11,26 @@ import {
 import { Loading } from "../layout/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/libs/api";
-import { useStore } from "react-admin";
-import { Empty } from "../layout/Empty";
+import { useParams } from "next/navigation";
 
 export const Dashboard = () => {
-  const [merchant] = useStore("currentMerchant");
+  const { merchantId } = useParams();
 
   const { isPending, data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      return api(`/api/dashboard`, {
+      return api(`/api/${merchantId}/dashboard`, {
         method: "GET",
-        headers: {
-          "Merchant-Id": merchant,
-        },
       });
     },
-    enabled: !!merchant,
+    enabled: !!merchantId,
   });
 
-  if (isPending && merchant)
+  if (isPending)
     return (
       <div className="bg-slate-100 h-full w-full md:max-w-full">
         <div className="container mx-auto px-5 py-10">
           <Loading />
-        </div>
-      </div>
-    );
-
-  if (!merchant)
-    return (
-      <div className="bg-slate-100 h-full w-full md:max-w-full">
-        <div className="container mx-auto px-5 py-10">
-          <Empty isMerchant={true} />
         </div>
       </div>
     );

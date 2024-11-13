@@ -1,15 +1,18 @@
-import { Loading } from "@/components/layout/Loading";
-import { NextPage } from "next";
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
-const AdminApp = dynamic(() => import("@/components/admin/AdminApp"), {
-  ssr: false,
-});
+"use client";
 
-const Home: NextPage = () => (
-  <Suspense fallback={<Loading />}>
-    <AdminApp />
-  </Suspense>
-);
+import { Hero } from "@/components/layout/Hero";
+import { NavbarHero } from "@/components/layout/NavbarHero";
+import { NextPage } from "next";
+
+const Home: NextPage = () => {
+  return (
+    <>
+      <NavbarHero />
+      <div className="min-h-screen flex flex-col container mx-auto">
+        <Hero />
+      </div>
+    </>
+  );
+};
 
 export default Home;
