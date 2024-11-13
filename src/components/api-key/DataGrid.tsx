@@ -9,7 +9,7 @@ export const DataGrid = () => {
 
   if (isPending) return <Loading />;
 
-  if (!data || data.length === 0) return <Empty isMerchant={false} />;
+  if (!data || data.length === 0) return <Empty />;
 
   return (
     <div className="py-5 bg-white rounded-lg shadow-lg mt-4 overflow-x-scroll">
