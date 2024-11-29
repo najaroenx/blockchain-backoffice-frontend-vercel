@@ -1,4 +1,9 @@
-import { TextInput, NumberInput, required } from "react-admin";
+import {
+  TextInput,
+  NumberInput,
+  required,
+  AutocompleteInput,
+} from "react-admin";
 
 const styleTextField = {
   "& .MuiOutlinedInput-root": {
@@ -59,6 +64,8 @@ export const PointForm = ({ isCreate = true }: Props) => {
           variant="outlined"
           sx={styleTextField}
           disabled={!isCreate}
+          min={1}
+          step={undefined}
         />
         <NumberInput
           source="decimal"
@@ -68,7 +75,8 @@ export const PointForm = ({ isCreate = true }: Props) => {
           onWheel={(e: any) => e.target.blur()}
           variant="outlined"
           sx={styleTextField}
-          disabled={!isCreate}
+          defaultValue={18}
+          readOnly
         />
       </div>
 
@@ -80,24 +88,19 @@ export const PointForm = ({ isCreate = true }: Props) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-        <NumberInput
+        <AutocompleteInput
           source="frameSize"
-          label="Frame Size"
-          validate={[required()]}
-          fullWidth
-          onWheel={(e: any) => e.target.blur()}
+          label="Period Duration"
+          choices={[
+            { id: 1, name: "3 months" },
+            { id: 2, name: "6 months" },
+            { id: 4, name: "12 months" },
+            { id: 8, name: "24 months" },
+          ]}
           variant="outlined"
           sx={styleTextField}
-        />
-
-        <NumberInput
-          source="slotSize"
-          label="Slot Size"
           validate={[required()]}
-          fullWidth
-          onWheel={(e: any) => e.target.blur()}
-          variant="outlined"
-          sx={styleTextField}
+          disabled={!isCreate}
         />
       </div>
 
