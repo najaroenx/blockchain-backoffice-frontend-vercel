@@ -1,7 +1,7 @@
 "use client";
 
 import jsonServerProvider from "ra-data-json-server";
-import { Admin, Resource } from "react-admin";
+import { Admin, CustomRoutes, Resource } from "react-admin";
 import { CustomLayout } from "../layout/Layout";
 import { Dashboard } from "../dashboard/Dashboard";
 import PointList from "../point/PointList";
@@ -16,6 +16,8 @@ import { Loading } from "../layout/Loading";
 import VoucherList from "../voucher/VoucherList";
 import { MerchantEdit } from "../merchant/MerchantEdit";
 import { useParams } from "next/navigation";
+import { Route } from "react-router-dom";
+import { Setting } from "../setting/Setting";
 
 const AdminApp = () => {
   const { merchantId } = useParams();
@@ -45,6 +47,9 @@ const AdminApp = () => {
       <Resource name="transaction" />
       <Resource name="customer" list={CustomerList} show={CustomerShow} />
       <Resource name="voucher" list={VoucherList} />
+      <CustomRoutes>
+        <Route path="/setting" element={<Setting />} />
+      </CustomRoutes>
     </Admin>
   );
 };

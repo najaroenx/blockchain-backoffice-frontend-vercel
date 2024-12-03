@@ -6,8 +6,9 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOnOutlined";
 import LocalActivityIcon from "@mui/icons-material/LocalActivity";
 import LoyaltyIcon from "@mui/icons-material/LoyaltyOutlined";
 import KeyIcon from "@mui/icons-material/KeyOutlined";
-import ViewModuleIcon from "@mui/icons-material/ViewModuleOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 
 import SubMenu from "./SubMenu";
 import { useState, Suspense } from "react";
@@ -82,23 +83,33 @@ export const CustomMenu = ({ dense = false }: MenuProps) => {
           <SubMenu
             handleToggle={() => handleToggle("menuSetting")}
             isOpen={state.menuSetting}
-            name="Setting"
-            icon={<ViewModuleIcon />}
+            name="Settings"
+            icon={<SettingsOutlinedIcon />}
             dense={dense}
           >
-            <div className="flex flex-col gap-y-3">
-              <MenuItemLink
-                to="/api-key"
-                state={{ _scrollToTop: true }}
-                primaryText={"API Keys"}
-                leftIcon={<KeyIcon />}
-                className={`${
-                  open ? "pl-10" : "pl-4"
-                } rounded-r-xl py-3 hover:bg-[#fabe79] hover:text-white`}
-                dense={dense}
-                sx={menuItemStyle}
-              />
-            </div>
+            <MenuItemLink
+              to="/setting"
+              state={{ _scrollToTop: true }}
+              primaryText={"Merchant"}
+              leftIcon={<StorefrontOutlinedIcon />}
+              className={`${
+                open ? "pl-10" : "pl-4"
+              } rounded-r-xl py-3 mb-3 hover:bg-[#fabe79] hover:text-white`}
+              dense={dense}
+              sx={menuItemStyle}
+            />
+
+            <MenuItemLink
+              to="/api-key"
+              state={{ _scrollToTop: true }}
+              primaryText={"API Keys"}
+              leftIcon={<KeyIcon />}
+              className={`${
+                open ? "pl-10" : "pl-4"
+              } rounded-r-xl py-3 mb-3 hover:bg-[#fabe79] hover:text-white`}
+              dense={dense}
+              sx={menuItemStyle}
+            />
           </SubMenu>
         </div>
       </Suspense>
