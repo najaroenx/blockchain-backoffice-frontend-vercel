@@ -12,7 +12,9 @@ import { Empty } from "../layout/Empty";
 
 const MerchantPortal = () => {
   const [open, handleToggle] = useDialog();
+
   const { merchants, merchantLoading, createMerchant } = useMerchants();
+
   const { formValues, handleInputChange } = useForm({
     name: "",
     website: "",
@@ -85,11 +87,11 @@ const MerchantPortal = () => {
                     {record.website}
                   </p>
                 </div>
-                <div className="flex p-2 pt-0 justify-center">
+                <div className="flex p-2 pt-0 justify-center gap-10">
                   <Link
                     href={`/admin/${record.id}`}
                     target="_blank"
-                    className="text-sm font-medium uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white"
+                    className="text-sm font-bold uppercase bg-[#FF8901] hover:bg-[#fbbf7a] py-1.5 px-3 rounded-lg text-white w-full text-center"
                   >
                     Go To Merchant
                   </Link>
