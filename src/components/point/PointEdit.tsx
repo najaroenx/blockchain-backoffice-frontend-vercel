@@ -16,7 +16,7 @@ export const PointEdit = (props: EditProps) => {
           title={false}
           actions={false}
         >
-          <SimpleForm toolbar={<SaveToolbar />}>
+          <SimpleForm toolbar={<SaveToolbar enableDelete={true} />}>
             <PointForm isCreate={false} />
           </SimpleForm>
         </Edit>

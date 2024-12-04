@@ -32,7 +32,7 @@ const CustomToolbar = () => {
       <DeleteWithConfirmButton
         label="Delete"
         className="bg-[#f12b2b] hover:bg-[#f57a7a] shadow-none text-white p-3"
-        confirmColor="primary"
+        confirmColor="warning"
         confirmContent="You will not be able to recover this record. Are you sure?"
         confirmTitle={`Delete merchant ${record?.name}`}
         mutationOptions={{ onSuccess }}
