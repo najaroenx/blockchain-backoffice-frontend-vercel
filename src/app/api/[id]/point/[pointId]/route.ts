@@ -131,3 +131,41 @@ export async function POST(req: Request, { params }: { params: any }) {
     return Response.json({ error: "failed to load data" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: any }) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
+  try {
+    const token = await getSessionToken();
+    if (!token) {
+      return handleError("Unauthorized access", 401);
+    }
+
+    const merchantId = params.id;
+    const pointId = params.pointId;
+
+    if (!merchantId) {
+      return Response.json({ message: "bad request" }, { status: 400 });
+    }
+
+    const response = await api(
+      `${BACKEND_URL}/${merchantId}/point/${pointId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.statusCode) {
+      return handleError(response.message, response.statusCode);
+    }
+
+    return Response.json(response.id, { status: 201 });
+  } catch (error) {
+    logger.error(`Error occurred: ${error}`);
+
+    return Response.json({ error: "failed to load data" }, { status: 500 });
+  }
+}
