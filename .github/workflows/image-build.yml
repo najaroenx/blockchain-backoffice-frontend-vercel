@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Log in to Docker Hub
         run: |
@@ -23,7 +23,7 @@ jobs:
           yarn install --check-files
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and Push Docker Image
         run: |
