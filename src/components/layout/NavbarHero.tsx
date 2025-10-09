@@ -66,6 +66,15 @@ export const NavbarHero = () => {
                     Pricing
                   </a>
                 </li>
+
+                <li>
+                  <a
+                    className="text-gray-500 transition hover:text-gray-500/75"
+                    href="/marketplace"
+                  >
+                    Marketplace
+                  </a>
+                </li>
               </ul>
             </nav>
 
