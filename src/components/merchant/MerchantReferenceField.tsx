@@ -5,20 +5,16 @@ const MerchantReferenceField: FC<
   Omit<ReferenceFieldProps, "reference" | "children" | "source"> & {
     source?: string;
   }
-> = (props) => (
+> = ({ source = "merchantId", label = "Merchant Name", ...rest }) => (
   <ReferenceField
-    source={props.source!}
+    source={source}
     reference="merchant"
     link={false}
-    {...props}
+    label={label}
+    {...rest}
   >
     <TextField source="name" label="Merchant Name" className="font-bold" />
   </ReferenceField>
 );
-
-MerchantReferenceField.defaultProps = {
-  source: "merchantId",
-  label: "Merchant Name",
-};
 
 export default MerchantReferenceField;
