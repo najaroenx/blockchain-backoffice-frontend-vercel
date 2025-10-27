@@ -19,7 +19,7 @@ jobs:
       runner-image-user: acricdplatform
       registry: acricdplatform.azurecr.io
       registry-user: acricdplatform
-      helm-repo: corp-ais/blockchain-helm-chart-demo-merchant-frontend
+      helm-repo: corp-ais/blockchain-helm-chart-backoffice-frontend
       helm-repo-ref: develop
       helm-values-file: values.yaml
       unit-test-node-version: 20
