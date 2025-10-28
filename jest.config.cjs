@@ -1,40 +1,39 @@
-// jest.config.cjs
 const nextJest = require("next/jest");
 
 const createJestConfig = nextJest({ dir: "./" });
 
-/** @type {import('jest').Config} */
-const customJestConfig = {
-  collectCoverage: true,
-  testMatch: ["**/__tests__/**/*.test.[jt]s?(x)"],
+const config = {
+  testMatch: ["**/__tests__/**/*.(test|spec).(ts|tsx)"],
   testEnvironment: "jest-environment-jsdom",
   setupFilesAfterEnv: ["<rootDir>/test/setupTests.ts"],
+
+  // ✅ เปิดการเก็บ coverage
+  collectCoverage: true,
+
+  // ✅ เก็บเฉพาะ coverage จากไฟล์ใน __tests__ เท่านั้น
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "components/**/*.{ts,tsx}",
-    "app/**/*.{ts,tsx}",
-    "!**/__tests__/**",
     "!**/*.d.ts",
-    "!**/*test.*",
-    "!**/*spec.*",
-    "!**/node_modules/**",
-    "!**/.next/**",
-    "!**/out/**",
-    "!**/coverage/**",
-    "!**/public/**",
-    "!**/__mocks__/**",
-    "!**/e2e/**",
-    "!**/*config.{js,cjs,mjs,ts}",
-    "!**/next.config.*",
-    "!**/postcss.config.*",
-    "!**/tailwind.config.*",
-    "!**/edge-runtime-*.js",
-    "!**/*manifest*.js",
+    "!**/__tests__/**",
   ],
+
+  coverageReporters: ["text", "lcov", "html"],
+
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "./.next/",
+    "./out/",
+    "/coverage/",
+    "/e2e/",
+  ],
+
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$":
+      "<rootDir>/test/__mocks__/fileMock.js",
   },
-  testMatch: ["**/__tests__/**/*.(test|spec).(ts|tsx)"],
 };
 
-module.exports = createJestConfig(customJestConfig);
+module.exports = createJestConfig(config);

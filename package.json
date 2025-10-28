@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --runInBand",
-    "test:coverage": "jest --coverage"
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -25,7 +25,7 @@
     "firebase-admin": "^13.5.0",
     "jwt-decode": "^4.0.0",
     "moment": "^2.30.1",
-    "next": "14.2.26",
+    "next": "^14.2.33",
     "next-auth": "^4.24.11",
     "ra-data-json-server": "5.7.4",
     "react": "^18",
