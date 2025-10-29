@@ -1,107 +1,148 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { coupons, type Coupon, type CouponStatus } from "@/data/coupons";
+import type { CouponStatus } from "@/data/couponTypes";
+import { vouchers, type Voucher } from "@/data/vouchers";
 import {
   dateFormatter,
   formatValueLabel,
   statusStyles,
-} from "@/app/coupons/utils";
+} from "@/app/vouchers/utils";
 
 type StatusFilter = "all" | CouponStatus;
 
-export default function SelectCouponsPage() {
+export type VoucherProceedPayload = {
+  selectedIds: string[];
+  activationPlan: Record<string, number>;
+  activationQuery: string;
+};
+
+type VoucherSelectLayoutProps = {
+  showBackLink?: boolean;
+  onClose?: () => void;
+  className?: string;
+  onProceed?: (payload: VoucherProceedPayload) => void;
+  merchantId?: string | null;
+};
+
+export const VoucherSelectLayout = ({
+  showBackLink = true,
+  onClose,
+  className = "",
+  onProceed,
+  merchantId,
+}: VoucherSelectLayoutProps) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("upcoming");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [activationPlan, setActivationPlan] = useState<Record<string, number>>({});
-
-  const upcomingCoupons = useMemo(
-    () => coupons.filter((coupon) => coupon.status === "upcoming"),
-    []
+  const scopedVouchers = useMemo(() => {
+    if (!merchantId) return vouchers;
+    return vouchers.filter((voucher) => voucher.merchantId === merchantId);
+  }, [merchantId]);
+  const [activationPlan, setActivationPlan] = useState<Record<string, number>>(
+    {}
   );
 
-  const filteredCoupons = useMemo(() => {
+  useEffect(() => {
+    const scopedIds = new Set(scopedVouchers.map((voucher) => voucher.id));
+    setSelectedIds((prev) => prev.filter((id) => scopedIds.has(id)));
+    setActivationPlan((prev) => {
+      const next: Record<string, number> = {};
+      for (const id of Object.keys(prev)) {
+        if (scopedIds.has(id)) {
+          next[id] = prev[id];
+        }
+      }
+      return next;
+    });
+  }, [scopedVouchers]);
+
+  const upcomingVouchers = useMemo(
+    () => scopedVouchers.filter((voucher) => voucher.status === "upcoming"),
+    [scopedVouchers]
+  );
+
+  const filteredVouchers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    const matchesSearch = (coupon: Coupon) => {
+    const matchesSearch = (voucher: Voucher) => {
       if (!normalizedSearch) return true;
       return (
-        coupon.name.toLowerCase().includes(normalizedSearch) ||
-        coupon.description.toLowerCase().includes(normalizedSearch) ||
-        coupon.merchant.toLowerCase().includes(normalizedSearch) ||
-        coupon.categories.some((category) =>
-          category.toLowerCase().includes(normalizedSearch)
-        )
+        voucher.name.toLowerCase().includes(normalizedSearch) ||
+        voucher.description.toLowerCase().includes(normalizedSearch) ||
+        voucher.merchant.toLowerCase().includes(normalizedSearch)
       );
     };
 
-    const matchesStatus = (coupon: Coupon) =>
-      statusFilter === "all" || coupon.status === statusFilter;
+    const matchesStatus = (voucher: Voucher) =>
+      statusFilter === "all" || voucher.status === statusFilter;
 
-    return coupons.filter(
-      (coupon) => matchesStatus(coupon) && matchesSearch(coupon)
+    return scopedVouchers.filter(
+      (voucher) => matchesStatus(voucher) && matchesSearch(voucher)
     );
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, scopedVouchers]);
 
-  const selectedCoupons = useMemo(
-    () => coupons.filter((coupon) => selectedIds.includes(coupon.id)),
-    [selectedIds]
+  const selectedVouchers = useMemo(
+    () => scopedVouchers.filter((voucher) => selectedIds.includes(voucher.id)),
+    [selectedIds, scopedVouchers]
   );
 
-  const getPlannedQuantity = useCallback((coupon: Coupon) => {
-    const raw = activationPlan[coupon.id];
-    const fallback = coupon.totalIssued;
-    const candidate =
-      typeof raw === "number" && !Number.isNaN(raw) ? raw : fallback;
-    const normalized = Math.floor(candidate);
-    return Math.min(coupon.totalIssued, Math.max(0, normalized));
-  }, [activationPlan]);
+  const getPlannedQuantity = useCallback(
+    (voucher: Voucher) => {
+      const raw = activationPlan[voucher.id];
+      const fallback = voucher.totalIssued;
+      const candidate =
+        typeof raw === "number" && !Number.isNaN(raw) ? raw : fallback;
+      const normalized = Math.floor(candidate);
+      return Math.min(voucher.totalIssued, Math.max(0, normalized));
+    },
+    [activationPlan]
+  );
 
   const allocation = useMemo(() => {
-    const totalRights = selectedCoupons.reduce(
-      (sum, coupon) => sum + coupon.totalIssued,
+    const totalRights = selectedVouchers.reduce(
+      (sum, voucher) => sum + voucher.totalIssued,
       0
     );
 
-    const activationNow = selectedCoupons.reduce((sum, coupon) => {
-      const planned = getPlannedQuantity(coupon);
+    const activationNow = selectedVouchers.reduce((sum, voucher) => {
+      const planned = getPlannedQuantity(voucher);
       return sum + planned;
     }, 0);
 
-    const totalPoints = selectedCoupons.reduce((sum, coupon) => {
-      const planned = getPlannedQuantity(coupon);
-      return sum + planned * coupon.pointsCost;
+    const totalPoints = selectedVouchers.reduce((sum, voucher) => {
+      const planned = getPlannedQuantity(voucher);
+      return sum + planned * voucher.pointsCost;
     }, 0);
 
     const reserveLater = Math.max(0, totalRights - activationNow);
 
     return { totalRights, activationNow, reserveLater, totalPoints };
-  }, [selectedCoupons, getPlannedQuantity]);
+  }, [selectedVouchers, getPlannedQuantity]);
 
-  const handleToggleCoupon = (coupon: Coupon) => {
-    if (coupon.status !== "upcoming") {
+  const handleToggleVoucher = (voucher: Voucher) => {
+    if (voucher.status !== "upcoming") {
       return;
     }
 
     setSelectedIds((prev) => {
-      const exists = prev.includes(coupon.id);
+      const exists = prev.includes(voucher.id);
       const nextIds = exists
-        ? prev.filter((id) => id !== coupon.id)
-        : [...prev, coupon.id];
+        ? prev.filter((id) => id !== voucher.id)
+        : [...prev, voucher.id];
 
       setActivationPlan((prevPlan) => {
         if (exists) {
-          const { [coupon.id]: _removed, ...rest } = prevPlan;
+          const { [voucher.id]: _removed, ...rest } = prevPlan;
           return rest;
         }
         return {
           ...prevPlan,
-          [coupon.id]: coupon.totalIssued,
+          [voucher.id]: voucher.totalIssued,
         };
       });
 
@@ -115,9 +156,9 @@ export default function SelectCouponsPage() {
     search.set("selected", selectedIds.join(","));
     const activationEntries = selectedIds
       .map((id) => {
-        const coupon = coupons.find((item) => item.id === id);
-        if (!coupon) return null;
-        const planned = getPlannedQuantity(coupon);
+        const voucher = scopedVouchers.find((item) => item.id === id);
+        if (!voucher) return null;
+        const planned = getPlannedQuantity(voucher);
         return `${id}:${planned}`;
       })
       .filter((entry): entry is string => Boolean(entry));
@@ -125,7 +166,29 @@ export default function SelectCouponsPage() {
     if (activationEntries.length > 0) {
       search.set("activation", activationEntries.join("|"));
     }
-    router.push(`/coupons/setup?${search.toString()}`);
+
+    const activationForCallback = activationEntries.reduce<
+      Record<string, number>
+    >((acc, entry) => {
+      const [id, value] = entry.split(":");
+      acc[id] = Number(value);
+      return acc;
+    }, {});
+
+    const queryString = search.toString();
+
+    if (onProceed) {
+      onProceed({
+        selectedIds,
+        activationPlan: activationForCallback,
+        activationQuery: queryString,
+      });
+      return;
+    }
+
+    router.push(
+      queryString ? `/vouchers/setup?${queryString}` : "/vouchers/setup"
+    );
   };
 
   const handleClearSelections = () => {
@@ -134,25 +197,25 @@ export default function SelectCouponsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 space-y-8">
+    <div className={`max-w-7xl mx-auto px-6 py-12 space-y-8 ${className}`}>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <p className="text-sm font-medium text-blue-600 uppercase tracking-[0.25em]">
             rewards • step 2
           </p>
           <h1 className="text-3xl font-semibold text-slate-900">
-            เตรียมเปิดใช้งานคูปอง
+            เตรียมเปิดใช้งาน Voucher
           </h1>
           <p className="text-slate-600 max-w-2xl">
-            เลือกคูปองสถานะเตรียมเปิดเพื่อใช้ในแคมเปญของคุณ
+            เลือกสิทธิพิเศษสถานะเตรียมเปิดเพื่อใช้ในแคมเปญของคุณ
             ดูภาพรวมก่อนเพื่อนำไปตั้งค่าจำนวนสิทธิ์และคะแนนที่ต้องใช้ในขั้นตอนถัดไป
           </p>
           <p className="text-sm text-slate-500">
             กำหนดจำนวนสิทธิ์ที่จะเปิดใช้งานในรอบนี้และสำรองไว้รอบถัดไป ก่อนเข้าสู่การตั้งค่ารายละเอียด
           </p>
           <p className="text-sm text-slate-500">
-            * แสดงเฉพาะคูปองที่อยู่ในสถานะ&nbsp;
-            <span className="font-semibold text-indigo-600">เตรียมเปิด</span>
+            * แสดงเฉพาะ Voucher ที่อยู่ในสถานะ{" "}
+            <span className="font-semibold text-indigo-600">เตรียมเปิด</span>{" "}
             เพื่อเตรียมพร้อมปล่อยใช้งาน
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-1 text-xs font-medium">
@@ -160,7 +223,7 @@ export default function SelectCouponsPage() {
               <span className="flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white">
                 1
               </span>
-              ตรวจจำนวนคูปองที่มี
+              ตรวจจำนวนสิทธิพิเศษที่มี
             </span>
             <span className="inline-flex items-center gap-2 text-indigo-600">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white">
@@ -176,19 +239,31 @@ export default function SelectCouponsPage() {
             </span>
           </div>
         </div>
-        <Link
-          href="/coupons"
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-        >
-          ← กลับไปหน้ารายการคูปอง
-        </Link>
+        {showBackLink ? (
+          <Link
+            href="/portal"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            ← กลับไปหน้ารายการ Voucher
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            ปิดหน้าต่าง
+          </button>
+        )}
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">คูปองสถานะเตรียมเปิดทั้งหมด</p>
+          <p className="text-sm text-slate-500">
+            Voucher สถานะเตรียมเปิดทั้งหมด
+          </p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {upcomingCoupons.length.toLocaleString("th-TH")}
+            {upcomingVouchers.length.toLocaleString("th-TH")}
           </p>
           <p className="mt-1 text-xs text-slate-500">
             พร้อมให้เลือกนำมาวางแผนเปิดใช้งาน
@@ -200,25 +275,7 @@ export default function SelectCouponsPage() {
             {allocation.totalRights.toLocaleString("th-TH")}
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            จากคูปอง {selectedIds.length.toLocaleString("th-TH")} รายการ
-          </p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">เปิดใช้งานครั้งนี้</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {allocation.activationNow.toLocaleString("th-TH")}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            ใช้คะแนน {allocation.totalPoints.toLocaleString("th-TH")} คะแนน
-          </p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">สำรองสำหรับรอบถัดไป</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {allocation.reserveLater.toLocaleString("th-TH")}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            คงเหลือจากสิทธิ์ที่มีทั้งหมด
+            จาก Voucher {selectedIds.length.toLocaleString("th-TH")} รายการ
           </p>
         </article>
       </section>
@@ -258,7 +315,7 @@ export default function SelectCouponsPage() {
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="ค้นหาชื่อคูปองหรือร้านค้า..."
+              placeholder="ค้นหาชื่อ Voucher หรือร้านค้า..."
               className="w-72 rounded-full border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-700 transition focus:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
             />
           </div>
@@ -266,25 +323,25 @@ export default function SelectCouponsPage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        {filteredCoupons.length === 0 ? (
+        {filteredVouchers.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center text-slate-500">
-            <p className="text-lg font-medium">ไม่พบคูปองที่ตรงกับเงื่อนไข</p>
+            <p className="text-lg font-medium">ไม่พบ Voucher ที่ตรงกับเงื่อนไข</p>
             <p className="mt-2 text-sm">ลองปรับการค้นหาหรือเปลี่ยนคำค้นหา</p>
           </div>
         ) : (
-          filteredCoupons.map((coupon) => {
-            const isSelected = selectedIds.includes(coupon.id);
-            const isSelectable = coupon.status === "upcoming";
-            const activationInputId = `activation-${coupon.id}`;
-            const plannedQuantity = getPlannedQuantity(coupon);
+          filteredVouchers.map((voucher) => {
+            const isSelected = selectedIds.includes(voucher.id);
+            const isSelectable = voucher.status === "upcoming";
+            const activationInputId = `activation-${voucher.id}`;
+            const plannedQuantity = getPlannedQuantity(voucher);
             const reservedQuantity = Math.max(
               0,
-              coupon.totalIssued - plannedQuantity
+              voucher.totalIssued - plannedQuantity
             );
 
             return (
               <article
-                key={coupon.id}
+                key={voucher.id}
                 className={[
                   "relative flex flex-col rounded-3xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg",
                   isSelected
@@ -294,7 +351,7 @@ export default function SelectCouponsPage() {
               >
                 <button
                   type="button"
-                  onClick={() => handleToggleCoupon(coupon)}
+                  onClick={() => handleToggleVoucher(voucher)}
                   className={[
                     "absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full border-2 text-lg font-semibold transition",
                     isSelected
@@ -310,26 +367,26 @@ export default function SelectCouponsPage() {
                 </button>
 
                 <span
-                  className={`absolute inset-x-6 top-0 h-1 rounded-full ${statusStyles[coupon.status].accentClass}`}
+                  className={`absolute inset-x-6 top-0 h-1 rounded-full ${statusStyles[voucher.status].accentClass}`}
                 />
 
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                      {coupon.id}
+                      {voucher.id}
                     </p>
                     <h2 className="mt-2 text-xl font-semibold text-slate-900">
-                      {coupon.name}
+                      {voucher.name}
                     </h2>
                     <p className="mt-3 text-sm leading-relaxed text-slate-600">
-                      {coupon.description}
+                      {voucher.description}
                     </p>
                   </div>
 
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[coupon.status].badgeClass}`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[voucher.status].badgeClass}`}
                   >
-                    {statusStyles[coupon.status].label}
+                    {statusStyles[voucher.status].label}
                   </span>
                 </div>
 
@@ -339,10 +396,11 @@ export default function SelectCouponsPage() {
                       มูลค่าสิทธิประโยชน์
                     </p>
                     <p className="mt-2 text-2xl font-semibold text-slate-900">
-                      {formatValueLabel(coupon)}
+                      {formatValueLabel(voucher)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      ใช้คะแนนแลก {coupon.pointsCost.toLocaleString("th-TH")} คะแนน
+                      ใช้คะแนนแลก {voucher.pointsCost.toLocaleString("th-TH")}{" "}
+                      คะแนน
                     </p>
                   </div>
 
@@ -351,20 +409,8 @@ export default function SelectCouponsPage() {
                       ร้านค้า
                     </p>
                     <p className="mt-1 font-medium text-slate-900">
-                      {coupon.merchant}
+                      {voucher.merchant}
                     </p>
-                    {coupon.categories.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {coupon.categories.map((category) => (
-                          <span
-                            key={category}
-                            className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -374,14 +420,41 @@ export default function SelectCouponsPage() {
                       ช่วงเวลาแลก
                     </p>
                     <p className="mt-1 font-medium text-slate-900">
-                      {dateFormatter.format(new Date(coupon.startDate))} –{" "}
-                      {dateFormatter.format(new Date(coupon.endDate))}
+                      {dateFormatter.format(new Date(voucher.startDate))} –{" "}
+                      {dateFormatter.format(new Date(voucher.endDate))}
                     </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <label htmlFor={activationInputId}>เปิดใช้งานรอบนี้</label>
+                    <input
+                      id={activationInputId}
+                      type="number"
+                      min={0}
+                      max={voucher.totalIssued}
+                      value={plannedQuantity}
+                      onChange={(event) =>
+                        setActivationPlan((prev) => ({
+                          ...prev,
+                          [voucher.id]: Number(event.target.value),
+                        }))
+                      }
+                      className="w-20 rounded-xl border border-slate-200 bg-white px-3 py-1 text-right text-sm focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                      disabled={!isSelectable}
+                    />
+                  </div>
+
+                  <div className="text-xs text-slate-500">
+                    สำรองไว้รอบหน้า{" "}
+                    <span className="font-semibold text-slate-700">
+                      {reservedQuantity.toLocaleString("th-TH")}
+                    </span>{" "}
+                    สิทธิ์
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => handleToggleCoupon(coupon)}
+                    onClick={() => handleToggleVoucher(voucher)}
                     className={[
                       "rounded-full px-4 py-2 text-sm font-semibold transition",
                       !isSelectable
@@ -392,70 +465,14 @@ export default function SelectCouponsPage() {
                     ].join(" ")}
                     disabled={!isSelectable}
                   >
-                    {isSelected ? "นำออกจากการเลือก" : "เลือกคูปองนี้"}
+                    {isSelected ? "นำออกจากการเลือก" : "เลือก Voucher นี้"}
                   </button>
                   {!isSelectable && (
                     <p className="w-full text-xs text-slate-400">
-                      คูปองสถานะอื่นไม่สามารถเลือกได้
+                      Voucher สถานะอื่นไม่สามารถเลือกได้
                     </p>
                   )}
                 </div>
-
-                {isSelected && (
-                  <div className="mt-4 space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-slate-700">
-                        วางแผนการเปิดใช้งานรอบนี้
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        สิทธิ์ทั้งหมด {coupon.totalIssued.toLocaleString("th-TH")} สิทธิ์
-                      </p>
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                      <label
-                        htmlFor={activationInputId}
-                        className="flex flex-col gap-2 rounded-2xl border border-white/60 bg-white/90 p-3 text-sm text-slate-700 shadow-sm"
-                      >
-                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          เปิดใช้งานรอบนี้
-                        </span>
-                        <input
-                          id={activationInputId}
-                          type="number"
-                          min={0}
-                          max={coupon.totalIssued}
-                          value={plannedQuantity}
-                          onChange={(event) => {
-                            const raw = Number(event.target.value);
-                            const next = Math.min(
-                              coupon.totalIssued,
-                              Math.max(0, Math.floor(Number.isNaN(raw) ? 0 : raw))
-                            );
-                            setActivationPlan((prevPlan) => ({
-                              ...prevPlan,
-                              [coupon.id]: next,
-                            }));
-                          }}
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition focus:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        />
-                        <span className="text-[11px] font-medium text-slate-500">
-                          สูงสุด {coupon.totalIssued.toLocaleString("th-TH")} สิทธิ์
-                        </span>
-                      </label>
-                      <div className="flex flex-col justify-between rounded-2xl border border-white/60 bg-white/70 p-3 text-sm text-slate-600 shadow-sm">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          สำรองไว้รอบหน้า
-                        </span>
-                        <span className="text-2xl font-semibold text-slate-900">
-                          {reservedQuantity.toLocaleString("th-TH")}
-                        </span>
-                        <span className="text-[11px] font-medium text-slate-500">
-                          จะเก็บไว้สำหรับการเปิดใช้งานครั้งถัดไป
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </article>
             );
           })
@@ -468,13 +485,17 @@ export default function SelectCouponsPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-500">
-                  เลือกแล้ว {selectedIds.length.toLocaleString("th-TH")} รายการ • สิทธิ์รวม {allocation.totalRights.toLocaleString("th-TH")} สิทธิ์
+                  เลือกแล้ว {selectedIds.length.toLocaleString("th-TH")} รายการ •
+                  สิทธิ์รวม {allocation.totalRights.toLocaleString("th-TH")} สิทธิ์
                 </p>
                 <p className="text-xl font-semibold text-slate-900">
-                  เปิดใช้งานครั้งนี้ {allocation.activationNow.toLocaleString("th-TH")} สิทธิ์
+                  เปิดใช้งานครั้งนี้{" "}
+                  {allocation.activationNow.toLocaleString("th-TH")} สิทธิ์
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  สำรองไว้รอบหน้า {allocation.reserveLater.toLocaleString("th-TH")} สิทธิ์ • ใช้คะแนน {allocation.totalPoints.toLocaleString("th-TH")} คะแนน
+                  สำรองไว้รอบหน้า {allocation.reserveLater.toLocaleString("th-TH")}{" "}
+                  สิทธิ์ • ใช้คะแนน{" "}
+                  {allocation.totalPoints.toLocaleString("th-TH")} คะแนน
                 </p>
               </div>
 
@@ -490,7 +511,9 @@ export default function SelectCouponsPage() {
 
                 <button
                   type="button"
-                  disabled={selectedIds.length === 0 || allocation.activationNow === 0}
+                  disabled={
+                    selectedIds.length === 0 || allocation.activationNow === 0
+                  }
                   onClick={handleProceed}
                   className={[
                     "min-w-[200px] rounded-full px-6 py-3 text-sm font-semibold transition",
@@ -508,4 +531,4 @@ export default function SelectCouponsPage() {
       </div>
     </div>
   );
-}
+};

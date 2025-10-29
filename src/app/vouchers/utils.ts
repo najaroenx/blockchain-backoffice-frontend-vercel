@@ -1,4 +1,4 @@
-import { type Coupon, type CouponStatus } from "@/data/coupons";
+import { type Voucher, type CouponStatus } from "@/data/couponTypes";
 
 export const statusStyles: Record<
   CouponStatus,
@@ -22,20 +22,20 @@ export const dateFormatter = new Intl.DateTimeFormat("th-TH", {
   year: "numeric",
 });
 
-export const formatValueLabel = (coupon: Coupon) => {
-  switch (coupon.valueType) {
+export const formatValueLabel = (voucher: Voucher) => {
+  switch (voucher.valueType) {
     case "percentage":
-      return `ลด ${coupon.value}%`;
+      return `ลด ${voucher.value}%`;
     case "cash": {
-      const currency = coupon.currency ?? "฿";
-      return `มูลค่า ${currency}${coupon.value.toLocaleString("th-TH")}`;
+      const currency = voucher.currency ?? "฿";
+      return `มูลค่า ${currency}${voucher.value.toLocaleString("th-TH")}`;
     }
     case "gift": {
-      const currency = coupon.currency ?? "฿";
-      return `ของสมนาคุณ ${currency}${coupon.value.toLocaleString("th-TH")}`;
+      const currency = voucher.currency ?? "฿";
+      return `ของสมนาคุณ ${currency}${voucher.value.toLocaleString("th-TH")}`;
     }
     case "multiplier":
-      return `คะแนน x${coupon.value}`;
+      return `คะแนน x${voucher.value}`;
     default:
       return "";
   }

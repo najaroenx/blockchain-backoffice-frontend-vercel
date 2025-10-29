@@ -1,37 +1,50 @@
 import * as React from "react";
-import { useListContext, RecordContextProvider } from "react-admin";
+import { RecordContextProvider, useListContext } from "react-admin";
+import { useMemo } from "react";
+
 import { CollectionCard } from "./CollectionCard";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
+import type { CouponStatus } from "@/data/couponTypes";
 
-export const GridList = () => {
-  //   const { data, isPending } = useListContext();
+type GridListProps = {
+  records?: any[];
+  isLoading?: boolean;
+  statusFilter?: "all" | CouponStatus;
+};
 
-  //   if (isPending) return <Loading />;
+export const GridList = ({
+  records,
+  isLoading,
+  statusFilter = "all",
+}: GridListProps) => {
+  const { data, isPending } = useListContext();
 
-  //   if (!data || data.length === 0) return <Empty isMerchant={false} />;
+  const source = records ?? data ?? [];
+  const loading = isLoading ?? isPending;
+
+  const filtered = useMemo(() => {
+    if (!Array.isArray(source)) return [];
+    if (statusFilter === "all") return source;
+    return source.filter((record) => record.status === statusFilter);
+  }, [source, statusFilter]);
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (!filtered || filtered.length === 0) {
+    return <Empty />;
+  }
 
   return (
-    <div className="flex flex-row flex-wrap py-5 items-center">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        <CollectionCard />
-        {/* {data.map((record) => (
+    <div className="flex flex-row flex-wrap items-center gap-5 py-5">
+      <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {filtered.map((record) => (
           <RecordContextProvider key={record.id} value={record}>
-            <PointCard
-              id={record.id}
-              key={record.id}
-              name={record.name}
-              contractAddress={record.contractAddress}
-            />
+            <CollectionCard />
           </RecordContextProvider>
-        ))} */}
+        ))}
       </div>
     </div>
   );

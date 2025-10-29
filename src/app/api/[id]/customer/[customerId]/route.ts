@@ -3,23 +3,34 @@ import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import { mockCustomers } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: NextRequest, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const token = await getSessionToken();
-    if (!token) {
-      return handleError("Unauthorized access", 401);
-    }
-
     const merchantId = params.id;
     const customerId = params.customerId;
 
     if (!merchantId) {
       return Response.json({ message: "bad request" }, { status: 400 });
+    }
+
+    if (!shouldProtectAdmin) {
+      const customer = mockCustomers.find(
+        (item) =>
+          item.id === customerId && (!merchantId || item.merchantId === merchantId)
+      );
+      return Response.json(customer ?? null, { status: 200 });
+    }
+
+    const token = await getSessionToken();
+    if (!token) {
+      return handleError("Unauthorized access", 401);
     }
 
     const response = await api(

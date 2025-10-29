@@ -5,13 +5,20 @@ import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import { mockMerchants } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectPortal =
+  (process.env.PORTAL_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: NextRequest) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    if (!shouldProtectPortal) {
+      return Response.json(mockMerchants);
+    }
+
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);
@@ -40,6 +47,10 @@ export async function GET(req: NextRequest) {
 }
 export async function POST(req: Request) {
   try {
+    if (!shouldProtectPortal) {
+      return Response.json({ message: "noop (portal auth disabled)" });
+    }
+
     const body = await req.json();
     const session = await getServerSession(authOptions);
     const token = session?.user.accessToken;

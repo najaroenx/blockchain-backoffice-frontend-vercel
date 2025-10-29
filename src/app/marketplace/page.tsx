@@ -1,238 +1,272 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useMemo, useState } from "react";
 
-type MerchantStatus = "active" | "onboarding" | "draft";
+import { vouchers, type Voucher } from "@/data/vouchers";
+import { merchants } from "@/data/merchants";
+import { formatValueLabel, statusStyles } from "@/app/vouchers/utils";
+import {
+  merchantContacts,
+  type MerchantContact,
+} from "@/data/merchantContacts";
 
-type Merchant = {
-  id: string;
+type MerchantStatus = "active" | "upcoming";
+
+type MerchantSummary = {
+  merchantId: string;
   name: string;
-  category: string;
-  imageUrl: string;
+  activeVouchers: Voucher[];
+  upcomingVouchers: Voucher[];
+  categories: string[];
+  totalIssued: number;
+  totalRedeemed: number;
   status: MerchantStatus;
-  contact: string;
-  phone: string;
-  email: string;
-  joinedAt: string;
-  couponCount: number;
-  lastUpdated: string;
+  totalVouchers: number;
+  contact?: MerchantContact;
 };
-
-const merchants: Merchant[] = [
-  {
-    id: "mch-ari-001",
-    name: "Salt //",
-    category: "ร้านอาหารและบาร์",
-    imageUrl:
-      "https://images.unsplash.com/photo-1470337458703-46ad1756a187?q=80&w=1970&auto=format&fit=crop",
-    status: "active",
-    contact: "คุณพิมพ์ชนก (Partnership Manager)",
-    phone: "02-279-4499",
-    email: "partnership@saltbangkok.com",
-    joinedAt: "15 ก.ย. 2024",
-    couponCount: 8,
-    lastUpdated: "2 ชม. ที่แล้ว",
-  },
-  {
-    id: "mch-ari-002",
-    name: "ThongSmith – La Villa Ari",
-    category: "ร้านอาหารและเครื่องดื่ม",
-    imageUrl:
-      "https://images.unsplash.com/photo-1447078806655-40579c2520d6?q=80&w=1970&auto=format&fit=crop",
-    status: "onboarding",
-    contact: "คุณณัฐวุฒิ (Onboarding Specialist)",
-    phone: "02-613-9626",
-    email: "nattawut@thongsmith.co.th",
-    joinedAt: "28 ก.ย. 2024",
-    couponCount: 5,
-    lastUpdated: "เมื่อวานนี้",
-  },
-  {
-    id: "mch-ari-003",
-    name: "Hor-Nok-Hook Café",
-    category: "คาเฟ่และเบเกอรี่",
-    imageUrl:
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1970&auto=format&fit=crop",
-    status: "draft",
-    contact: "คุณอริสา (Account Executive)",
-    phone: "02-279-2114",
-    email: "arisa@hornokhookcafe.com",
-    joinedAt: "รอดำเนินการ",
-    couponCount: 0,
-    lastUpdated: "5 วัน ที่แล้ว",
-  },
-  {
-    id: "mch-ari-004",
-    name: "Paper Butter & The Burger",
-    category: "ร้านอาหารและเครื่องดื่ม",
-    imageUrl:
-      "https://images.unsplash.com/photo-1553979459-d2229ba7433b?q=80&w=1970&auto=format&fit=crop",
-    status: "active",
-    contact: "คุณพิชญ์สินี (Key Account Manager)",
-    phone: "02-271-3536",
-    email: "pitchsinee@paperbutterburger.co.th",
-    joinedAt: "9 ก.ย. 2024",
-    couponCount: 10,
-    lastUpdated: "30 นาที ที่แล้ว",
-  },
-  {
-    id: "mch-ari-005",
-    name: "After You Dessert Café – La Villa",
-    category: "คาเฟ่และขนมหวาน",
-    imageUrl:
-      "https://images.unsplash.com/photo-1519861531473-9200262188bf?q=80&w=1970&auto=format&fit=crop",
-    status: "active",
-    contact: "คุณพราว (Partnership Lead)",
-    phone: "02-613-0586",
-    email: "partnership@afteryoudessertcafe.com",
-    joinedAt: "2 ก.ค. 2024",
-    couponCount: 18,
-    lastUpdated: "12 นาที ที่แล้ว",
-  },
-  {
-    id: "mch-ari-006",
-    name: "Absolute You – Ari",
-    category: "ฟิตเนส & เวลเนส",
-    imageUrl:
-      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1970&auto=format&fit=crop",
-    status: "onboarding",
-    contact: "คุณศศิกานต์ (Partner Success)",
-    phone: "02-619-4030",
-    email: "sasikarn@absoluteyou.com",
-    joinedAt: "12 ก.ย. 2024",
-    couponCount: 4,
-    lastUpdated: "3 ชม. ที่แล้ว",
-  },
-  {
-    id: "mch-ari-007",
-    name: "Porcupine Café",
-    category: "คาเฟ่และไลฟ์สไตล์",
-    imageUrl:
-      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1970&auto=format&fit=crop",
-    status: "draft",
-    contact: "คุณธิติพงศ์ (Partnership Coordinator)",
-    phone: "02-619-2244",
-    email: "thitiphong@porcupinecafe.com",
-    joinedAt: "รอดำเนินการ",
-    couponCount: 0,
-    lastUpdated: "1 สัปดาห์ ที่แล้ว",
-  },
-  {
-    id: "mch-ari-008",
-    name: "Glow & Grace Spa",
-    category: "สุขภาพและความงาม",
-    imageUrl:
-      "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1970&auto=format&fit=crop",
-    status: "onboarding",
-    contact: "คุณศศิกานต์ (Partner Success)",
-    phone: "02-789-2200",
-    email: "sasikarn@glowgrace.co.th",
-    joinedAt: "18 ก.ย. 2024",
-    couponCount: 3,
-    lastUpdated: "3 ชม. ที่แล้ว",
-  },
-];
 
 const statusConfig: Record<
   MerchantStatus,
   { label: string; badge: string; dot: string }
 > = {
   active: {
-    label: "เปิดใช้งาน",
+    label: "มีคูปองใช้งาน",
     badge: "bg-emerald-50 text-emerald-600",
     dot: "bg-emerald-500",
   },
-  onboarding: {
-    label: "กำลังออนบอร์ด",
+  upcoming: {
+    label: "เตรียมเปิดรอบใหม่",
     badge: "bg-indigo-50 text-indigo-600",
     dot: "bg-indigo-500",
   },
-  draft: {
-    label: "รอดำเนินการ",
-    badge: "bg-slate-100 text-slate-500",
-    dot: "bg-slate-400",
-  },
+};
+
+const summarizeMerchants = () => {
+  const grouped = new Map<string, MerchantSummary>();
+  const contacts = new Map(
+    merchantContacts.map((contact) => [contact.name, contact])
+  );
+  const merchantIndex = new Map(merchants.map((merchant) => [merchant.id, merchant]));
+
+  vouchers.forEach((voucher) => {
+    if (voucher.status !== "active" && voucher.status !== "upcoming") {
+      return;
+    }
+
+    const merchantInfo = merchantIndex.get(voucher.merchantId);
+    const key = voucher.merchantId;
+    const displayName = merchantInfo?.name ?? voucher.merchant;
+    const categories = merchantInfo?.categories ?? [];
+    const contact =
+      contacts.get(displayName) ?? contacts.get(voucher.merchant) ?? undefined;
+
+    const entry =
+      grouped.get(key) ??
+      grouped
+        .set(key, {
+          merchantId: voucher.merchantId,
+          name: displayName,
+          activeVouchers: [],
+          upcomingVouchers: [],
+          categories: [...categories],
+          totalIssued: 0,
+          totalRedeemed: 0,
+          status: "upcoming",
+          totalVouchers: 0,
+          contact,
+        })
+        .get(key)!;
+
+    entry.categories = Array.from(
+      new Set([
+        ...entry.categories,
+        ...categories,
+      ])
+    );
+    if (!entry.contact && contact) {
+      entry.contact = contact;
+    }
+
+    entry.totalIssued += voucher.totalIssued;
+    entry.totalRedeemed += voucher.totalRedeemed;
+
+    if (voucher.status === "active") {
+      entry.activeVouchers.push(voucher);
+      entry.status = "active";
+    } else {
+      entry.upcomingVouchers.push(voucher);
+    }
+    entry.totalVouchers =
+      entry.activeVouchers.length + entry.upcomingVouchers.length;
+  });
+
+  return Array.from(grouped.values()).sort(
+    (first, second) => second.totalVouchers - first.totalVouchers
+  );
 };
 
 export default function Marketplace() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<MerchantStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<MerchantStatus | "all">(
+    "all"
+  );
+
+  const merchantSummaries = useMemo(() => summarizeMerchants(), []);
+
+  const stats = useMemo(() => {
+    const totalMerchants = merchantSummaries.length;
+    const totalActiveVouchers = merchantSummaries.reduce(
+      (sum, merchant) => sum + merchant.activeVouchers.length,
+      0
+    );
+    const totalUpcomingVouchers = merchantSummaries.reduce(
+      (sum, merchant) => sum + merchant.upcomingVouchers.length,
+      0
+    );
+    const totalRedeemed = merchantSummaries.reduce(
+      (sum, merchant) => sum + merchant.totalRedeemed,
+      0
+    );
+
+    return {
+      totalMerchants,
+      totalActiveVouchers,
+      totalUpcomingVouchers,
+      totalRedeemed,
+    };
+  }, [merchantSummaries]);
 
   const filteredMerchants = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    return merchants.filter((merchant) => {
+    const keyword = searchTerm.trim().toLowerCase();
+
+    return merchantSummaries.filter((merchant) => {
       const matchesStatus =
         statusFilter === "all" || merchant.status === statusFilter;
-      const matchesQuery =
-        query.length === 0 ||
-        merchant.name.toLowerCase().includes(query) ||
-        merchant.category.toLowerCase().includes(query) ||
-        merchant.contact.toLowerCase().includes(query);
-      return matchesStatus && matchesQuery;
-    });
-  }, [searchTerm, statusFilter]);
+      const matchesKeyword =
+        keyword.length === 0 ||
+        merchant.name.toLowerCase().includes(keyword) ||
+        merchant.categories.some((category) =>
+          category.toLowerCase().includes(keyword)
+        ) ||
+        merchant.activeVouchers.some((voucher) =>
+          voucher.name.toLowerCase().includes(keyword)
+        ) ||
+        merchant.upcomingVouchers.some((voucher) =>
+          voucher.name.toLowerCase().includes(keyword)
+        ) ||
+        (merchant.contact &&
+          (merchant.contact.contact.toLowerCase().includes(keyword) ||
+            merchant.contact.accountManager.toLowerCase().includes(keyword)));
 
-  const totals = useMemo(() => {
-    const base = { all: merchants.length, active: 0, onboarding: 0, draft: 0 };
-    merchants.forEach((merchant) => {
-      base[merchant.status] += 1;
+      return matchesStatus && matchesKeyword;
     });
-    return base;
-  }, []);
+  }, [merchantSummaries, searchTerm, statusFilter]);
+
+  const renderVoucherList = (
+    voucherList: Voucher[],
+    label: "active" | "upcoming"
+  ) => {
+    if (voucherList.length === 0) {
+      return (
+        <p className="text-xs text-slate-400">
+          ยังไม่มีคูปอง{label === "active" ? "ที่เปิดใช้งาน" : "ที่เตรียมเปิด"}
+        </p>
+      );
+    }
+
+    const items = voucherList.slice(0, 3);
+    const remaining = voucherList.length - items.length;
+
+    return (
+      <div className="space-y-2">
+        <ul className="space-y-2">
+          {items.map((voucher) => (
+            <li
+              key={voucher.id}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm"
+            >
+              <span className="font-semibold text-slate-800">
+                {voucher.name}
+              </span>
+              <span className="flex items-center gap-1 text-xs font-medium text-slate-500">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${statusStyles[voucher.status].accentClass}`}
+                />
+                {statusStyles[voucher.status].label}
+              </span>
+              <span className="text-xs text-slate-400">
+                {formatValueLabel(voucher)}
+              </span>
+              <span className="text-xs text-slate-400">
+                {voucher.pointsCost.toLocaleString("th-TH")} คะแนน
+              </span>
+            </li>
+          ))}
+        </ul>
+        {remaining > 0 && (
+          <p className="text-xs font-medium text-slate-500">
+            +{remaining} คูปองอื่น ๆ
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12">
       <header className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-600">
-          marketplace onboarding
+          coupon marketplace
         </p>
         <h1 className="text-3xl font-semibold text-slate-900">
-          ร้านค้าที่ร่วมรายการ
+          ร้านค้าที่ใช้งานคูปองอยู่ตอนนี้
         </h1>
         <p className="text-slate-600">
-          รวมพาร์ตเนอร์ที่อยู่ในระบบตลาดกลางของเรา ตรวจสอบสถานะการออนบอร์ด
-          ช่องทางติดต่อ และจำนวนคูปองที่พร้อมจำหน่ายได้จากหน้านี้
+          ดูภาพรวมร้านค้าพันธมิตรที่มีคูปองใช้งานอยู่ พร้อมรายละเอียดคูปองที่เปิดอยู่
+          คูปองที่กำลังเตรียมเปิด และข้อมูลติดต่อที่พร้อมให้ประสานงานต่อได้ทันที
         </p>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-slate-500">ร้านค้าทั้งหมด</p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {totals.all}
+            {stats.totalMerchants}
           </p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">เปิดใช้งานแล้ว</p>
+          <p className="text-sm text-slate-500">คูปองที่เปิดใช้งาน</p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {totals.active}
+            {stats.totalActiveVouchers}
           </p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">อยู่ระหว่างออนบอร์ด</p>
+          <p className="text-sm text-slate-500">เตรียมเปิดรอบถัดไป</p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
-            {totals.onboarding + totals.draft}
+            {stats.totalUpcomingVouchers}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">ยอดแลกสะสม</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">
+            {stats.totalRedeemed.toLocaleString("th-TH")}
           </p>
         </div>
       </section>
 
       <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          {(["all", "active", "onboarding", "draft"] as const).map((status) => {
+          {(["all", "active", "upcoming"] as const).map((status) => {
             const label =
               status === "all"
-                ? `ทั้งหมด (${totals.all})`
-                : `${statusConfig[status].label} (${totals[status]})`;
+                ? `ทั้งหมด (${stats.totalMerchants})`
+                : `${statusConfig[status].label}`;
             const isSelected = statusFilter === status;
             return (
               <button
                 key={status}
-                onClick={() =>
-                  setStatusFilter(status === "all" ? "all" : status)
-                }
+                onClick={() => setStatusFilter(status)}
                 className={[
                   "rounded-full px-4 py-2 text-sm font-semibold transition",
                   isSelected
@@ -250,7 +284,7 @@ export default function Marketplace() {
           <input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="ค้นหาร้านค้า หรือผู้ติดต่อ..."
+            placeholder="ค้นหาร้านค้า คูปอง หรือผู้ติดต่อ..."
             className="w-72 rounded-full border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm text-slate-700 transition focus:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
           />
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
@@ -262,13 +296,13 @@ export default function Marketplace() {
       <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">
-            รายการร้านค้าที่ออนบอร์ดแล้ว
+            ร้านค้าที่มีคูปองใช้งาน
           </h2>
           <Link
-            href="/marketplace/product"
+            href="/vouchers/select"
             className="text-sm font-semibold text-blue-600 hover:text-blue-500"
           >
-            ดูตัวอย่างหน้า Product →
+            ไปเลือก Voucher →
           </Link>
         </div>
 
@@ -276,84 +310,156 @@ export default function Marketplace() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-14 text-center text-slate-500">
             <p className="text-lg font-medium">ไม่พบร้านค้าที่ตรงกับการค้นหา</p>
             <p className="mt-2 text-sm">
-              ลองปรับการค้นหาหรือลองเลือกดูสถานะอื่น
+              ลองปรับการค้นหา หรือเลือกดูสถานะอื่น
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredMerchants.map((merchant) => (
-              <div
-                key={merchant.id}
-                className="flex flex-wrap items-start gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-slate-200">
-                  <Image
-                    src={merchant.imageUrl}
-                    alt={merchant.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+            {filteredMerchants.map((merchant) => {
+              const reserved =
+                merchant.totalIssued - merchant.totalRedeemed < 0
+                  ? 0
+                  : merchant.totalIssued - merchant.totalRedeemed;
 
-                <div className="flex min-w-[260px] flex-1 flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-slate-900">
-                      {merchant.name}
-                    </h3>
-                    <span
-                      className={[
-                        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
-                        statusConfig[merchant.status].badge,
-                      ].join(" ")}
-                    >
-                      <span
-                        className={`h-2 w-2 rounded-full ${statusConfig[merchant.status].dot}`}
+              const initials = merchant.name
+                .split(/\s+/)
+                .map((part) => part.charAt(0))
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+
+              return (
+                <div
+                  key={merchant.name}
+                  className="flex flex-wrap items-start gap-5 rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                >
+                  <div className="flex min-w-[220px] flex-1 items-start gap-3">
+                    {merchant.contact?.imageUrl ? (
+                      <img
+                        src={merchant.contact.imageUrl}
+                        alt={merchant.name}
+                        className="h-14 w-14 shrink-0 rounded-2xl object-cover"
+                        loading="lazy"
                       />
-                      {statusConfig[merchant.status].label}
-                    </span>
+                    ) : (
+                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-semibold text-white">
+                        {initials}
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-semibold text-slate-900">
+                          {merchant.name}
+                        </h3>
+                        <span
+                          className={[
+                            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
+                            statusConfig[merchant.status].badge,
+                          ].join(" ")}
+                        >
+                          <span
+                            className={`h-2 w-2 rounded-full ${statusConfig[merchant.status].dot}`}
+                          />
+                          {statusConfig[merchant.status].label}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                        {merchant.categories.map((category) => (
+                          <span
+                            key={`${merchant.name}-${category}`}
+                            className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm"
+                          >
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                        <span>
+                          ทั้งหมด{" "}
+                          <strong className="text-slate-900">
+                          {merchant.totalVouchers}
+                          </strong>{" "}
+                          คูปอง
+                        </span>
+                        <span>
+                          แลกไปแล้ว{" "}
+                          <strong className="text-slate-900">
+                            {merchant.totalRedeemed.toLocaleString("th-TH")}
+                          </strong>{" "}
+                          สิทธิ์
+                        </span>
+                        <span>
+                          คงเหลือ{" "}
+                          <strong className="text-slate-900">
+                            {reserved.toLocaleString("th-TH")}
+                          </strong>{" "}
+                          สิทธิ์
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm text-slate-600">{merchant.category}</p>
-                  <p className="text-xs text-slate-500">
-                    เข้าร่วมเมื่อ {merchant.joinedAt}
-                  </p>
-                </div>
 
-                <div className="flex flex-1 flex-col gap-2 text-sm text-slate-600">
-                  <p className="font-semibold text-slate-800">ผู้ติดต่อ</p>
-                  <p>
-                    {merchant.contact}
-                    <br />
-                    โทร. {merchant.phone}
-                    <br />
-                    {merchant.email}
-                  </p>
-                </div>
+                  <div className="flex min-w-[260px] flex-1 flex-col gap-3">
+                    <h4 className="text-sm font-semibold text-slate-800">
+                      คูปองที่เปิดใช้งาน ({merchant.activeVouchers.length})
+                    </h4>
+                    {renderVoucherList(merchant.activeVouchers, "active")}
+                  </div>
 
-                <div className="flex flex-1 flex-col items-start gap-2">
-                  <p className="text-sm font-semibold text-slate-800">
-                    คูปองในระบบ
-                  </p>
-                  <p className="text-2xl font-semibold text-slate-900">
-                    {merchant.couponCount}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    อัปเดตล่าสุด {merchant.lastUpdated}
-                  </p>
-                </div>
+                  <div className="flex min-w-[260px] flex-1 flex-col gap-3">
+                    <h4 className="text-sm font-semibold text-slate-800">
+                      คูปองที่เตรียมเปิด ({merchant.upcomingVouchers.length})
+                    </h4>
+                    {renderVoucherList(merchant.upcomingVouchers, "upcoming")}
+                  </div>
 
-                <div className="flex gap-2">
-                  <Link
-                    href={`/marketplace/id=${merchant.id}`}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-                  >
-                    รายละเอียด
-                  </Link>
-                  <button className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg">
-                    จัดการคูปอง
-                  </button>
+                  <div className="flex min-w-[220px] flex-1 flex-col gap-3">
+                    <h4 className="text-sm font-semibold text-slate-800">
+                      ผู้ติดต่อหลัก
+                    </h4>
+                    {merchant.contact ? (
+                      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
+                        <p className="font-semibold text-slate-900">
+                          {merchant.contact.contact}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {merchant.contact.role}
+                        </p>
+                        <p className="mt-3 text-xs text-slate-500">
+                          โทร. {merchant.contact.phone}
+                          <br />
+                          {merchant.contact.email}
+                        </p>
+                        <p className="mt-3 text-xs text-slate-500">
+                          AM: {merchant.contact.accountManager}
+                        </p>
+                        <p className="mt-2 text-[11px] text-slate-400">
+                          {merchant.contact.lastInteraction}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">
+                        ยังไม่มีข้อมูลผู้ติดต่อ
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href="/vouchers/select"
+                        className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                      >
+                        ดูรายละเอียด Voucher
+                      </Link>
+                      <Link
+                        href="/vouchers/setup"
+                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg"
+                      >
+                        ตั้งค่า Voucher
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

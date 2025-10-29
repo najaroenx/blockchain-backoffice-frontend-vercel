@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedRoutePatterns = [/^\/admin(\/|$)/, /^\/portal(\/|$)/];
-const publicRoutes = ["/auth/sign-in", "/auth/sign-up", "/"];
+const shouldProtectPortal =
+  (process.env.PORTAL_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
+
+const protectedRoutePatterns = [
+  ...(shouldProtectAdmin ? [/^\/admin(\/|$)/] : []),
+  ...(shouldProtectPortal ? [/^\/portal(\/|$)/] : []),
+];
+const authRedirectRoutes = ["/auth/sign-in", "/auth/sign-up"];
 
 const isTokenExpired = (token: any): boolean => {
   return Date.now() >= token?.data.valid_until * 1000;
@@ -15,7 +23,7 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutePatterns.some((pattern) =>
     pattern.test(path)
   );
-  const isPublicRoute = publicRoutes.includes(path);
+  const shouldRedirectWhenAuthenticated = authRedirectRoutes.includes(path);
 
   // Handle expired token
   if (token && isTokenExpired(token)) {
@@ -35,8 +43,8 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/auth/sign-in", req.nextUrl));
   }
 
-  // Redirect logged-in users away from public routes (except the home page)
-  if (isPublicRoute && token && req.nextUrl.pathname !== "/") {
+  // Redirect logged-in users away from auth routes
+  if (shouldRedirectWhenAuthenticated && token) {
     return NextResponse.redirect(new URL("/", req.nextUrl));
   }
 
