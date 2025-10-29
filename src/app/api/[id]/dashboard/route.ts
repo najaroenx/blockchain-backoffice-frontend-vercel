@@ -2,18 +2,16 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import { mockDashboard } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const token = await getSessionToken();
-    if (!token) {
-      return handleError("Unauthorized access", 401);
-    }
-
     const merchantId = params.id;
 
     if (!merchantId) {
@@ -23,6 +21,15 @@ export async function GET(req: Request, { params }: { params: any }) {
         totalRedeem: 0,
         totalTransfer: 0,
       });
+    }
+
+    if (!shouldProtectAdmin) {
+      return Response.json(mockDashboard);
+    }
+
+    const token = await getSessionToken();
+    if (!token) {
+      return handleError("Unauthorized access", 401);
     }
 
     const response = await api(`${BACKEND_URL}/dashboard/${merchantId}/`, {

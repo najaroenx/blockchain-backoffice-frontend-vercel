@@ -5,11 +5,17 @@ import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function DELETE(req: NextRequest, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    if (!shouldProtectAdmin) {
+      return Response.json(params.apiKeyId, { status: 200 });
+    }
+
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);

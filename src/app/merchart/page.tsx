@@ -1,84 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
-const merchants = [
-  {
-    id: 1,
-    name: "เซ็นทรัล รีเทล",
-    description: "ห้างสรรพสินค้า เซ็นทรัล, โรบินสัน และท็อปส์",
-    imageUrl: "https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=2952&auto=format&fit=crop",
-    points: 50000,
-    location: "สาขาทั่วประเทศ",
-    categories: ["ห้างสรรพสินค้า", "ซูเปอร์มาร์เก็ต"]
-  },
-  {
-    id: 2,
-    name: "เดอะมอลล์ กรุ๊ป",
-    description: "เดอะมอลล์, เอ็มโพเรียม และเอ็มควอเทียร์",
-    imageUrl: "https://images.unsplash.com/photo-1519642918688-7e43b19245d8?q=80&w=2976&auto=format&fit=crop",
-    points: 45000,
-    location: "กรุงเทพฯ และปริมณฑล",
-    categories: ["ห้างสรรพสินค้า", "ไลฟ์สไตล์"]
-  },
-  {
-    id: 3,
-    name: "สยามพิวรรธน์",
-    description: "สยามพารากอน, สยามเซ็นเตอร์ และไอคอนสยาม",
-    imageUrl: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=2940&auto=format&fit=crop",
-    points: 40000,
-    location: "เขตปทุมวัน, คลองสาน",
-    categories: ["ห้างสรรพสินค้า", "ลักชัวรี่"]
-  },
-  {
-    id: 4,
-    name: "ซีพี ออลล์",
-    description: "7-Eleven และ CP Freshmart",
-    imageUrl: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=2940&auto=format&fit=crop",
-    points: 30000,
-    location: "ร้านสะดวกซื้อทั่วประเทศ",
-    categories: ["ร้านสะดวกซื้อ", "อาหารและเครื่องดื่ม"]
-  },
-  {
-    id: 5,
-    name: "บิ๊กซี",
-    description: "ไฮเปอร์มาร์เก็ต และซูเปอร์เซ็นเตอร์",
-    imageUrl: "https://images.unsplash.com/photo-1515706886582-54c73c5eaf41?q=80&w=2940&auto=format&fit=crop",
-    points: 35000,
-    location: "สาขาทั่วประเทศ",
-    categories: ["ซูเปอร์มาร์เก็ต", "ไฮเปอร์มาร์เก็ต"]
-  },
-  {
-    id: 6,
-    name: "เซ็นทรัล เรสเตอรองส์ กรุ๊ป",
-    description: "มิสเตอร์โดนัท, เคเอฟซี, อานตี้ แอนส์",
-    imageUrl: "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=2940&auto=format&fit=crop",
-    points: 25000,
-    location: "ร้านอาหารทั่วประเทศ",
-    categories: ["ร้านอาหาร", "ฟาสต์ฟู้ด"]
-  }
-];
+import { merchants } from "@/data/merchants";
 
 export default function MerchantPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMerchants, setSelectedMerchants] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredMerchants = merchants.filter(merchant =>
-    merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    merchant.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleToggleMerchant = (merchantId: number) => {
-    setSelectedMerchants(prev =>
-      prev.includes(merchantId)
-        ? prev.filter(id => id !== merchantId)
-        : [...prev, merchantId]
+  const filteredMerchants = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) return merchants;
+    return merchants.filter(
+      (merchant) =>
+        merchant.name.toLowerCase().includes(keyword) ||
+        merchant.description.toLowerCase().includes(keyword) ||
+        merchant.categories.some((category) =>
+          category.toLowerCase().includes(keyword)
+        )
     );
-  };
-
-  const handleSubmit = () => {
-    console.log('Selected merchants:', selectedMerchants);
-  };
+  }, [searchTerm]);
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -92,7 +33,7 @@ export default function MerchantPage() {
           type="text"
           placeholder="ค้นหาร้านค้า..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full max-w-xl px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
@@ -101,53 +42,52 @@ export default function MerchantPage() {
       {filteredMerchants.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredMerchants.map((merchant) => (
-            <div
+            <Link
               key={merchant.id}
-              onClick={() => handleToggleMerchant(merchant.id)}
-              className={`relative cursor-pointer bg-white rounded-xl overflow-hidden shadow transition-transform duration-200 
-                ${selectedMerchants.includes(merchant.id)
-                  ? 'ring-2 ring-blue-500 scale-95'
-                  : 'hover:scale-105 hover:shadow-lg'
-                }`}
+              href={`/merchart/${merchant.id}`}
+              className="group relative block overflow-hidden rounded-2xl bg-white shadow transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
-              {/* Check Badge */}
-              <div
-                className={`absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center 
-                  ${selectedMerchants.includes(merchant.id)
-                    ? 'bg-blue-500 border-blue-500 text-white'
-                    : 'bg-white border-gray-300 text-transparent'
-                  }`}
-              >
-                ✓
+              <div className="relative h-40 w-full overflow-hidden">
+                <img
+                  src={merchant.imageUrl}
+                  alt={merchant.name}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3 text-sm font-medium text-white">
+                  {merchant.location}
+                </span>
               </div>
 
-              <img
-                src={merchant.imageUrl}
-                alt={merchant.name}
-                className="w-full h-40 object-cover"
-              />
-
-              <div className="p-4">
-                <h2 className="text-lg font-semibold truncate">{merchant.name}</h2>
-                <p className="text-sm text-gray-600 mt-1">{merchant.description}</p>
-                <p className="text-sm text-gray-600 mt-1">📍 {merchant.location}</p>
-
-                <div className="flex flex-wrap gap-1 mt-2 mb-3">
-                  {merchant.categories.map((cat, i) => (
+              <div className="space-y-3 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-slate-900 line-clamp-2">
+                    {merchant.name}
+                  </h2>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                    {merchant.voucherIds.length.toLocaleString("th-TH")} คูปอง
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600 line-clamp-2">
+                  {merchant.description}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {merchant.categories.map((category) => (
                     <span
-                      key={i}
-                      className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-md"
+                      key={category}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
                     >
-                      {cat}
+                      {category}
                     </span>
                   ))}
                 </div>
-
-                <p className="text-blue-600 font-bold text-base">
-                  🎁 {merchant.points.toLocaleString()} คะแนน
-                </p>
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 transition group-hover:text-blue-700">
+                  ดูรายละเอียด
+                  <span aria-hidden className="transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -155,25 +95,6 @@ export default function MerchantPage() {
           ไม่พบร้านค้าที่ตรงกับการค้นหา
         </p>
       )}
-
-      {/* Fixed Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-4 flex items-center justify-center gap-4 shadow-md">
-        <span className="text-gray-700">เลือกร้านค้าแล้ว {selectedMerchants.length} ร้าน</span>
-        <button
-          onClick={handleSubmit}
-          disabled={selectedMerchants.length === 0}
-          className={`min-w-[180px] px-6 py-2 rounded-lg text-white font-semibold 
-            ${selectedMerchants.length === 0
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-        >
-          ยืนยันการเลือก
-        </button>
-      </div>
-
-      {/* Spacer */}
-      <div className="h-20" />
     </div>
   );
 }

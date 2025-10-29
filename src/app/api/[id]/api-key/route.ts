@@ -5,20 +5,42 @@ import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import { NextRequest } from "next/server";
 import logger from "@/libs/logger";
+import { mockApiKeys } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: NextRequest, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const start = parseInt(req.nextUrl.searchParams.get("_start") as string);
-    const end = parseInt(req.nextUrl.searchParams.get("_end") as string);
+    const start = parseInt(req.nextUrl.searchParams.get("_start") ?? "0", 10);
+    const end = parseInt(req.nextUrl.searchParams.get("_end") ?? "0", 10);
 
-    const take = end - start;
-    const page = end / take;
+    const take = Math.max(end - start, 0);
+    const page = take === 0 ? 1 : end / take;
 
     const merchantId = params.id;
+
+    if (!shouldProtectAdmin) {
+      const apiKeys = mockApiKeys.filter(
+        (apiKey) => !merchantId || apiKey.merchantId === merchantId
+      );
+      const total = apiKeys.length;
+      const safeEnd = end > 0 ? end : total;
+      const data = apiKeys.slice(start, safeEnd);
+      const lower = data.length > 0 ? start : 0;
+      const upper = data.length > 0 ? start + data.length - 1 : 0;
+
+      return Response.json(data, {
+        headers: {
+          "X-Total-Count": total.toString(),
+          "Content-Range": `items ${lower}-${upper}/${total}`,
+          "Access-Control-Expose-Headers": "X-Total-Count",
+        },
+      });
+    }
 
     const token = await getSessionToken();
     if (!token) {
@@ -67,6 +89,10 @@ export async function POST(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    if (!shouldProtectAdmin) {
+      return Response.json({ message: "admin auth disabled" }, { status: 200 });
+    }
+
     const body = await req.json();
     const merchantId = params.id;
 

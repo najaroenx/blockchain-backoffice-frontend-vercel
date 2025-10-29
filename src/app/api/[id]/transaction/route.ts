@@ -2,20 +2,18 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import { mockTransactions } from "@/data/mockAdmin";
 
 export const dynamic = "force-dynamic";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: Request, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const token = await getSessionToken();
-    if (!token) {
-      return handleError("Unauthorized access", 401);
-    }
-
     const merchantId = params.id;
 
     if (!merchantId) {
@@ -25,6 +23,20 @@ export async function GET(req: Request, { params }: { params: any }) {
           "Access-Control-Expose-Headers": "X-Total-Count",
         },
       });
+    }
+
+    if (!shouldProtectAdmin) {
+      return Response.json(mockTransactions, {
+        headers: {
+          "X-Total-Count": mockTransactions.length.toString(),
+          "Access-Control-Expose-Headers": "X-Total-Count",
+        },
+      });
+    }
+
+    const token = await getSessionToken();
+    if (!token) {
+      return handleError("Unauthorized access", 401);
     }
 
     const response = await api(`${BACKEND_URL}/${merchantId}/transaction/`, {

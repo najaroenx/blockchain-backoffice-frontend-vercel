@@ -5,13 +5,35 @@ import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import { mockMerchants } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const shouldProtectAdmin =
+  (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    if (!shouldProtectAdmin) {
+      const merchantId = params?.id;
+      const filteredMerchants = merchantId
+        ? mockMerchants.filter((merchant) => merchant.id === merchantId)
+        : mockMerchants;
+      const data =
+        filteredMerchants.length > 0 ? filteredMerchants : mockMerchants;
+
+      return Response.json(data, {
+        headers: {
+          "X-Total-Count": data.length.toString(),
+          "Access-Control-Expose-Headers": "X-Total-Count",
+        },
+      });
+    }
+
     const token = await getSessionToken();
     if (!token) {
       return handleError("Unauthorized access", 401);
@@ -40,6 +62,10 @@ export async function GET(req: NextRequest) {
 }
 export async function POST(req: Request) {
   try {
+    if (!shouldProtectAdmin) {
+      return Response.json({ message: "noop (admin auth disabled)" });
+    }
+
     const body = await req.json();
     const session = await getServerSession(authOptions);
     const token = session?.user.accessToken;

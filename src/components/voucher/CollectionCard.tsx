@@ -1,47 +1,113 @@
 import Image from "next/image";
+import { useRecordContext } from "react-admin";
+import {
+  dateFormatter,
+  formatValueLabel,
+  getDaysUntil,
+  statusStyles,
+} from "@/app/vouchers/utils";
+import type { Voucher } from "@/data/vouchers";
 
 export const CollectionCard = () => {
+  const record = useRecordContext<Voucher>();
+
+  if (!record) {
+    return null;
+  }
+
+  const statusStyle = statusStyles[record.status] ?? statusStyles.active;
+  const redemptionRate =
+    record.totalIssued === 0
+      ? 0
+      : Math.round((record.totalRedeemed / record.totalIssued) * 100);
   return (
-    <div className="bg-white p-4 rounded-lg max-w-lg shadow-lg">
-      <div className="relative w-full h-48">
-        <Image
-          src="https://raw.seadn.io/files/5989b6c83f9e0457bb6f4e962cd225f5.png"
-          alt="Mythic Seed"
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent opacity-80 rounded-lg"></div>
-      </div>
+    <article className="relative flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+      {record.imageUrl && (
+        <div className="relative h-44 w-full overflow-hidden rounded-2xl">
+          <Image
+            src={record.imageUrl}
+            alt={record.name}
+            fill
+            sizes="(min-width: 1024px) 320px, (min-width: 768px) 40vw, 100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/50 to-black/5" />
+        </div>
+      )}
 
-      <div className="pt-4">
-        <div className="flex items-center space-x-2">
-          <h2 className="font-semibold text-lg">PORSCHΞ 911</h2>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 text-blue-500"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M12 2a10 10 0 0110 10v10H2V12A10 10 0 0112 2zm5.707 7.293a1 1 0 00-1.414 0L10 15.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
+      <span
+        className={`absolute inset-x-6 ${record.imageUrl ? "top-48" : "top-0"} h-1 rounded-full ${statusStyle.accentClass}`}
+      />
+
+      <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+            {record.id}
+          </p>
+          <h2 className="text-xl font-semibold text-slate-900">
+            {record.name}
+          </h2>
+          <p className="text-sm leading-relaxed text-slate-600">
+            {record.description}
+          </p>
         </div>
 
-        <div className="flex justify-between text-sm mt-2">
-          <div>
-            <p className="font-bold">Total Supply</p>
-            <p>205 NFTs</p>
-          </div>
-          <div>
-            <p className="font-bold">Total Supply</p>
-            <p>205 NFTs</p>
-          </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle.badgeClass}`}
+        >
+          {statusStyle.label}
+        </span>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-[1.1fr_1fr]">
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            มูลค่าสิทธิประโยชน์
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {formatValueLabel(record)}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            ใช้คะแนนแลก {record.pointsCost.toLocaleString("th-TH")} คะแนน
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            ร้านค้า
+          </p>
+          <p className="mt-1 font-medium text-slate-900">
+            {record.merchant}
+          </p>
         </div>
       </div>
-    </div>
+
+      <div className="mt-6 grid gap-4 border-t border-slate-200 pt-4 text-sm text-slate-600 md:grid-cols-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            ช่วงเวลาแลก
+          </p>
+          <p className="mt-1 font-medium text-slate-900">
+            {dateFormatter.format(new Date(record.startDate))} –{" "}
+            {dateFormatter.format(new Date(record.endDate))}
+          </p>
+          {record.status === "upcoming" && (
+            <p className="mt-1 text-xs text-slate-500">
+              เริ่มในอีก {getDaysUntil(record.startDate)} วัน
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <p>
+            ออกทั้งหมด {record.totalIssued.toLocaleString("th-TH")} สิทธิ์
+          </p>
+          <p>
+            ใช้ไปแล้ว {record.totalRedeemed.toLocaleString("th-TH")} สิทธิ์ (
+            {redemptionRate}%)
+          </p>
+        </div>
+      </div>
+    </article>
   );
 };

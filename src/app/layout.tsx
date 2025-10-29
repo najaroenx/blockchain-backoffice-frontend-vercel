@@ -9,7 +9,12 @@ import Providers from "./provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kiwari Labs Loyalty Program",
+  title: "AIS MARKETPLACE",
+  icons: {
+    icon: "/images/ais-logo.png",
+    shortcut: "/images/ais-logo.png",
+    apple: "/images/ais-logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -27,13 +32,13 @@ export default function RootLayout({
               rel="icon"
               type="image/png"
               sizes="32x32"
-              href="/images/logo.png"
+              href="/images/ais-logo.png"
             />
             <link
               rel="icon"
               type="image/png"
               sizes="16x16"
-              href="/images/logo.png"
+              href="/images/ais-logo.png"
             />
           </header>
           <main>
