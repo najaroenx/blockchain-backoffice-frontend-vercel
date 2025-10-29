@@ -1,16 +1,39 @@
-// jest.config.cjs
-const nextJest = require('next/jest');
+const nextJest = require("next/jest");
 
-const createJestConfig = nextJest({ dir: './' });
+const createJestConfig = nextJest({ dir: "./" });
 
-/** @type {import('jest').Config} */
-const customJestConfig = {
-  testEnvironment: 'jest-environment-jsdom',
-  setupFilesAfterEnv: ['<rootDir>/test/setupTests.ts'],
+const config = {
+  testMatch: ["**/__tests__/**/*.(test|spec).(ts|tsx)"],
+  testEnvironment: "jest-environment-jsdom",
+  setupFilesAfterEnv: ["<rootDir>/test/setupTests.ts"],
+
+  // ✅ เปิดการเก็บ coverage
+  collectCoverage: true,
+
+  // ✅ เก็บเฉพาะ coverage จากไฟล์ใน __tests__ เท่านั้น
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "!**/*.d.ts",
+    "!**/__tests__/**",
+  ],
+
+  coverageReporters: ["text", "lcov", "html"],
+
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "./.next/",
+    "./out/",
+    "/coverage/",
+    "/e2e/",
+  ],
+
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    "^@/(.*)$": "<rootDir>/$1",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$":
+      "<rootDir>/test/__mocks__/fileMock.js",
   },
-  testMatch: ['**/__tests__/**/*.(test|spec).(ts|tsx)'],
 };
 
-module.exports = createJestConfig(customJestConfig);
+module.exports = createJestConfig(config);
