@@ -85,10 +85,10 @@ export const CollectionCard = () => {
       <div className="mt-6 grid gap-4 border-t border-slate-200 pt-4 text-sm text-slate-600 md:grid-cols-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            ช่วงเวลาแลก
+            จนถึงวันที่
           </p>
           <p className="mt-1 font-medium text-slate-900">
-            {dateFormatter.format(new Date(record.startDate))} –{" "}
+            
             {dateFormatter.format(new Date(record.endDate))}
           </p>
           {record.status === "upcoming" && (

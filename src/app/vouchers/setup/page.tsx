@@ -260,11 +260,10 @@ export default function SetupVouchersPage() {
                 </div>
                 <div className="rounded-2xl border border-slate-200 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    ช่วงเวลาแลก
+                    จนถึงวันที่
                   </p>
                   <p className="mt-1 text-sm font-medium text-slate-900">
-                    {dateFormatter.format(new Date(selectedVoucher.startDate))}{" "}
-                    – {dateFormatter.format(new Date(selectedVoucher.endDate))}
+                    {dateFormatter.format(new Date(selectedVoucher.endDate))}
                   </p>
                 </div>
               </div>
@@ -288,7 +287,7 @@ export default function SetupVouchersPage() {
               จำนวนสิทธิ์ที่เปิดใช้งานรอบนี้
               <input
                 type="number"
-                min={0}
+                min={1}
                 max={availableTotalForSelected}
                 value={totalQuantity}
                 onChange={(event) => setTotalQuantity(Number(event.target.value))}
