@@ -27,15 +27,15 @@ export async function GET(req: Request, { params }: { params: any }) {
       return Response.json(mockDashboard);
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
     const response = await api(`${BACKEND_URL}/dashboard/${merchantId}/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

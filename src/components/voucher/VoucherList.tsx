@@ -4,20 +4,22 @@ import { useMemo, useState, useCallback } from "react";
 import { ListActions } from "../customs/ListAction";
 import { GridList } from "./GridList";
 import { getDaysUntil, statusStyles } from "@/app/vouchers/utils";
-import type { CouponStatus } from "@/data/couponTypes";
+import type {  VoucherStatus } from "@/data/vouchers";
 import type { VoucherProceedPayload } from "./VoucherSelectLayout";
 import { useDialog } from "@/hooks/useDialog";
 import { VoucherSelectDialog } from "./VoucherSelectDialog";
 import { useMerchantId } from "@/contexts/MerchantContext";
 
 type VoucherRecord = {
+  id:string
+  merchantId?:string;
   status: "active" | "upcoming";
   totalRedeemed?: number;
   totalIssued?: number;
   endDate: string;
 };
 
-type StatusFilter = "all" | CouponStatus;
+type StatusFilter = "all" | VoucherStatus;
 
 interface VoucherOverviewProps {
   vouchers: VoucherRecord[];
@@ -184,7 +186,7 @@ const VoucherListContent = ({
   onOpenSelect,
   merchantId,
 }: VoucherListContentProps) => {
-  const { data = [], isLoading } = useListContext<VoucherRecord>();
+  const { data = [], isLoading = false } = useListContext<VoucherRecord>();
   const vouchers = Array.isArray(data) ? data : [];
 
   const scoped = useMemo(() => {

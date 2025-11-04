@@ -42,8 +42,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     const response = await api(`${BACKEND_URL}/${merchantId}/api-key/`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       queryParams: {
         take,
@@ -96,8 +96,14 @@ export async function POST(req: Request, { params }: { params: any }) {
     const body = await req.json();
     const merchantId = params.id;
 
-    const session = await getServerSession(authOptions);
-    const token = session?.user.accessToken;
+    let token = "";
+    if (shouldProtectAdmin) {
+      const session = await getServerSession(authOptions);
+      token = session?.user.accessToken ?? "";
+      if (!token) {
+        return handleError("Unauthorized access", 401);
+      }
+    }
 
     if (!merchantId) {
       return Response.json({ error: "Bad Request" }, { status: 400 });
@@ -109,7 +115,7 @@ export async function POST(req: Request, { params }: { params: any }) {
         ...body,
       },
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

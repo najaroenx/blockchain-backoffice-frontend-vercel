@@ -28,8 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return Response.json(customer ?? null, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       }
     );

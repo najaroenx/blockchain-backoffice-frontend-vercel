@@ -34,14 +34,14 @@ export async function GET(
       });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
     const response = await api(`${BACKEND_URL}/merchant`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
     if (response.statusCode) {
@@ -67,9 +67,18 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const session = await getServerSession(authOptions);
-    const token = session?.user.accessToken;
-    const userId = session?.user.id;
+    let token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    let userId: string | undefined = undefined;
+
+    if (shouldProtectAdmin) {
+      const session = await getServerSession(authOptions);
+      token = session?.user.accessToken ?? "";
+      userId = session?.user.id;
+
+      if (!token) {
+        return handleError("Unauthorized access", 401);
+      }
+    }
 
     await api(`${BACKEND_URL}/merchant`, {
       method: "POST",
@@ -78,7 +87,7 @@ export async function POST(req: Request) {
         userId,
       },
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

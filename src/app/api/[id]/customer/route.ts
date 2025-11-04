@@ -40,8 +40,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     const response = await api(`${BACKEND_URL}/${merchantId}/customer`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       queryParams: {
         take,

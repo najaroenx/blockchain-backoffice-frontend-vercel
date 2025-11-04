@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { CouponStatus } from "@/data/vouchers";
+import type { VoucherStatus } from "@/data/vouchers";
 import { vouchers, type Voucher } from "@/data/vouchers";
 import {
   dateFormatter,
@@ -12,7 +12,7 @@ import {
   statusStyles,
 } from "@/app/vouchers/utils";
 
-type StatusFilter = "all" | CouponStatus;
+type StatusFilter = "all" | VoucherStatus;
 
 export type VoucherProceedPayload = {
   selectedIds: string[];
@@ -287,7 +287,7 @@ export const VoucherSelectLayout = ({
             const label =
               status === "all"
                 ? "ทั้งหมด"
-                : statusStyles[status as CouponStatus].label;
+                : statusStyles[status as VoucherStatus].label;
 
             return (
               <button
