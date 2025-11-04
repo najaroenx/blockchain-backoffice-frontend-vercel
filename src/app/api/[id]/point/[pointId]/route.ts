@@ -28,20 +28,20 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return Response.json(point ?? null, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
-    const response = await api(
-      `${BACKEND_URL}/${merchantId}/point/${pointId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const backendUrl = `${BACKEND_URL}/${merchantId}/point/${pointId}`;
+    logger.info(`Forwarding backend request: GET ${backendUrl}`);
+
+    const response = await api(backendUrl, {
+      method: "GET",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
@@ -78,25 +78,25 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
       return Response.json(updated, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
-    const response = await api(
-      `${BACKEND_URL}/${merchantId}/point/${pointId}`,
-      {
-        method: "PUT",
-        body: {
-          frameSize: body.frameSize,
-          slotSize: body.slotSize,
-          contractAddress: body.contractAddress,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const backendUrl = `${BACKEND_URL}/${merchantId}/point/${pointId}`;
+    logger.info(`Forwarding backend request: PUT ${backendUrl}`);
+
+    const response = await api(backendUrl, {
+      method: "PUT",
+      body: {
+        frameSize: body.frameSize,
+        slotSize: body.slotSize,
+        contractAddress: body.contractAddress,
+      },
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
@@ -110,7 +110,7 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
 }
 
 export async function POST(req: Request, { params }: { params: any }) {
-  logger.info(`Received request: ${req.method} ${req.url}`);
+  logger.info(`Received request: ${req.method} ${req.url} , test`);
 
   const body = await req.json();
 
@@ -125,27 +125,27 @@ export async function POST(req: Request, { params }: { params: any }) {
     return Response.json({ message: "success" }, { status: 201 });
   }
 
-  const token = await getSessionToken();
-  if (!token) {
+  const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+  if (shouldProtectAdmin && !token) {
     return handleError("Unauthorized access", 401);
   }
 
   try {
-    const response = await api(
-      `${BACKEND_URL}/${merchantId}/transaction/${pointId}`,
-      {
-        method: "POST",
-        body: {
-          ...body,
-          senderAddress: "0x32D5a21376C0dF3F98200a00380b06adeE341B91", // TODO: remove hard code wallet address
-          transactionTypeId: "redeem",
-          amount: parseInt(body.amount),
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const backendUrl = `${BACKEND_URL}/${merchantId}/transaction/${pointId}`;
+    logger.info(`Forwarding backend request: POST ${backendUrl}`);
+
+    const response = await api(backendUrl, {
+      method: "POST",
+      body: {
+        ...body,
+        senderAddress: "0x32D5a21376C0dF3F98200a00380b06adeE341B91", // TODO: remove hard code wallet address
+        transactionTypeId: "redeem",
+        amount: parseInt(body.amount),
+      },
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
@@ -172,20 +172,20 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
       return Response.json(pointId, { status: 201 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
-    const response = await api(
-      `${BACKEND_URL}/${merchantId}/point/${pointId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const backendUrl = `${BACKEND_URL}/${merchantId}/point/${pointId}`;
+    logger.info(`Forwarding backend request: DELETE ${backendUrl}`);
+
+    const response = await api(backendUrl, {
+      method: "DELETE",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { CouponStatus } from "@/data/couponTypes";
+import type { VoucherStatus } from "@/data/vouchers";
 import { vouchers, type Voucher } from "@/data/vouchers";
 import {
   dateFormatter,
@@ -12,7 +12,7 @@ import {
   statusStyles,
 } from "@/app/vouchers/utils";
 
-type StatusFilter = "all" | CouponStatus;
+type StatusFilter = "all" | VoucherStatus;
 
 export type VoucherProceedPayload = {
   selectedIds: string[];
@@ -287,7 +287,7 @@ export const VoucherSelectLayout = ({
             const label =
               status === "all"
                 ? "ทั้งหมด"
-                : statusStyles[status as CouponStatus].label;
+                : statusStyles[status as VoucherStatus].label;
 
             return (
               <button
@@ -307,7 +307,7 @@ export const VoucherSelectLayout = ({
           })}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        {/* <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
               🔍
@@ -319,7 +319,7 @@ export const VoucherSelectLayout = ({
               className="w-72 rounded-full border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-700 transition focus:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
             />
           </div>
-        </div>
+        </div> */}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
@@ -417,10 +417,9 @@ export const VoucherSelectLayout = ({
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      ช่วงเวลาแลก
+                      จนถึงวันที่
                     </p>
                     <p className="mt-1 font-medium text-slate-900">
-                      {dateFormatter.format(new Date(voucher.startDate))} –{" "}
                       {dateFormatter.format(new Date(voucher.endDate))}
                     </p>
                   </div>

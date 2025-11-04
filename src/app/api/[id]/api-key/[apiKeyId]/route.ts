@@ -16,8 +16,8 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
       return Response.json(params.apiKeyId, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -33,7 +33,7 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       }
     );

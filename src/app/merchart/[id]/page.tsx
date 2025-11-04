@@ -181,17 +181,16 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
                           {formatValueLabel(voucher)}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          ใช้คะแนนแลก{" "}
                           {voucher.pointsCost.toLocaleString("th-TH")} คะแนน
                         </p>
                       </div>
 
                       <div className="rounded-2xl border border-slate-200 p-4">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          ช่วงเวลาแลก
+                          จนกระทั้ง
                         </p>
                         <p className="mt-1 text-sm font-medium text-slate-900">
-                          {dateFormatter.format(new Date(voucher.startDate))} –{" "}
+                          
                           {dateFormatter.format(new Date(voucher.endDate))}
                         </p>
                         <p className="mt-3 text-xs text-slate-500">

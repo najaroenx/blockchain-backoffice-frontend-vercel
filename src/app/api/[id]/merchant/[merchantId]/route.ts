@@ -20,8 +20,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return Response.json(merchant ?? null, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     const response = await api(`${BACKEND_URL}/merchant/${merchantId}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
@@ -62,9 +62,8 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
       return Response.json(updated, { status: 200 });
     }
 
-    const token = await getSessionToken();
-
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -81,7 +80,7 @@ export async function PUT(req: NextRequest, { params }: { params: any }) {
         website: body.website,
       },
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
@@ -104,8 +103,8 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
       return Response.json(params.id, { status: 200 });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -118,7 +117,7 @@ export async function DELETE(req: NextRequest, { params }: { params: any }) {
     const response = await api(`${BACKEND_URL}/merchant/${merchantId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

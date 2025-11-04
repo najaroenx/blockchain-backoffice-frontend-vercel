@@ -34,8 +34,8 @@ export async function GET(req: Request, { params }: { params: any }) {
       });
     }
 
-    const token = await getSessionToken();
-    if (!token) {
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
 
@@ -48,10 +48,13 @@ export async function GET(req: Request, { params }: { params: any }) {
       });
     }
 
-    const response = await api(`${BACKEND_URL}/${merchantId}/point/`, {
+    const backendUrl = `${BACKEND_URL}/${merchantId}/point/`;
+    logger.info(`Forwarding backend request: GET ${backendUrl}`);
+
+    const response = await api(backendUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 
@@ -78,12 +81,9 @@ export async function POST(req: Request, { params }: { params: any }) {
 
   const merchantId = params.id;
 
-  if (!shouldProtectAdmin) {
-    return Response.json({ message: "admin auth disabled" }, { status: 201 });
-  }
 
-  const token = await getSessionToken();
-  if (!token) {
+  const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+  if (shouldProtectAdmin && !token) {
     return handleError("Unauthorized access", 401);
   }
 
@@ -92,13 +92,16 @@ export async function POST(req: Request, { params }: { params: any }) {
   }
 
   try {
-    const response = await api(`${BACKEND_URL}/${merchantId}/point`, {
+    const backendUrl = `${BACKEND_URL}/${merchantId}/point`;
+    logger.info(`Forwarding backend request: POST ${backendUrl}`);
+
+    const response = await api(backendUrl, {
       method: "POST",
       body: {
         ...body,
       },
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
 

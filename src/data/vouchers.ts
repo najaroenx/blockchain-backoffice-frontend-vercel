@@ -1,5 +1,5 @@
 
-export type CouponStatus = "active" | "upcoming";
+export type VoucherStatus = "active" | "upcoming";
 
 export type ValueType = "percentage" | "cash" | "gift" | "multiplier";
 
@@ -7,7 +7,7 @@ export type Voucher = {
   id: string;
   name: string;
   description: string;
-  status: CouponStatus;
+  status: VoucherStatus;
   merchant: string;
   valueType: ValueType;
   value: number;
