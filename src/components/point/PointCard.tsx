@@ -8,9 +8,9 @@ import { SendPointDialog } from "./SendPointDialog";
 import { useCallback, useState } from "react";
 import { useDialog } from "@/hooks/useDialog";
 import { useMutation } from "@tanstack/react-query";
-import Image from "next/image";
 import { api } from "@/libs/api";
 import { useParams } from "next/navigation";
+import { DEFAULT_POINT_IMAGE } from "./constants";
 
 interface Props {
   id: string;
@@ -74,15 +74,26 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
     });
   };
 
+  const imageSrc =
+    typeof record?.imageUrl === "string" && record.imageUrl.length > 0
+      ? record.imageUrl
+      : DEFAULT_POINT_IMAGE;
+  const tokenSymbol =
+    typeof record?.symbol === "string" && record.symbol.length > 0
+      ? record.symbol.toUpperCase()
+      : undefined;
+
   return (
     <div className="bg-white p-4 rounded-lg max-w-md shadow-lg">
-      <div className="relative w-full h-48">
-        <Image
-          src="https://raw.seadn.io/files/5989b6c83f9e0457bb6f4e962cd225f5.png"
-          alt="Mythic Seed"
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg"
+      <div className="relative w-full h-48 overflow-hidden rounded-lg">
+        <img
+          src={imageSrc}
+          alt={name}
+          className="h-full w-full object-cover"
+          onError={(event) => {
+            event.currentTarget.onerror = null;
+            event.currentTarget.src = DEFAULT_POINT_IMAGE;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent opacity-80 rounded-lg"></div>
       </div>
@@ -99,10 +110,16 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
             <path
               fillRule="evenodd"
               d="M12 2a10 10 0 0110 10v10H2V12A10 10 0 0112 2zm5.707 7.293a1 1 0 00-1.414 0L10 15.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z"
-              clip-rule="evenodd"
+              clipRule="evenodd"
             />
           </svg>
         </div>
+
+        {tokenSymbol && (
+          <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
+            {tokenSymbol}
+          </p>
+        )}
 
         <p className="block font-sans text-sm font-normal text-gray-700 opacity-75 overflow-hidden text-ellipsis whitespace-nowrap">
           ID : {id}

@@ -41,6 +41,9 @@ export const mockPoints = [
     merchantId: "central-retail",
     frameSize: 1000,
     slotSize: 100,
+    symbol: "CRP",
+    imageUrl:
+      "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1600&auto=format&fit=crop",
   },
   {
     id: "point-demo-2",
@@ -49,6 +52,9 @@ export const mockPoints = [
     merchantId: "the-mall-group",
     frameSize: 800,
     slotSize: 80,
+    symbol: "TMP",
+    imageUrl:
+      "https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1600&auto=format&fit=crop",
   },
 ];
 

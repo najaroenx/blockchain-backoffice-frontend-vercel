@@ -18,7 +18,6 @@ type MerchantSummary = {
   name: string;
   activeVouchers: Voucher[];
   upcomingVouchers: Voucher[];
-  categories: string[];
   totalIssued: number;
   totalRedeemed: number;
   status: MerchantStatus;
@@ -57,7 +56,6 @@ const summarizeMerchants = () => {
     const merchantInfo = merchantIndex.get(voucher.merchantId);
     const key = voucher.merchantId;
     const displayName = merchantInfo?.name ?? voucher.merchant;
-    const categories = merchantInfo?.categories ?? [];
     const contact =
       contacts.get(displayName) ?? contacts.get(voucher.merchant) ?? undefined;
 
@@ -69,7 +67,6 @@ const summarizeMerchants = () => {
           name: displayName,
           activeVouchers: [],
           upcomingVouchers: [],
-          categories: [...categories],
           totalIssued: 0,
           totalRedeemed: 0,
           status: "upcoming",
@@ -78,12 +75,6 @@ const summarizeMerchants = () => {
         })
         .get(key)!;
 
-    entry.categories = Array.from(
-      new Set([
-        ...entry.categories,
-        ...categories,
-      ])
-    );
     if (!entry.contact && contact) {
       entry.contact = contact;
     }
@@ -146,9 +137,6 @@ export default function Marketplace() {
       const matchesKeyword =
         keyword.length === 0 ||
         merchant.name.toLowerCase().includes(keyword) ||
-        merchant.categories.some((category) =>
-          category.toLowerCase().includes(keyword)
-        ) ||
         merchant.activeVouchers.some((voucher) =>
           voucher.name.toLowerCase().includes(keyword)
         ) ||
@@ -362,16 +350,6 @@ export default function Marketplace() {
                           />
                           {statusConfig[merchant.status].label}
                         </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-                        {merchant.categories.map((category) => (
-                          <span
-                            key={`${merchant.name}-${category}`}
-                            className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm"
-                          >
-                            {category}
-                          </span>
-                        ))}
                       </div>
                       <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                         <span>

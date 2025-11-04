@@ -3,7 +3,9 @@ import {
   NumberInput,
   required,
   AutocompleteInput,
+  FormDataConsumer,
 } from "react-admin";
+import { DEFAULT_POINT_IMAGE } from "./constants";
 
 const styleTextField = {
   "& .MuiOutlinedInput-root": {
@@ -34,6 +36,64 @@ export const PointForm = ({ isCreate = true }: Props) => {
         </p>
         <p className="text-[#1C2A53] font-semibold">Point Information</p>
       </div>
+
+      <FormDataConsumer>
+        {({ formData }) => {
+          const imageUrl =
+            typeof formData?.imageUrl === "string" && formData.imageUrl.length
+              ? formData.imageUrl
+              : DEFAULT_POINT_IMAGE;
+          const tokenName =
+            typeof formData?.name === "string" && formData.name.length
+              ? formData.name
+              : "Token Name";
+          const tokenSymbol =
+            typeof formData?.symbol === "string" && formData.symbol.length
+              ? formData.symbol.toUpperCase()
+              : "SYMBOL";
+          const displaySupply =
+            formData?.initialSupply !== undefined && formData.initialSupply !== ""
+              ? Number(formData.initialSupply).toLocaleString("th-TH")
+              : "0";
+
+          return (
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="relative h-48 w-full">
+                <img
+                  src={imageUrl}
+                  alt={tokenName}
+                  className="h-full w-full object-cover"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = DEFAULT_POINT_IMAGE;
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between px-6 py-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
+                    Token Preview
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold text-slate-900">
+                    {tokenName}
+                  </h3>
+                  <span className="mt-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
+                    {tokenSymbol}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end gap-1 rounded-2xl bg-slate-100 px-4 py-3 text-right">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
+                    Initial Supply
+                  </span>
+                  <span className="text-sm font-semibold text-slate-700">
+                    {displaySupply}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        }}
+      </FormDataConsumer>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
         <TextInput
@@ -77,6 +137,17 @@ export const PointForm = ({ isCreate = true }: Props) => {
           sx={styleTextField}
           defaultValue={18}
           readOnly
+        />
+        <TextInput
+          source="imageUrl"
+          label="Token Image URL"
+          fullWidth
+          variant="outlined"
+          sx={styleTextField}
+          placeholder="https://example.com/token-cover.png"
+          className="md:col-span-2"
+          helperText="วาง URL ของรูปที่จะใช้เป็นหน้าปกของโทเคน"
+          disabled={!isCreate}
         />
       </div>
 
