@@ -17,7 +17,7 @@ export type Voucher = {
   endDate: string;
   totalIssued: number;
   totalRedeemed: number;
-  merchantId?: string;
+  merchantId: string;
   imageUrl?: string;
 };
 
