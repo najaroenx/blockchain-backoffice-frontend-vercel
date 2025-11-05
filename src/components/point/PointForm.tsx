@@ -5,6 +5,7 @@ import {
   AutocompleteInput,
   FormDataConsumer,
 } from "react-admin";
+import Image from "next/image";
 import { DEFAULT_POINT_IMAGE } from "./constants";
 
 const styleTextField = {
@@ -59,7 +60,7 @@ export const PointForm = ({ isCreate = true }: Props) => {
           return (
             <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
               <div className="relative h-48 w-full">
-                <img
+                <Image
                   src={imageUrl}
                   alt={tokenName}
                   className="h-full w-full object-cover"

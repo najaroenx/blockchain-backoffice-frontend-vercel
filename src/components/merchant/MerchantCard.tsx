@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { EditButton } from "react-admin";
 
 interface Props {
@@ -9,7 +10,7 @@ export const MerchantCard: React.FC<Props> = ({ name, website }) => {
   return (
     <div className="relative flex flex-col text-gray-700 bg-white shadow-md bg-clip-border rounded-xl w-full px-5">
       <div className="relative mx-4 mt-4 overflow-hidden text-gray-700 bg-white bg-clip-border rounded-xl h-44">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1629367494173-c78a56567877?ixlib=rb-4.0.3&amp;ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;auto=format&amp;fit=crop&amp;w=927&amp;q=80"
           alt="card-image"
           className="object-cover w-full h-full"
