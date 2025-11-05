@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: { params: any }) {
     const body = await req.json();
     const merchantId = params.id;
 
-    let token = "";
+    let token:any = "";
     if (shouldProtectAdmin) {
       const session = await getServerSession(authOptions);
       token = session?.user.accessToken ?? "";

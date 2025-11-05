@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { CollectionCard } from "./CollectionCard";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
-import type { CouponStatus } from "@/data/couponTypes";
+import type { CouponStatus } from "@/data/coupons";
 
 type GridListProps = {
   records?: any[];
@@ -20,8 +20,13 @@ export const GridList = ({
 }: GridListProps) => {
   const { data, isPending } = useListContext();
 
-  const source = records ?? data ?? [];
+
+  const source = useMemo(() => {
+    return records ?? data ?? [];
+  }, [records, data]);
+
   const loading = isLoading ?? isPending;
+
 
   const filtered = useMemo(() => {
     if (!Array.isArray(source)) return [];
@@ -29,10 +34,12 @@ export const GridList = ({
     return source.filter((record) => record.status === statusFilter);
   }, [source, statusFilter]);
 
+  // Handle loading state
   if (loading) {
     return <Loading />;
   }
 
+  // If no data → show Empty state
   if (!filtered || filtered.length === 0) {
     return <Empty />;
   }

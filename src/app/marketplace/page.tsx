@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-
+import Image from "next/image";
 import { vouchers, type Voucher } from "@/data/vouchers";
 import { merchants } from "@/data/merchants";
 import { formatValueLabel, statusStyles } from "@/app/vouchers/utils";
@@ -323,7 +323,7 @@ export default function Marketplace() {
                 >
                   <div className="flex min-w-[220px] flex-1 items-start gap-3">
                     {merchant.contact?.imageUrl ? (
-                      <img
+                      <Image
                         src={merchant.contact.imageUrl}
                         alt={merchant.name}
                         className="h-14 w-14 shrink-0 rounded-2xl object-cover"

@@ -7,6 +7,7 @@ export type Merchant = {
   location: string;
   website: string;
   voucherIds: string[];
+  categories?: string[];
 };
 
 export const merchants: Merchant[] = [
