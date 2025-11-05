@@ -16,15 +16,24 @@ const parseSelectedParam = (value: string | null) =>
     ?.split(",")
     .map((id) => id.trim())
     .filter(Boolean) ?? [];
+const isSafeKey = (key: string) =>
+  /^[a-zA-Z0-9_-]+$/.test(key) && !["__proto__", "prototype", "constructor"].includes(key);
 
-const parseActivationParam = (value: string | null) => {
-  if (!value) return {} as Partial<Record<string, number>>;
-  return value.split("|").reduce<Partial<Record<string, number>>>((acc, entry) => {
-    const [id, raw] = entry.split(":");
-    if (!id) return acc;
-    const numeric = Number(raw);
-    if (Number.isNaN(numeric)) return acc;
-    acc[id] = Math.max(0, Math.floor(numeric));
+export const parseActivationParam = (value: string | null): Partial<Record<string, number>> => {
+  if (!value) return {};
+
+  return value.split("|").reduce<Partial<Record<string, number>>>((acc, segment) => {
+    const [rawId, rawValue] = segment.split(":").map((v) => v.trim());
+
+    /**Validate id format*/
+    if (!rawId || !isSafeKey(rawId)) return acc;
+
+    /**Validate number*/ 
+    const valueNum = Number(rawValue);
+    if (Number.isNaN(valueNum)) return acc;
+
+    /**Assign only safe and normalized value*/
+    acc[rawId] = Math.max(0, Math.floor(valueNum));
     return acc;
   }, {});
 };
