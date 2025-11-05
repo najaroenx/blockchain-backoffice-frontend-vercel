@@ -7,10 +7,8 @@ const config = {
   testEnvironment: "jest-environment-jsdom",
   setupFilesAfterEnv: ["<rootDir>/test/setupTests.ts"],
 
-  // ✅ เปิดการเก็บ coverage
   collectCoverage: true,
 
-  // ✅ เก็บเฉพาะ coverage จากไฟล์ใน __tests__ เท่านั้น
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
     "components/**/*.{ts,tsx}",
@@ -27,6 +25,14 @@ const config = {
     "/coverage/",
     "/e2e/",
   ],
+  // coverageThreshold: {
+  //   global: {
+  //     statements: 10,
+  //     branches: 10,
+  //     functions: 10,
+  //     lines: 10,
+  //   },
+  // },
 
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",

@@ -2,13 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 const MerchantDetail = () => {
-  const merchant = {
-    id: 1,
-    name: "Merchant One",
-    website: "www.merchantone.com",
-    imageUrl:
-      "https://images.unsplash.com/photo-1725182290901-e20c3ea7cbfb?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D;auto=format&amp;fit=crop&amp;w=927&amp;q=80",
-  };
   const products = [
     {
       id: 1,
