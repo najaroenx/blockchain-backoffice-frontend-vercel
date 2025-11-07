@@ -36,6 +36,6 @@ describe("VoucherSelectDialog", () => {
     render(<VoucherSelectDialog open={true} onClose={mockOnClose} />);
 
     fireEvent.click(screen.getByText("Close Dialog"));
-    expect(mockOnClose).toHaveBeenCalledTimes(0);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });

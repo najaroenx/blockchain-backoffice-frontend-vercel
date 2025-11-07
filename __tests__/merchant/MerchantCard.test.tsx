@@ -16,6 +16,10 @@ jest.mock('next/image', () => ({
 }));
 
 describe('MerchantCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders merchant details', () => {
     render(<MerchantCard name="Sample Shop" website="https://shop.example" />);
 

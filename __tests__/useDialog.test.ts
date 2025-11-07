@@ -10,17 +10,16 @@ describe("useDialog Hook", () => {
 
   it("should toggle open state correctly", () => {
     const { result } = renderHook(() => useDialog());
-    const [ , toggle ] = result.current;
 
     // ✅ toggle 1 → true
     act(() => {
-      toggle();
+      result.current[1]();
     });
     expect(result.current[0]).toBe(true);
 
     // ✅ toggle 2 → false
     act(() => {
-      toggle();
+      result.current[1]();
     });
     expect(result.current[0]).toBe(false);
   });

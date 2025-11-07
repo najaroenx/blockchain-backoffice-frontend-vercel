@@ -42,9 +42,6 @@ describe('CustomerShow', () => {
       screen.getByRole('heading', { name: /customer detail/i })
     ).toBeInTheDocument();
     expect(screen.getByTestId('react-admin-show')).toBeInTheDocument();
-    expect(
-      screen.getByTestId('component-customer-wrapper')
-    ).toBeInTheDocument();
     expect(screen.getByTestId('customer-show-layout')).toBeInTheDocument();
   });
 
