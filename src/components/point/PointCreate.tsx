@@ -29,8 +29,8 @@ export const PointCreate = (props: CreateProps) => {
             onSuccess: () => {
               notify("Point created successfully", { type: "info" });
               const target = merchantId
-                ? `/point`
-                : "/point/create";
+                ? `/merchant/${merchantId}/point`
+                : "/point";
               redirect(target);
             },
           }}
