@@ -1,15 +1,7 @@
-import {
-  EditButton,
-  ShowButton,
-  useNotify,
-  useRecordContext,
-} from "react-admin";
-import { SendPointDialog } from "./SendPointDialog";
-import { useCallback, useState } from "react";
+import { EditButton, useRecordContext } from "react-admin";
+import { ShowPointDialog, type PointDetails } from "./ShowPointDialog";
+import { useCallback, useMemo } from "react";
 import { useDialog } from "@/hooks/useDialog";
-import { useMutation } from "@tanstack/react-query";
-import { api } from "@/libs/api";
-import { useParams } from "next/navigation";
 import { DEFAULT_POINT_IMAGE } from "./constants";
 
 interface Props {
@@ -18,61 +10,68 @@ interface Props {
   contractAddress: string;
 }
 
-type FormValues = {
-  email: string;
-  amount: string;
+const resolveContractAddress = (value: unknown): string | null => {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  const toByte = (input: unknown): number | null => {
+    if (typeof input === "number" && Number.isFinite(input)) {
+      return input;
+    }
+    if (typeof input === "string" && input.length > 0) {
+      const parsed = Number(input);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
+  if (Array.isArray(value)) {
+    const bytes = value.map(toByte).filter((byte): byte is number => byte !== null);
+    if (!bytes.length) return null;
+    return (
+      "0x" +
+      bytes
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("")
+        .toLowerCase()
+    );
+  }
+
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !Number.isNaN(Number(key)))
+      .sort((a, b) => Number(a[0]) - Number(b[0]));
+    if (!entries.length) return null;
+
+    const bytes = entries
+      .map(([, raw]) => toByte(raw))
+      .filter((byte): byte is number => byte !== null);
+
+    if (!bytes.length) return null;
+
+    return (
+      "0x" +
+      bytes
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("")
+        .toLowerCase()
+    );
+  }
+
+  return null;
 };
 
 export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
   const [open, handleToggle] = useDialog();
 
-  const notify = useNotify();
-
   const record = useRecordContext();
-
-  const { merchantId } = useParams();
-
-  const [formValues, setFormValues] = useState<FormValues>({
-    email: "",
-    amount: "",
-  });
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      return api(`/api/${merchantId}/point/${record?.id}`, {
-        method: "POST",
-        body: {
-          email: formValues.email,
-          amount: formValues.amount,
-        },
-      });
-    },
-    onSuccess: () => {
-      notify("Send transaction success", { type: "success" });
-      handleToggle();
-    },
-  });
 
   const handleClick = useCallback(() => {
     handleToggle();
   }, [handleToggle]);
-
-  const handleConfirm = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-
-      if (mutation.isPending) return;
-      mutation.mutate();
-    },
-    [mutation]
-  );
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormValues({
-      ...formValues,
-      [event.target.name]: event.target.value,
-    });
-  };
 
   const imageSrc =
     typeof record?.imageUrl === "string" && record.imageUrl.length > 0
@@ -82,6 +81,33 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
     typeof record?.symbol === "string" && record.symbol.length > 0
       ? record.symbol.toUpperCase()
       : undefined;
+
+  const pointDetails: PointDetails = useMemo(() => {
+    const contract =
+      resolveContractAddress(record?.contractAddress) ??
+      resolveContractAddress(contractAddress);
+    const baseId = record?.id ?? id;
+    const normalizedId =
+      typeof baseId === "string"
+        ? baseId
+        : baseId !== undefined && baseId !== null
+          ? String(baseId)
+          : id;
+
+    return {
+      id: normalizedId,
+      name: record?.name ?? name,
+      symbol: record?.symbol,
+      contractAddress: contract ?? null,
+      initialSupply: record?.initialSupply,
+      decimal: record?.decimal,
+      frameSize: record?.frameSize,
+      slotSize: record?.slotSize ?? null,
+      merchantId: record?.merchantId,
+      createdAt: record?.createdAt,
+      updatedAt: record?.updatedAt,
+    };
+  }, [record, id, name, contractAddress]);
 
   return (
     <div className="bg-white p-4 rounded-lg max-w-md shadow-lg">
@@ -126,29 +152,18 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
         </p>
 
         <div className="flex flex-col md:flex-row mt-5 gap-2 pt-0 ">
-          <EditButton
-            label="Edit Point"
-            className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
-          />
-
-          {/* <ShowButton
-            label="Show Point"
-            className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full hover:bg-[#fbbf7a] hover:text-white text-[#FF8901] shadow-none"
-          /> */}
 
           <button
             onClick={handleClick}
             className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 rounded-lg shadow-gray-900/10 hover:shadow-gray-900/20 focus:opacity-[0.85] active:opacity-[0.85] active:shadow-none block w-full bg-[#FF8901] hover:bg-[#fbbf7a] text-white shadow-none"
           >
-            Send Point
+            Show Point
           </button>
         </div>
-        <SendPointDialog
+        <ShowPointDialog
           open={open}
-          onCancel={handleToggle}
-          onConfirm={handleConfirm}
-          handleInputChange={handleInputChange}
-          loading={mutation.isPending}
+          onClose={handleToggle}
+          point={pointDetails}
         />
       </div>
     </div>
