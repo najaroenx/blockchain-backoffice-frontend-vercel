@@ -29,7 +29,8 @@ const config = {
   ],
 
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/$1",
+    // "^@/(.*)$": "<rootDir>/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(gif|ttf|eot|svg|png|jpg|jpeg|webp)$":
       "<rootDir>/test/__mocks__/fileMock.js",

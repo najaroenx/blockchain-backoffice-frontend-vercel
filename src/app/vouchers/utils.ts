@@ -1,5 +1,6 @@
-import { type Voucher, type CouponStatus } from "@/data/couponTypes";
-
+// import { type Voucher, type CouponStatus } from "@/data/couponTypes";
+import { CouponStatus,  } from "@/data/coupons";
+import { Voucher } from "@/data/vouchers";
 export const statusStyles: Record<
   CouponStatus,
   { label: string; badgeClass: string; accentClass: string }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import Image from "next/image";
 import { merchants } from "@/data/merchants";
 import { vouchers } from "@/data/vouchers";
 import {
@@ -14,8 +14,10 @@ type MerchantDetailPageProps = {
     id: string;
   };
 };
-
-export default function MerchantDetailPage({ params }: MerchantDetailPageProps) {
+const tempImage =  "https://images.unsplash.com/photo-1725182290901-e20c3ea7cbfb?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D;auto=format&amp;fit=crop&amp;w=927&amp;q=80"
+export default function MerchantDetailPage({
+  params,
+}: MerchantDetailPageProps) {
   const merchant = merchants.find((item) => item.id === params.id);
 
   if (!merchant) {
@@ -37,7 +39,9 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">
             {merchant.name}
           </h1>
-          <p className="mt-2 max-w-3xl text-slate-600">{merchant.description}</p>
+          <p className="mt-2 max-w-3xl text-slate-600">
+            {merchant.description}
+          </p>
           <p className="mt-3 text-sm text-blue-600">
             <a
               href={merchant.website}
@@ -58,7 +62,7 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
-        <img
+        <Image
           src={merchant.imageUrl}
           alt={merchant.name}
           className="h-80 w-full object-cover sm:h-[420px]"
@@ -91,14 +95,16 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
               หมวดหมู่หลักของร้านค้า
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
-              {merchant.categories.map((category) => (
-                <span
-                  key={category}
-                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                >
-                  {category}
-                </span>
-              ))}
+              {merchant && merchant?.categories
+                ? merchant?.categories.map((category) => (
+                    <span
+                      key={category}
+                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                    >
+                      {category}
+                    </span>
+                  ))
+                : null}
             </div>
           </div>
         </article>
@@ -147,8 +153,8 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
                   className="flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
                   <div className="relative h-40 w-full">
-                    <img
-                      src={voucher.imageUrl}
+                    <Image
+                      src={voucher.imageUrl || tempImage}
                       alt={voucher.name}
                       className="h-full w-full object-cover"
                     />
@@ -190,7 +196,6 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
                           จนกระทั้ง
                         </p>
                         <p className="mt-1 text-sm font-medium text-slate-900">
-                          
                           {dateFormatter.format(new Date(voucher.endDate))}
                         </p>
                         <p className="mt-3 text-xs text-slate-500">
@@ -227,7 +232,7 @@ export default function MerchantDetailPage({ params }: MerchantDetailPageProps) 
                 className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="h-20 w-20 overflow-hidden rounded-xl">
-                  <img
+                  <Image
                     src={item.imageUrl}
                     alt={item.name}
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-105"

@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import type { Voucher } from "@/data/vouchers";
 import { vouchers } from "@/data/vouchers";
 import {
@@ -18,31 +17,22 @@ const parseSelectedParam = (raw: string | null) =>
     .map((id) => id.trim())
     .filter(Boolean) ?? [];
 
-const parseActivationParam = (
-  raw: string | null
-): Partial<Record<string, number>> => {
+const parseActivationParam = (raw: string | null) => {
   if (!raw) return {};
-  return raw.split("|").reduce<Partial<Record<string, number>>>(
-    (acc, segment) => {
-      const [id, value] = segment.split(":");
-      if (!id) {
-        return acc;
-      }
-      const numeric = Number(value);
-      if (Number.isNaN(numeric)) {
-        return acc;
-      }
-      acc[id] = Math.max(0, Math.floor(numeric));
-      return acc;
-    },
-    {}
-  );
+  return raw.split("|").reduce((acc, segment) => {
+    const [id, value] = segment.split(":");
+    const num = Number(value);
+    if (id && !isNaN(num)) acc[id] = Math.max(0, Math.floor(num));
+    return acc;
+  }, {} as Record<string, number>);
 };
 
-export default function SetupVouchersPage() {
+/* ✅ 1. Component นี้จะใช้ useSearchParams() ได้อย่างปลอดภัย */
+const SetupVouchersContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // ✅ URL query logic ย้ายมาไว้ในนี้
   const selectedFromQuery = useMemo(
     () => parseSelectedParam(searchParams.get("selected")),
     [searchParams]
@@ -62,17 +52,13 @@ export default function SetupVouchersPage() {
       ),
     [selectedFromQuery]
   );
-
   const initialVoucher = availableVouchers[0];
   const initialActivationPlan = initialVoucher
     ? activationFromQuery[initialVoucher.id]
     : undefined;
   const initialTotalQuantity =
     initialVoucher && typeof initialActivationPlan === "number"
-      ? Math.min(
-          initialVoucher.totalIssued,
-          Math.max(0, initialActivationPlan)
-        )
+      ? Math.min(initialVoucher.totalIssued, Math.max(0, initialActivationPlan))
       : initialVoucher?.totalIssued ?? 0;
 
   const [voucherId, setVoucherId] = useState<string>(
@@ -81,12 +67,10 @@ export default function SetupVouchersPage() {
   const [pricePoints, setPricePoints] = useState<number>(
     availableVouchers[0]?.pointsCost ?? 0
   );
-  const [totalQuantity, setTotalQuantity] = useState<number>(
-    initialTotalQuantity
-  );
-  const [activationPlan, setActivationPlan] = useState<
-    Partial<Record<string, number>>
-  >(activationFromQuery);
+  const [totalQuantity, setTotalQuantity] =
+    useState<number>(initialTotalQuantity);
+  const [activationPlan, setActivationPlan] =
+    useState<Partial<Record<string, number>>>(activationFromQuery);
 
   const selectedVoucher = useMemo<Voucher | undefined>(
     () => availableVouchers.find((voucher) => voucher.id === voucherId),
@@ -125,10 +109,7 @@ export default function SetupVouchersPage() {
     const plannedFromQuery = activationPlan[selectedVoucher.id];
     const nextTotal =
       typeof plannedFromQuery === "number"
-        ? Math.min(
-            selectedVoucher.totalIssued,
-            Math.max(0, plannedFromQuery)
-          )
+        ? Math.min(selectedVoucher.totalIssued, Math.max(0, plannedFromQuery))
         : selectedVoucher.totalIssued;
     setTotalQuantity(nextTotal);
   }, [selectedVoucher, activationPlan]);
@@ -164,20 +145,9 @@ export default function SetupVouchersPage() {
 
   if (availableVouchers.length === 0) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-4 text-center">
-        <p className="text-2xl font-semibold text-slate-800">
-          ยังไม่มี Voucher ที่สามารถตั้งค่าได้
-        </p>
-        <p className="text-sm text-slate-500">
-          กรุณาเลือก Voucher สถานะเตรียมเปิดก่อน แล้วกลับมาตั้งค่าอีกครั้ง
-        </p>
-        <Link
-          href="/vouchers/select"
-          className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
-        >
-          เลือก Voucher
-        </Link>
-      </div>
+      <p className="text-center text-gray-500 mt-8 text-lg">
+        ไม่พบ Voucher ที่สามารถตั้งค่าได้
+      </p>
     );
   }
 
@@ -192,7 +162,8 @@ export default function SetupVouchersPage() {
             ตั้งค่า Voucher สำหรับแคมเปญ
           </h1>
           <p className="text-slate-600 max-w-2xl">
-            กำหนดจำนวนสิทธิ์การแลก ราคาคะแนน และรายละเอียดสำคัญก่อนปล่อย Voucher ให้สมาชิกใช้งาน
+            กำหนดจำนวนสิทธิ์การแลก ราคาคะแนน และรายละเอียดสำคัญก่อนปล่อย Voucher
+            ให้สมาชิกใช้งาน
           </p>
         </div>
         <Link
@@ -202,9 +173,8 @@ export default function SetupVouchersPage() {
           ← กลับไปเลือก Voucher
         </Link>
       </header>
-
       <section className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <article className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -235,7 +205,9 @@ export default function SetupVouchersPage() {
           {selectedVoucher && (
             <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[selectedVoucher.status].badgeClass}`}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                  statusStyles[selectedVoucher.status].badgeClass
+                }`}
               >
                 {statusStyles[selectedVoucher.status].label}
               </span>
@@ -271,7 +243,6 @@ export default function SetupVouchersPage() {
           )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               คะแนนที่ใช้แลกต่อ 1 สิทธิ์
               <input
@@ -290,7 +261,9 @@ export default function SetupVouchersPage() {
                 min={1}
                 max={availableTotalForSelected}
                 value={totalQuantity}
-                onChange={(event) => setTotalQuantity(Number(event.target.value))}
+                onChange={(event) =>
+                  setTotalQuantity(Number(event.target.value))
+                }
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
               />
               <span className="text-xs text-slate-500">
@@ -325,8 +298,7 @@ export default function SetupVouchersPage() {
               </button>
             </div>
           </form>
-        </article>
-
+        </div>
         <aside className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold text-slate-700">
             ภาพรวมจำนวนสิทธิ์ที่เลือกไว้
@@ -337,7 +309,9 @@ export default function SetupVouchersPage() {
                 key={item.id}
                 className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
               >
-                <p className="text-sm font-semibold text-slate-900">{item.name}</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {item.name}
+                </p>
                 <p className="mt-1 text-xs text-slate-500">
                   เปิดรอบนี้{" "}
                   <span className="font-semibold text-slate-900">
@@ -354,5 +328,13 @@ export default function SetupVouchersPage() {
         </aside>
       </section>
     </div>
+  );
+};
+
+export default function SetupVouchersPage() {
+  return (
+    <Suspense fallback={<div className="text-center mt-10">Loading...</div>}>
+      <SetupVouchersContent />
+    </Suspense>
   );
 }

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-
+import Image from "next/image";
 import { merchants } from "@/data/merchants";
 
 export default function MerchantPage() {
@@ -15,7 +15,7 @@ export default function MerchantPage() {
       (merchant) =>
         merchant.name.toLowerCase().includes(keyword) ||
         merchant.description.toLowerCase().includes(keyword) ||
-        merchant.categories.some((category) =>
+        merchant?.categories?.some((category) =>
           category.toLowerCase().includes(keyword)
         )
     );
@@ -48,7 +48,7 @@ export default function MerchantPage() {
               className="group relative block overflow-hidden rounded-2xl bg-white shadow transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <div className="relative h-40 w-full overflow-hidden">
-                <img
+                <Image
                   src={merchant.imageUrl}
                   alt={merchant.name}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
@@ -71,18 +71,23 @@ export default function MerchantPage() {
                   {merchant.description}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {merchant.categories.map((category) => (
-                    <span
-                      key={category}
-                      className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                    >
-                      {category}
-                    </span>
-                  ))}
+                  {merchant && merchant.categories
+                    ? merchant.categories.map((category) => (
+                        <span
+                          key={category}
+                          className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                        >
+                          {category}
+                        </span>
+                      ))
+                    : null}
                 </div>
                 <span className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 transition group-hover:text-blue-700">
                   ดูรายละเอียด
-                  <span aria-hidden className="transition group-hover:translate-x-1">
+                  <span
+                    aria-hidden
+                    className="transition group-hover:translate-x-1"
+                  >
                     →
                   </span>
                 </span>

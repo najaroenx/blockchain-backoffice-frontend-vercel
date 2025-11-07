@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 
 import { Loading } from "../layout/Loading";
@@ -128,7 +129,7 @@ const MerchantPortal = () => {
                   className="group relative block overflow-hidden rounded-2xl bg-white shadow transition hover:-translate-y-1 hover:shadow-lg"
                 >
                   <div className="relative h-40 w-full overflow-hidden">
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={merchant.name}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
