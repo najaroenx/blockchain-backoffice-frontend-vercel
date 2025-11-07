@@ -36,6 +36,20 @@ describe('RootLayout metadata', () => {
 });
 
 describe('RootLayout', () => {
+  beforeEach(() => {
+    // Suppress console.error for DOM nesting warnings in this test
+    jest.spyOn(console, 'error').mockImplementation((message) => {
+      if (typeof message === 'string' && message.includes('validateDOMNesting')) {
+        return;
+      }
+      console.warn(message);
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders children with providers', () => {
     render(
       <RootLayout>

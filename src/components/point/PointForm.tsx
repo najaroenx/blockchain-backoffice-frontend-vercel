@@ -4,6 +4,8 @@ import {
   required,
   AutocompleteInput,
   FormDataConsumer,
+  RadioButtonGroupInput,
+  DateInput,
 } from "react-admin";
 import Image from "next/image";
 import { DEFAULT_POINT_IMAGE } from "./constants";
@@ -160,20 +162,72 @@ export const PointForm = ({ isCreate = true }: Props) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-        <AutocompleteInput
-          source="frameSize"
-          label="Period Duration"
-          choices={[
-            { id: 1, name: "3 months" },
-            { id: 2, name: "6 months" },
-            { id: 4, name: "12 months" },
-            { id: 8, name: "24 months" },
-          ]}
-          variant="outlined"
-          sx={styleTextField}
-          validate={[required()]}
-          disabled={!isCreate}
-        />
+        <div className="md:col-span-2">
+          <RadioButtonGroupInput
+            source="timeMode"
+            label="เลือกวิธีจัดการระยะเวลา"
+            choices={[
+              { id: "preset", name: "เลือกระยะเวลาจากรายการ" },
+              { id: "calendar", name: "กำหนดระยะเวลาด้วยปฏิทิน" },
+            ]}
+            optionText="name"
+            optionValue="id"
+            defaultValue="preset"
+            row
+            disabled={!isCreate}
+          />
+        </div>
+        <FormDataConsumer>
+          {({ formData }) => {
+            const mode = formData?.timeMode ?? "preset";
+            if (mode === "calendar") {
+              return (
+                <>
+                  <div className="md:col-span-1">
+                    <DateInput
+                      source="startDate"
+                      label="วันเริ่มต้น"
+                      fullWidth
+                      sx={styleTextField}
+                      disabled={!isCreate}
+                      required
+                    />
+                  </div>
+                  <div className="md:col-span-1">
+                    <DateInput
+                      source="endDate"
+                      label="วันสิ้นสุด"
+                      fullWidth
+                      sx={styleTextField}
+                      disabled={!isCreate}
+                      required
+                    />
+                  </div>
+                </>
+              );
+            }
+
+            return (
+              <div className="md:col-span-2">
+                <AutocompleteInput
+                  source="frameSize"
+                  label="Period Duration"
+                  choices={[
+                    { id: 1, name: "3 months" },
+                    { id: 2, name: "6 months" },
+                    { id: 4, name: "12 months" },
+                    { id: 8, name: "24 months" },
+                  ]}
+                  variant="outlined"
+                  sx={styleTextField}
+                  validate={[required()]}
+                  disabled={!isCreate}
+                  fullWidth
+                />
+              </div>
+            );
+          }}
+        </FormDataConsumer>
       </div>
 
       <hr className="border-slate-200" />

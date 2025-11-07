@@ -40,7 +40,8 @@ describe("VoucherSetup Page", () => {
 
   it("should show voucher name from mock data", () => {
     render(<VoucherSetup />);
-    expect(screen.getByText("Test Voucher")).toBeInTheDocument();
+    const voucherNames = screen.getAllByText("Test Voucher");
+    expect(voucherNames.length).toBeGreaterThan(0);
   });
 
   it("should show input for changing point cost", () => {

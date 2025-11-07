@@ -13,10 +13,24 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("SetupVouchersPage", () => {
-  it("should render loading fallback inside Suspense", async () => {
+  it("should render voucher setup page content", async () => {
     render(<SetupVouchersPage />);
 
-    // เช็คว่ามี fallback loading
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    // เช็คว่ามีหัวข้อหลัก
+    expect(screen.getByText("ตั้งค่า Voucher สำหรับแคมเปญ")).toBeInTheDocument();
+  });
+
+  it("should render voucher selection dropdown", () => {
+    render(<SetupVouchersPage />);
+
+    // เช็คว่ามี dropdown เลือก voucher
+    expect(screen.getByText("เลือก Voucher")).toBeInTheDocument();
+  });
+
+  it("should render back button", () => {
+    render(<SetupVouchersPage />);
+
+    // เช็คว่ามีปุ่มกลับ
+    expect(screen.getByText("← กลับไปเลือก Voucher")).toBeInTheDocument();
   });
 });

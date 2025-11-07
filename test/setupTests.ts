@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom';
 import 'whatwg-fetch';
 import { cleanup } from '@testing-library/react';
+import { TextEncoder, TextDecoder } from 'util';
+
+// Polyfill TextEncoder and TextDecoder for Node.js environment
+global.TextEncoder = TextEncoder as any;
+global.TextDecoder = TextDecoder as any;
 
 afterEach(() => cleanup());
 
