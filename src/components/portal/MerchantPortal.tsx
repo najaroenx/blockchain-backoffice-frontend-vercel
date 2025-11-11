@@ -20,8 +20,14 @@ const MerchantPortal = () => {
   const { merchants, merchantLoading, createMerchant } = useMerchants();
 
   const { formValues, handleInputChange } = useForm({
-    name: "",
-    website: "",
+    name: "Merchant 1",
+    website: "https://www.spacex.com/humanspaceflight/mars",
+    description: "Merchant description",
+    imageUrl:
+      "https://www.spacex.com/assets/images/human-spaceflight/mars/mars_carousel2_card1_d.jpg",
+    location:
+      "SpaceX has multiple locations, but its primary headquarters are at 1 Rocket Road, Hawthorne, CA 90250.",
+    tel: "09-1234-5678",
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,7 +91,8 @@ const MerchantPortal = () => {
               Merchant Portal
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              จัดการร้านค้าพันธมิตร เพิ่มร้านค้าใหม่ และเข้าถึงรายละเอียดการทำงานของแต่ละร้านได้ในที่เดียว
+              จัดการร้านค้าพันธมิตร เพิ่มร้านค้าใหม่
+              และเข้าถึงรายละเอียดการทำงานของแต่ละร้านได้ในที่เดียว
             </p>
           </div>
           <button
@@ -110,7 +117,9 @@ const MerchantPortal = () => {
           <Empty />
         ) : filteredMerchants.length === 0 ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/70 text-center text-slate-500">
-            <p className="text-lg font-semibold">ไม่พบร้านค้าที่ตรงกับคำค้นหา</p>
+            <p className="text-lg font-semibold">
+              ไม่พบร้านค้าที่ตรงกับคำค้นหา
+            </p>
             <p className="text-sm">ลองเปลี่ยนคำค้นหาหรือสร้างร้านค้าใหม่</p>
           </div>
         ) : (
@@ -118,7 +127,9 @@ const MerchantPortal = () => {
             {filteredMerchants.map((merchant: any) => {
               const imageUrl = merchant.imageUrl || DEFAULT_IMAGE;
               const description =
-                merchant.description || merchant.website || "ยังไม่มีรายละเอียด";
+                merchant.description ||
+                merchant.website ||
+                "ยังไม่มีรายละเอียด";
               const categories = Array.isArray(merchant.categories)
                 ? merchant.categories
                 : [];
@@ -130,6 +141,8 @@ const MerchantPortal = () => {
                 >
                   <div className="relative h-40 w-full overflow-hidden">
                     <Image
+                      width={100}
+                      height={100}
                       src={imageUrl}
                       alt={merchant.name}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
@@ -180,7 +193,9 @@ const MerchantPortal = () => {
                           className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
                         >
                           ดูเว็บไซต์
-                          <span aria-hidden className="text-sm">↗</span>
+                          <span aria-hidden className="text-sm">
+                            ↗
+                          </span>
                         </a>
                       )}
                     </div>

@@ -39,7 +39,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
           <form className="flex w-full flex-col gap-5" onSubmit={onConfirm}>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel htmlFor="name">Name</FormLabel>
+                <FormLabel className="font-semibold text-black-500" htmlFor="name">Name</FormLabel>
                 <TextField
                   id="name"
                   type="text"
@@ -57,7 +57,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel htmlFor="website">Website</FormLabel>
+                <FormLabel className="font-semibold text-black-500" htmlFor="website">Website</FormLabel>
                 <TextField
                   id="website"
                   type="text"
@@ -66,6 +66,79 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
                   autoFocus
                   required
                   fullWidth
+                  size="small"
+                  variant="outlined"
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </FormControl>
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel  className="font-semibold text-black-500" htmlFor="website">Description</FormLabel>
+                <TextField
+                  id="description"
+                  type="text"
+                  name="description"
+                  placeholder="Merchant description"
+                  autoFocus
+                  required
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </FormControl>
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel className="font-semibold text-black-500" htmlFor="imageUrl">Image Url</FormLabel>
+                <TextField
+                  id="imageUrl"
+                  type="text"
+                  name="imageUrl"
+                  placeholder="https://example.com"
+                  autoFocus
+                  required
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </FormControl>
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel className="font-semibold text-black-500" htmlFor="website">Location</FormLabel>
+                <TextField
+                  id="location"
+                  type="text"
+                  name="location"
+                  placeholder="Location"
+                  autoFocus
+                  required
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  onChange={handleInputChange}
+                  disabled={loading}
+                />
+              </div>
+            </FormControl>
+            <FormControl>
+              <div className="flex flex-col gap-2">
+                <FormLabel className="font-semibold text-black-500" htmlFor="website">Phone</FormLabel>
+                <TextField
+                  id="tel"
+                  type="number"
+                  name="tel"
+                  placeholder="0x-xxxx-xxxx"
+                  autoFocus
+                  required
+                  fullWidth 
+                  inputProps={{ maxLength: 10 }}
                   size="small"
                   variant="outlined"
                   onChange={handleInputChange}
