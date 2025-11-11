@@ -3,6 +3,10 @@ import { useState } from "react";
 type FormValues = {
   name: string;
   website: string;
+  description: string;
+  imageUrl: string;
+  location: string;
+  tel: string;
 };
 
 export const useForm = (initialValues: FormValues) => {
