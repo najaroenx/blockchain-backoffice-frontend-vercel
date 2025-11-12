@@ -58,15 +58,11 @@ const MerchantPortal = () => {
       const name = merchant.name?.toLowerCase() ?? "";
       const website = merchant.website?.toLowerCase() ?? "";
       const description = merchant.description?.toLowerCase() ?? "";
-      const categories = Array.isArray(merchant.categories)
-        ? merchant.categories.map((item: string) => item.toLowerCase())
-        : [];
 
       return (
         name.includes(keyword) ||
         website.includes(keyword) ||
-        description.includes(keyword) ||
-        categories.some((category: string) => category.includes(keyword))
+        description.includes(keyword)
       );
     });
   }, [merchants, searchTerm]);
@@ -81,7 +77,7 @@ const MerchantPortal = () => {
     );
 
   const hasMerchants = merchants.length > 0;
-
+  console.log("merchants", merchants);
   return (
     <div className="bg-slate-100 min-h-screen w-full py-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6">
@@ -160,21 +156,26 @@ const MerchantPortal = () => {
                         {merchant.name}
                       </h2>
                     </div>
+                    <div className="flex flex-row">
+                      <p className="text-sm font-semibold text-slate-600 line-clamp-2 mr-4">
+                        เบอร์โทร
+                      </p>
+                      <p className="text-sm text-slate-600 line-clamp-2">
+                        {merchant.phoneNumber || "เบอร์โทรไม่ระบุ"}
+                      </p>
+                    </div>
+                    <div className="flex flex-row">
+                      <p className="text-sm font-semibold text-slate-600 line-clamp-2 mr-1">
+                        ที่อยู่กระเป๋าเงิน
+                      </p>
+                      <p className="text-sm text-slate-600 line-clamp-2">
+                        {merchant.walletAddress || "ที่อยู่กระเป๋าเงินไม่ระบุ"}
+                      </p>
+                    </div>
+
                     <p className="text-sm text-slate-600 line-clamp-2">
                       {description}
                     </p>
-                    {categories.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {categories.map((category: string) => (
-                          <span
-                            key={`${merchant.id}-${category}`}
-                            className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <Link
                         href={`/admin/${merchant.id}`}
