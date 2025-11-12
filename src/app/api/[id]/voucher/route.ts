@@ -3,6 +3,7 @@ import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import { mockVouchers } from "@/data/mockAdmin";
+import { VoucherBackendResponse, Voucher } from "@/@types/voucher";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 const shouldProtectAdmin =
@@ -49,7 +50,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return handleError("Unauthorized access", 401);
     }
 
-    const response = await api(`${BACKEND_URL}/${merchantId}/voucher`, {
+    console.log(`Fetching vouchers from backend ${BACKEND_URL}/coupon/merchant/${merchantId}`);
+    const response = await api(`${BACKEND_URL}/coupon/merchant/${merchantId}`, {
       method: "GET",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -60,11 +62,37 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       },
     });
 
+
     if (response.statusCode) {
       return handleError(response.message ?? "failed to load data", response.statusCode);
     }
 
-    const data = response.vouchers ?? [];
+    // Map response to match react-admin format with proper typing
+    const rawData: VoucherBackendResponse[] = Array.isArray(response) 
+      ? response 
+      : (response.vouchers ?? []);
+    
+    const data: Voucher[] = rawData.map((voucher: VoucherBackendResponse) => ({
+      id: voucher.id,
+      name: voucher.name,
+      description: voucher.description,
+      status: voucher.status,
+      merchantId: voucher.merchantId,
+      merchantName: voucher.merchantName || voucher.merchant?.name || "",
+      valueType: voucher.valueType,
+      value: voucher.value,
+      currency: voucher.currency,
+      startDate: voucher.startDate,
+      endDate: voucher.endDate,
+      totalIssued: voucher.totalIssued,
+      totalRedeemed: voucher.totalRedeemed,
+      imageUrl: voucher.imageUrl,
+      limitPerMember: voucher.limitPerMember,
+      pointsCost: voucher.pointsCost ?? 0,
+      createdAt: voucher.createdAt,
+      updatedAt: voucher.updatedAt,
+    }));
+
     const total = response.counts ?? data.length;
     const upper =
       data.length > 0 ? Math.max(start + data.length - 1, start) : start;

@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
+import { useGetList } from "react-admin";
 
 import type { Voucher } from "@/data/vouchers";
-import { vouchers } from "@/data/vouchers";
 import {
   dateFormatter,
   formatValueLabel,
@@ -54,14 +54,32 @@ const VoucherSetup = () => {
     [searchParams]
   );
 
+  // Get merchantId from location state or query params
+  const merchantId = (location.state as any)?.merchantId || searchParams.get("merchantId");
+
+  // Fetch vouchers from API
+  const { data: vouchersData } = useGetList<Voucher>(
+    "voucher",
+    {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "createdAt", order: "DESC" },
+      filter: merchantId ? { merchantId } : {},
+    },
+    {
+      enabled: !!merchantId,
+    }
+  );
+
   const availableVouchers = useMemo(
-    () =>
-      vouchers.filter(
-        (voucher) =>
+    () => {
+      if (!vouchersData) return [];
+      return vouchersData.filter(
+        (voucher: Voucher) =>
           voucher.status === "upcoming" &&
           (selectedFromQuery.length === 0 || selectedFromQuery.includes(voucher.id))
-      ),
-    [selectedFromQuery]
+      );
+    },
+    [vouchersData, selectedFromQuery]
   );
 
   const initialVoucher = availableVouchers[0];
@@ -137,15 +155,36 @@ const VoucherSetup = () => {
     });
   };
 
-  const handleActivate = () => {
-    if (!selectedVoucher) return;
+  const handleActivate = async () => {
+    if (!selectedVoucher || !merchantId) return;
 
-    console.log("Activate voucher payload (admin):", {
-      voucherId,
-      pricePoints,
-      totalQuantity,
-      activationPlan,
-    });
+    try {
+      const response = await fetch(`/api/${merchantId}/voucher/activate/${voucherId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pointsCost: pricePoints,
+          amount: totalQuantity,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to activate voucher");
+      }
+
+      const result = await response.json();
+      console.log("Voucher activated successfully:", result);
+      
+      // Navigate back to voucher list or show success message
+      alert("เปิดใช้งาน Voucher สำเร็จ!");
+      window.location.href = `/admin/${merchantId}#/voucher`;
+    } catch (error) {
+      console.error("Error activating voucher:", error);
+      alert(`เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : "ไม่สามารถเปิดใช้งาน Voucher ได้"}`);
+    }
   };
 
   if (availableVouchers.length === 0) {
@@ -213,7 +252,7 @@ const VoucherSetup = () => {
                 ร้านค้า
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900">
-                {selectedVoucher?.merchant}
+                {selectedVoucher?.merchantName}
               </p>
             </div>
           </div>
@@ -302,12 +341,6 @@ const VoucherSetup = () => {
                 className="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg"
               >
                 เปิดใช้งาน
-              </button>
-              <button
-                type="submit"
-                className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-              >
-                บันทึกการตั้งค่า
               </button>
             </div>
           </form>

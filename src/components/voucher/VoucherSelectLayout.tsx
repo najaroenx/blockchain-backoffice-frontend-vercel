@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useGetList } from "react-admin";
 
 import type { VoucherStatus } from "@/data/vouchers";
-import { vouchers, type Voucher } from "@/data/vouchers";
+import { type Voucher } from "@/data/vouchers";
 import {
   dateFormatter,
   formatValueLabel,
@@ -26,6 +27,7 @@ type VoucherSelectLayoutProps = {
   className?: string;
   onProceed?: (payload: VoucherProceedPayload) => void;
   merchantId?: string | null;
+  vouchers?: Voucher[];
 };
 
 export const VoucherSelectLayout = ({
@@ -34,15 +36,33 @@ export const VoucherSelectLayout = ({
   className = "",
   onProceed,
   merchantId,
+  vouchers: vouchersFromProps,
 }: VoucherSelectLayoutProps) => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("upcoming");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  // Fetch vouchers from API only if not provided via props
+  const { data: vouchersData, isLoading } = useGetList<Voucher>(
+    "voucher",
+    {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "createdAt", order: "DESC" },
+      filter: merchantId ? { merchantId } : {},
+    },
+    {
+      enabled: !!merchantId && !vouchersFromProps,
+    }
+  );
+
   const scopedVouchers = useMemo(() => {
-    if (!merchantId) return vouchers;
-    return vouchers.filter((voucher) => voucher.merchantId === merchantId);
-  }, [merchantId]);
+    // Use vouchers from props if available, otherwise use data from API
+    const sourceVouchers = vouchersFromProps || vouchersData || [];
+    // Filter only "upcoming" status vouchers
+    return sourceVouchers.filter((voucher: Voucher) => voucher.status === "upcoming");
+  }, [vouchersFromProps, vouchersData]);
+
   const [activationPlan, setActivationPlan] = useState<Record<string, number>>(
     {}
   );
@@ -74,7 +94,7 @@ export const VoucherSelectLayout = ({
       return (
         voucher.name.toLowerCase().includes(normalizedSearch) ||
         voucher.description.toLowerCase().includes(normalizedSearch) ||
-        voucher.merchant.toLowerCase().includes(normalizedSearch)
+        voucher.merchantName.toLowerCase().includes(normalizedSearch)
       );
     };
 
@@ -154,6 +174,12 @@ export const VoucherSelectLayout = ({
     if (selectedIds.length === 0 || allocation.activationNow === 0) return;
     const search = new URLSearchParams();
     search.set("selected", selectedIds.join(","));
+    
+    // Add merchantId to query params
+    if (merchantId) {
+      search.set("merchantId", merchantId);
+    }
+    
     const activationEntries = selectedIds
       .map((id) => {
         const voucher = scopedVouchers.find((item) => item.id === id);
@@ -186,6 +212,7 @@ export const VoucherSelectLayout = ({
       return;
     }
 
+    // Navigate to setup page with merchantId in state as well
     router.push(
       queryString ? `/vouchers/setup?${queryString}` : "/vouchers/setup"
     );
@@ -323,10 +350,15 @@ export const VoucherSelectLayout = ({
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        {filteredVouchers.length === 0 ? (
+        {!vouchersFromProps && isLoading ? (
+          <div className="col-span-full rounded-2xl border border-slate-200 bg-slate-50 py-16 text-center text-slate-500">
+            <p className="text-lg font-medium">กำลังโหลดข้อมูล Voucher...</p>
+            <p className="mt-2 text-sm">โปรดรอสักครู่</p>
+          </div>
+        ) : filteredVouchers.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center text-slate-500">
-            <p className="text-lg font-medium">ไม่พบ Voucher ที่ตรงกับเงื่อนไข</p>
-            <p className="mt-2 text-sm">ลองปรับการค้นหาหรือเปลี่ยนคำค้นหา</p>
+            <p className="text-lg font-medium">ไม่พบ Voucher สถานะ &quot;เตรียมเปิด&quot;</p>
+            <p className="mt-2 text-sm">ยังไม่มี Voucher ที่พร้อมเปิดใช้งานในขณะนี้</p>
           </div>
         ) : (
           filteredVouchers.map((voucher) => {
@@ -409,7 +441,7 @@ export const VoucherSelectLayout = ({
                       ร้านค้า
                     </p>
                     <p className="mt-1 font-medium text-slate-900">
-                      {voucher.merchant}
+                      {voucher.merchantName}
                     </p>
                   </div>
                 </div>

@@ -77,7 +77,7 @@ export const CollectionCard = () => {
             ร้านค้า
           </p>
           <p className="mt-1 font-medium text-slate-900">
-            {record.merchant}
+            {record.merchantName}
           </p>
         </div>
       </div>

@@ -54,9 +54,9 @@ const summarizeMerchants = () => {
 
     const merchantInfo = merchantIndex.get(voucher.merchantId);
     const key = voucher.merchantId;
-    const displayName = merchantInfo?.name ?? voucher.merchant;
+    const displayName = merchantInfo?.name ?? voucher.merchantName;
     const contact =
-      contacts.get(displayName) ?? contacts.get(voucher.merchant) ?? undefined;
+      contacts.get(displayName) ?? contacts.get(voucher.merchantName) ?? undefined;
 
     const entry =
       grouped.get(key) ??

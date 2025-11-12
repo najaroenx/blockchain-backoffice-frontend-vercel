@@ -197,7 +197,7 @@ const SetupVouchersContent = () => {
                 ร้านค้า
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900">
-                {selectedVoucher?.merchant}
+                {selectedVoucher?.merchantName}
               </p>
             </div>
           </div>

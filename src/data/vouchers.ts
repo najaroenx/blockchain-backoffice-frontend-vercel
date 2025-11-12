@@ -8,7 +8,7 @@ export type Voucher = {
   name: string;
   description: string;
   status: VoucherStatus;
-  merchant: string;
+  merchantName: string;
   valueType: ValueType;
   value: number;
   currency?: string;
@@ -29,7 +29,7 @@ export const vouchers: Voucher[] = [
     description:
       "รับส่วนลด 20% เมื่อใช้จ่ายครบ 2,000 บาท ที่เซ็นทรัล, โรบินสัน หรือท็อปส์",
     status: "active",
-    merchant: "เซ็นทรัล รีเทล",
+    merchantName: "เซ็นทรัล รีเทล",
     merchantId: "central-retail",
     imageUrl:
       "https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=1600&auto=format&fit=crop",
@@ -46,7 +46,7 @@ export const vouchers: Voucher[] = [
     name: "บัตรของขวัญ ฿500 เซ็นทรัล",
     description: "แลกรับบัตรของขวัญมูลค่า 500 บาท ใช้ได้ทุกสาขาในเครือเซ็นทรัล",
     status: "upcoming",
-    merchant: "เซ็นทรัล รีเทล",
+    merchantName: "เซ็นทรัล รีเทล",
     merchantId: "central-retail",
     imageUrl:
       "https://images.unsplash.com/photo-1517677129300-07b130802f46?q=80&w=1600&auto=format&fit=crop",
@@ -65,7 +65,7 @@ export const vouchers: Voucher[] = [
     description:
       "แลกรับคูปองเงินสด 350 บาท ใช้ได้กับห้างในเครือเดอะมอลล์กรุ๊ปทุกสาขา",
     status: "active",
-    merchant: "เดอะมอลล์ กรุ๊ป",
+    merchantName: "เดอะมอลล์ กรุ๊ป",
     merchantId: "the-mall-group",
     imageUrl:
       "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1600&auto=format&fit=crop",
@@ -84,7 +84,7 @@ export const vouchers: Voucher[] = [
     description:
       "รับเครดิตสำหรับใช้ที่ Food Hall และร้านอาหารในเครือเดอะมอลล์กรุ๊ป",
     status: "upcoming",
-    merchant: "เดอะมอลล์ กรุ๊ป",
+    merchantName: "เดอะมอลล์ กรุ๊ป",
     merchantId: "the-mall-group",
     imageUrl:
       "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=1600&auto=format&fit=crop",
@@ -103,7 +103,7 @@ export const vouchers: Voucher[] = [
     description:
       "แลกฟรีเครื่องดื่มเมนูใดก็ได้ ขนาด 16 ออนซ์ ที่ Café Amazon ทุกสาขา",
     status: "active",
-    merchant: "ซีพี ออลล์",
+    merchantName: "ซีพี ออลล์",
     merchantId: "cp-all",
     imageUrl:
       "https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=1600&auto=format&fit=crop",
@@ -122,7 +122,7 @@ export const vouchers: Voucher[] = [
     description:
       "รับคะแนนสะสมเพิ่ม 2 เท่าเมื่อซื้อสินค้าครบ 150 บาทขึ้นไปที่ 7-Eleven",
     status: "upcoming",
-    merchant: "ซีพี ออลล์",
+    merchantName: "ซีพี ออลล์",
     merchantId: "cp-all",
     imageUrl:
       "https://images.unsplash.com/photo-1515008736322-38f085873a1a?q=80&w=1600&auto=format&fit=crop",
@@ -140,7 +140,7 @@ export const vouchers: Voucher[] = [
     description:
       "รับส่วนลด 15% สำหรับสินค้าแฟชั่นและไลฟ์สไตล์ ที่สยามพารากอนและไอคอนสยาม",
     status: "upcoming",
-    merchant: "สยามพิวรรธน์",
+    merchantName: "สยามพิวรรธน์",
     merchantId: "siam-piwat",
     imageUrl:
       "https://images.unsplash.com/photo-1522228115018-d838bcce5c3a?q=80&w=1600&auto=format&fit=crop",
@@ -158,7 +158,7 @@ export const vouchers: Voucher[] = [
     description:
       "สิทธิ์เข้าร่วมคลับเลาจน์ ICONSIAM พร้อมเครื่องดื่มต้อนรับสำหรับ 2 ท่าน",
     status: "active",
-    merchant: "สยามพิวรรธน์",
+    merchantName: "สยามพิวรรธน์",
     merchantId: "siam-piwat",
     imageUrl:
       "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1600&auto=format&fit=crop",
@@ -176,7 +176,7 @@ export const vouchers: Voucher[] = [
     description:
       "ใช้เป็นส่วนลด 500 บาท เมื่อซื้อสินค้าครบ 3,000 บาทที่บิ๊กซีทุกสาขา",
     status: "active",
-    merchant: "บิ๊กซี",
+    merchantName: "บิ๊กซี",
     merchantId: "big-c",
     imageUrl:
       "https://images.unsplash.com/photo-1515706886582-54c73c5eaf41?q=80&w=1600&auto=format&fit=crop",
@@ -195,7 +195,7 @@ export const vouchers: Voucher[] = [
     description:
       "ส่วนลด 12% สำหรับสินค้ากลุ่มอาหารสดและของใช้ในครัวเรือนที่บิ๊กซี",
     status: "upcoming",
-    merchant: "บิ๊กซี",
+    merchantName: "บิ๊กซี",
     merchantId: "big-c",
     imageUrl:
       "https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?q=80&w=1600&auto=format&fit=crop",
@@ -213,7 +213,7 @@ export const vouchers: Voucher[] = [
     description:
       "ชุดคอมโบสำหรับ 2 ท่าน ใช้ได้ที่ร้านอาหารในเครือ CRG (KFC, Mister Donut, Ootoya)",
     status: "active",
-    merchant: "เซ็นทรัล เรสเตอรองส์ กรุ๊ป",
+    merchantName: "เซ็นทรัล เรสเตอรองส์ กรุ๊ป",
     merchantId: "crg",
     imageUrl:
       "https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1600&auto=format&fit=crop",
@@ -232,7 +232,7 @@ export const vouchers: Voucher[] = [
     description:
       "รับคะแนนสะสมเพิ่ม 3 เท่า เมื่อรับประทานอาหารครบ 500 บาทขึ้นไปในเครือ CRG",
     status: "upcoming",
-    merchant: "เซ็นทรัล เรสเตอรองส์ กรุ๊ป",
+    merchantName: "เซ็นทรัล เรสเตอรองส์ กรุ๊ป",
     merchantId: "crg",
     imageUrl:
       "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600&auto=format&fit=crop",
