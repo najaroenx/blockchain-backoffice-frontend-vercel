@@ -65,6 +65,8 @@ export const PointForm = ({ isCreate = true }: Props) => {
                 <Image
                   src={imageUrl}
                   alt={tokenName}
+                  width={400}
+                  height={192}
                   className="h-full w-full object-cover"
                   onError={(event) => {
                     event.currentTarget.onerror = null;
