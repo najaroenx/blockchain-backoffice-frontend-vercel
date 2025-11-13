@@ -7,6 +7,7 @@ import {
 import { FormControl } from "@mui/material";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
+import { useState } from "react";
 
 interface CreateMerchantDialogProps {
   onCancel: () => void;
@@ -20,6 +21,54 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
   props
 ) => {
   const { open, loading, onCancel, handleInputChange, onConfirm } = props;
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setImageUrl(url);
+    setImageError(false);
+    if (url) {
+      setImageLoading(true);
+    } else {
+      setImageLoading(false);
+    }
+    handleInputChange(e);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    setImageLoading(false);
+    setImageError(true);
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    
+    // Limit to 10 digits
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+    
+    // Validate
+    if (value.length > 0 && !value.startsWith("0")) {
+      setPhoneError("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0");
+    } else if (value.length > 0 && value.length < 10) {
+      setPhoneError("เบอร์โทรศัพท์ต้องมี 10 หลัก");
+    } else {
+      setPhoneError("");
+    }
+    
+    // Update the input value
+    e.target.value = value;
+    handleInputChange(e);
+  };
 
   return (
     <Dialog open={open} as="div" onClose={onCancel} className="relative z-50 ">
@@ -98,15 +147,44 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
                   id="imageUrl"
                   type="text"
                   name="imageUrl"
-                  placeholder="https://example.com"
+                  placeholder="https://example.com/image.jpg"
                   autoFocus
                   required
                   fullWidth
                   size="small"
                   variant="outlined"
-                  onChange={handleInputChange}
+                  onChange={handleImageUrlChange}
                   disabled={loading}
+                  error={imageError}
+                  helperText={imageError ? "ไม่สามารถโหลดรูปภาพได้ กรุณาตรวจสอบ URL" : ""}
                 />
+                {imageUrl && (
+                  <div className="mt-2 border rounded-lg p-2 bg-gray-50">
+                    <div className="relative w-full h-40">
+                      {imageLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8901]"></div>
+                        </div>
+                      )}
+                      {imageError && (
+                        <div className="absolute inset-0 flex items-center justify-center text-red-500 z-10">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded"
+                        onLoad={handleImageLoad}
+                        onError={handleImageError}
+                        style={{ display: imageError ? 'none' : 'block' }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </FormControl>
             <FormControl>
@@ -129,20 +207,25 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="website">Phone</FormLabel>
+                <FormLabel className="font-semibold text-black-500" htmlFor="tel">Phone</FormLabel>
                 <TextField
                   id="tel"
-                  type="number"
+                  type="tel"
                   name="tel"
                   placeholder="0x-xxxx-xxxx"
                   autoFocus
                   required
                   fullWidth 
-                  inputProps={{ maxLength: 10 }}
                   size="small"
                   variant="outlined"
-                  onChange={handleInputChange}
+                  onChange={handlePhoneChange}
                   disabled={loading}
+                  error={!!phoneError}
+                  helperText={phoneError || ""}
+                  inputProps={{ 
+                    maxLength: 10,
+                    pattern: "0[0-9]{9}"
+                  }}
                 />
               </div>
             </FormControl>
