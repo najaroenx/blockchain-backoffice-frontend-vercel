@@ -30,10 +30,7 @@ export const PointCreate = (props: CreateProps) => {
           mutationOptions={{
             onSuccess: () => {
               notify("Point created successfully", { type: "info" });
-              const target = merchantId
-                ? `/merchant/${merchantId}/point`
-                : "/point";
-              redirect(target);
+              window.location.href = `/admin/${merchantId}#/point`;
             },
           }}
         >
