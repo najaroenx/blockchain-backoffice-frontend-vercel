@@ -16,7 +16,7 @@ export enum VerifyPhoneStep {
   SUCCESS,
 }
 const VerifyPhoneComponent = () => {
-  const phone = useVerifyPhone();
+  const { phoneNumber, token, otpCode } = useVerifyPhone();
 
   const [step, setStep] = useState<VerifyPhoneStep>(
     VerifyPhoneStep.PIN_PHONE_NUMBER
@@ -40,7 +40,11 @@ const VerifyPhoneComponent = () => {
   };
 
   return (
-    <VerifyPhoneProvider value={phone}>
+    <VerifyPhoneProvider
+      phoneNumber={phoneNumber}
+      token={token}
+      otpCode={otpCode}
+    >
       <div className="">{renderStep()}</div>
     </VerifyPhoneProvider>
   );

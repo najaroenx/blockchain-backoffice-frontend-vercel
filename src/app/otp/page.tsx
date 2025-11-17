@@ -15,8 +15,8 @@ const VerifyPhone = dynamic(
 export default function Page({ params }: { params: { phone: string } }) {
   return (
     <Suspense fallback={<Loading />}>
-      <VerifyPhoneProvider value={params.phone}>
-        <VerifyPhoneComponent />
+      <VerifyPhoneProvider phoneNumber={params.phone}>
+        <VerifyPhone />
       </VerifyPhoneProvider>
     </Suspense>
   );
