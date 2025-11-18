@@ -27,6 +27,7 @@ export interface VoucherBackendResponse {
   endDate: string;
   totalIssued: number;
   totalRedeemed: number;
+  availableCount?: number;
   imageUrl: string;
   limitPerMember: number;
   pointsCost?: number;
@@ -49,6 +50,7 @@ export interface Voucher {
   endDate: string;
   totalIssued: number;
   totalRedeemed: number;
+  availableCount: number;
   imageUrl: string;
   limitPerMember: number;
   pointsCost: number;

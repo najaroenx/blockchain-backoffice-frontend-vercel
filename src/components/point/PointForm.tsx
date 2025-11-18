@@ -61,21 +61,25 @@ export const PointForm = ({ isCreate = true }: Props) => {
 
           return (
             <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="relative h-48 w-full">
-                <Image
-                  src={imageUrl}
-                  alt={tokenName}
-                  width={400}
-                  height={192}
-                  className="h-full w-full object-cover"
-                  onError={(event) => {
-                    event.currentTarget.onerror = null;
-                    event.currentTarget.src = DEFAULT_POINT_IMAGE;
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between px-6 py-5">
-                <div>
+              <div className="flex items-center gap-6 px-6 py-6">
+                {/* Token Icon */}
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 shadow-sm">
+                  <Image
+                    src={imageUrl}
+                    alt={tokenName}
+                    width={80}
+                    height={80}
+                    unoptimized
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = DEFAULT_POINT_IMAGE;
+                    }}
+                  />
+                </div>
+
+                {/* Token Information */}
+                <div className="flex-1">
                   <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
                     Token Preview
                   </p>
@@ -86,6 +90,8 @@ export const PointForm = ({ isCreate = true }: Props) => {
                     {tokenSymbol}
                   </span>
                 </div>
+
+                {/* Initial Supply */}
                 <div className="flex flex-col items-end gap-1 rounded-2xl bg-slate-100 px-4 py-3 text-right">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-500">
                     Initial Supply

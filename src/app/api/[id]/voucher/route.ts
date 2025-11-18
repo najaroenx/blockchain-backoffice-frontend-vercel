@@ -86,6 +86,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       endDate: voucher.endDate,
       totalIssued: voucher.totalIssued,
       totalRedeemed: voucher.totalRedeemed,
+      availableCount: voucher.availableCount ?? 0,
       imageUrl: voucher.imageUrl,
       limitPerMember: voucher.limitPerMember,
       pointsCost: voucher.pointsCost ?? 0,

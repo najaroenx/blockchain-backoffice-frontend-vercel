@@ -26,7 +26,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { pointsCost, amount } = body;
+    const { pointsCost, amount, currency , pointId } = body;
 
     // Validate input
     if (typeof pointsCost !== "number" || pointsCost < 0) {
@@ -37,7 +37,11 @@ export async function PATCH(
       return handleError("Invalid amount", 400);
     }
 
-    logger.info(`Activating voucher ${voucherId} with pointsCost: ${pointsCost}, amount: ${amount}`);
+    if (!currency || typeof currency !== "string") {
+      return handleError("Invalid or missing currency", 400);
+    }
+
+    logger.info(`Activating voucher ${voucherId} with pointsCost: ${pointsCost}, amount: ${amount}, currency: ${currency}`);
 
     const response = await api(`${BACKEND_URL}/coupon/activate/${voucherId}`, {
       method: "PATCH",
@@ -45,8 +49,10 @@ export async function PATCH(
         Authorization: `Bearer ${token}`,
       },
       body: {
+        pointId,
         pointsCost,
         amount,
+        currency,
       },
     });
 

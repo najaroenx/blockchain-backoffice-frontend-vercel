@@ -325,14 +325,23 @@ export default function Marketplace() {
                       <Image
                         src={merchant.contact.imageUrl}
                         alt={merchant.name}
+                        width={56}
+                        height={56}
+                        unoptimized
                         className="h-14 w-14 shrink-0 rounded-2xl object-cover"
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          if (target.nextElementSibling) {
+                            (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                          }
+                        }}
                       />
-                    ) : (
-                      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-semibold text-white">
-                        {initials}
-                      </div>
-                    )}
+                    ) : null}
+                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-semibold text-white" style={{ display: merchant.contact?.imageUrl ? 'none' : 'flex' }}>
+                      {initials}
+                    </div>
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-base font-semibold text-slate-900">
