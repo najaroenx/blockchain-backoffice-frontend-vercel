@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { DEFAULT_VOUCHER_IMAGE } from "@/data/vouchers";
 import Link from "next/link";
 const MerchantDetail = () => {
   const products = [
@@ -40,11 +41,15 @@ const MerchantDetail = () => {
         >
           <div className="relative mt-4 overflow-hidden text-gray-700 bg-white bg-clip-border rounded h-44">
             <Image
-              src={_.imageUrl}
+              src={_.imageUrl || DEFAULT_VOUCHER_IMAGE}
               alt="Merchant Logo"
               width={50}
               height={50}
+              unoptimized
               className="object-cover w-full h-full"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_VOUCHER_IMAGE;
+              }}
             />
           </div>
           <div className="p-2">

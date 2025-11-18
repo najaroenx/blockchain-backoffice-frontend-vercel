@@ -1,4 +1,6 @@
 
+export const DEFAULT_VOUCHER_IMAGE = "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800&auto=format&fit=crop&q=60";
+
 export type VoucherStatus = "active" | "upcoming";
 
 export type ValueType = "percentage" | "cash" | "gift" | "multiplier";
@@ -19,6 +21,7 @@ export type Voucher = {
   totalRedeemed: number;
   merchantId: string;
   imageUrl?: string;
+  availableCount?:string;
 };
 
 

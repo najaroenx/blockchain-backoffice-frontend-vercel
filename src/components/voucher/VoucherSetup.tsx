@@ -91,14 +91,33 @@ const VoucherSetup = () => {
       ? Math.min(initialVoucher.totalIssued, Math.max(0, initialActivationPlan))
       : initialVoucher?.totalIssued ?? 0;
 
+  // Constants for validation
+  const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER; // 9007199254740991
+  const MAX_PRICE_POINTS = MAX_SAFE_INTEGER;
+  const MAX_QUANTITY = MAX_SAFE_INTEGER;
+
   const [voucherId, setVoucherId] = useState<string>(availableVouchers[0]?.id ?? "");
   const [pricePoints, setPricePoints] = useState<number>(
     availableVouchers[0]?.pointsCost ?? 0
   );
   const [totalQuantity, setTotalQuantity] = useState<number>(initialTotalQuantity);
+  const [selectedPointId, setSelectedPointId] = useState<string>("");
   const [activationPlan, setActivationPlan] = useState<
     Partial<Record<string, number>>
   >(activationFromQuery);
+
+  // Fetch available points for the merchant
+  const { data: pointsData } = useGetList(
+    "point",
+    {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "createdAt", order: "DESC" },
+      filter: merchantId ? { merchantId } : {},
+    },
+    {
+      enabled: !!merchantId,
+    }
+  );
 
   const selectedVoucher = useMemo<Voucher | undefined>(
     () => availableVouchers.find((voucher) => voucher.id === voucherId),
@@ -158,7 +177,49 @@ const VoucherSetup = () => {
   const handleActivate = async () => {
     if (!selectedVoucher || !merchantId) return;
 
+    // Validate that a point is selected
+    if (!selectedPointId) {
+      alert("กรุณาเลือก Point Token ก่อนเปิดใช้งาน");
+      return;
+    }
+
+    // Validate price points
+    if (pricePoints < 0) {
+      alert("ราคาคะแนนต้องไม่น้อยกว่า 0");
+      return;
+    }
+
+    if (pricePoints > MAX_PRICE_POINTS) {
+      alert(`ราคาคะแนนต้องไม่เกิน ${MAX_PRICE_POINTS.toLocaleString("th-TH")}`);
+      return;
+    }
+
+    if (!Number.isInteger(pricePoints)) {
+      alert("ราคาคะแนนต้องเป็นจำนวนเต็มเท่านั้น");
+      return;
+    }
+
+    // Validate quantity
+    if (totalQuantity < 1) {
+      alert("จำนวนสิทธิ์ต้องมากกว่า 0");
+      return;
+    }
+
+    if (totalQuantity > MAX_QUANTITY) {
+      alert(`จำนวนสิทธิ์ต้องไม่เกิน ${MAX_QUANTITY.toLocaleString("th-TH")}`);
+      return;
+    }
+
+    if (totalQuantity > availableTotalForSelected) {
+      alert(`จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ (${availableTotalForSelected.toLocaleString("th-TH")})`);
+      return;
+    }
+
     try {
+      // Get selected point's symbol as currency
+      const selectedPoint = pointsData?.find((p: any) => p.id === selectedPointId);
+      const currency = selectedPoint?.symbol || "POINTS";
+
       const response = await fetch(`/api/${merchantId}/voucher/activate/${voucherId}`, {
         method: "PATCH",
         headers: {
@@ -167,6 +228,8 @@ const VoucherSetup = () => {
         body: JSON.stringify({
           pointsCost: pricePoints,
           amount: totalQuantity,
+          pointId: selectedPointId,
+          currency: currency,
         }),
       });
 
@@ -298,14 +361,52 @@ const VoucherSetup = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
 
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              เลือก Point Token
+              <select
+                value={selectedPointId}
+                onChange={(event) => setSelectedPointId(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                required
+              >
+                <option value="">-- กรุณาเลือก Point Token --</option>
+                {pointsData?.map((point: any) => (
+                  <option key={point.id} value={point.id}>
+                    {point.name} ({point.symbol})
+                  </option>
+                ))}
+              </select>
+              {!selectedPointId && (
+                <span className="text-xs text-red-500">
+                  * จำเป็นต้องเลือก Point Token
+                </span>
+              )}
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               คะแนนที่ใช้แลกต่อ 1 สิทธิ์
               <input
                 type="number"
                 min={0}
+                max={MAX_PRICE_POINTS}
+                step={1}
                 value={pricePoints}
-                onChange={(event) => setPricePoints(Number(event.target.value))}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  if (value <= MAX_PRICE_POINTS) {
+                    setPricePoints(value);
+                  }
+                }}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                required
               />
+              {pricePoints > MAX_PRICE_POINTS && (
+                <span className="text-xs text-red-500">
+                  ราคาต้องไม่เกิน {MAX_PRICE_POINTS.toLocaleString("th-TH")}
+                </span>
+              )}
+              <span className="text-xs text-slate-500">
+                ค่าสูงสุด: {MAX_PRICE_POINTS.toLocaleString("th-TH")}
+              </span>
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -313,17 +414,35 @@ const VoucherSetup = () => {
               <input
                 type="number"
                 min={1}
-                max={availableTotalForSelected}
+                max={Math.min(availableTotalForSelected, MAX_QUANTITY)}
+                step={1}
                 value={totalQuantity}
-                onChange={(event) => setTotalQuantity(Number(event.target.value))}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  const maxAllowed = Math.min(availableTotalForSelected, MAX_QUANTITY);
+                  if (value <= maxAllowed && value >= 0) {
+                    setTotalQuantity(value);
+                  }
+                }}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                required
               />
+              {totalQuantity > availableTotalForSelected && (
+                <span className="text-xs text-red-500">
+                  จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ ({availableTotalForSelected.toLocaleString("th-TH")})
+                </span>
+              )}
+              {totalQuantity > MAX_QUANTITY && (
+                <span className="text-xs text-red-500">
+                  จำนวนสิทธิ์ต้องไม่เกิน {MAX_QUANTITY.toLocaleString("th-TH")}
+                </span>
+              )}
               <span className="text-xs text-slate-500">
                 สำรองไว้รอบหน้า {" "}
                 <span className="font-semibold text-slate-900">
                   {reservedQuantity.toLocaleString("th-TH")}
                 </span>{" "}
-                สิทธิ์
+                สิทธิ์ (สูงสุด: {Math.min(availableTotalForSelected, MAX_QUANTITY).toLocaleString("th-TH")})
               </span>
             </label>
 
@@ -338,7 +457,12 @@ const VoucherSetup = () => {
               <button
                 type="button"
                 onClick={handleActivate}
-                className="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg"
+                disabled={!selectedPointId}
+                className={`rounded-full px-6 py-2 text-sm font-semibold text-white transition ${
+                  selectedPointId
+                    ? "bg-slate-900 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg"
+                    : "cursor-not-allowed bg-slate-400"
+                }`}
               >
                 เปิดใช้งาน
               </button>
@@ -348,8 +472,34 @@ const VoucherSetup = () => {
 
         <aside className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold text-slate-700">
-            ภาพรวมจำนวนสิทธิ์ที่เลือกไว้
+            ภาพรวมการตั้งค่า
           </p>
+
+          {selectedPointId && pointsData && (
+            <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                Point Token ที่เลือก
+              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">
+                {pointsData.find((p: any) => p.id === selectedPointId)?.name}
+              </p>
+              <p className="text-xs text-slate-600">
+                {pointsData.find((p: any) => p.id === selectedPointId)?.symbol}
+              </p>
+            </div>
+          )}
+
+          {!selectedPointId && (
+            <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-4">
+              <p className="text-xs font-semibold text-red-600">
+                ⚠️ กรุณาเลือก Point Token
+              </p>
+              <p className="mt-1 text-xs text-slate-600">
+                จำเป็นต้องเลือก Point Token ก่อนเปิดใช้งาน Voucher
+              </p>
+            </div>
+          )}
+
           <div className="space-y-4">
             {activationSummary.map((item) => (
               <div
