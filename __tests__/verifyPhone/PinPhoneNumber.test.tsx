@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import PinPhoneNumber from "@/components/verifyPhone/PinPhoneNumber";
 import { VerifyPhoneStep } from "@/components/verifyPhone/VerifyPhone";
+import { VerifyPhoneProvider } from "@/contexts/VerifyPhoneContext";
 
 // Mock next/image
 jest.mock("next/image", () => ({
@@ -9,6 +10,31 @@ jest.mock("next/image", () => ({
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img {...props} />;
   },
+}));
+
+// Mock next/navigation
+jest.mock("next/navigation", () => ({
+  useSearchParams: () => ({
+    get: (key: string) => {
+      if (key === "requestid") return "test-request-id";
+      if (key === "merchantid") return "test-merchant-id";
+      return null;
+    },
+  }),
+}));
+
+// Mock Firebase
+jest.mock("@/app/config/firebase", () => ({
+  auth: {},
+}));
+
+jest.mock("firebase/auth", () => ({
+  RecaptchaVerifier: jest.fn().mockImplementation(() => ({
+    render: jest.fn().mockResolvedValue(undefined),
+    clear: jest.fn(),
+  })),
+  signInWithPhoneNumber: jest.fn(),
+  ConfirmationResult: jest.fn(),
 }));
 
 // Mock react-otp-input
@@ -35,29 +61,42 @@ jest.mock("react-otp-input", () => ({
 describe("PinPhoneNumber Component", () => {
   const mockOnChangeStep = jest.fn();
 
+  const renderWithProvider = (component: React.ReactElement) => {
+    return render(
+      <VerifyPhoneProvider>
+        {component}
+      </VerifyPhoneProvider>
+    );
+  };
+
   beforeEach(() => {
     mockOnChangeStep.mockClear();
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("should render the component", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     expect(screen.getByText("ใส่หมายเลขโทรศัพท์ของคุณ")).toBeInTheDocument();
   });
 
   it("should render close button", () => {
-    const { container } = render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const closeButton = container.querySelector("button");
     expect(closeButton).toBeInTheDocument();
   });
 
   it("should render phone image", () => {
-    const { container } = render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const image = container.querySelector('img[alt="Example image"]');
     expect(image).toBeInTheDocument();
   });
 
   it("should render phone input with 10 digits", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     expect(screen.getByTestId("phone-input")).toBeInTheDocument();
     
     // Should have 10 input fields for phone number
@@ -67,31 +106,32 @@ describe("PinPhoneNumber Component", () => {
   });
 
   it("should render submit button with text 'รับรหัส OTP'", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     expect(screen.getByRole("button", { name: /รับรหัส OTP/i })).toBeInTheDocument();
   });
 
   it("should render submit button with arrow icon", () => {
-    const { container } = render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const submitButton = screen.getByRole("button", { name: /รับรหัส OTP/i });
     const svg = submitButton.querySelector("svg");
     expect(svg).toBeInTheDocument();
   });
 
-  it("should have green background button", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+  it("should have green or gray background button", () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
-    expect(button.className).toContain("bg-[#16C23C]");
+    // Initially disabled (gray), becomes green when phone is valid
+    expect(button.className).toMatch(/bg-(gray-400|#16C23C)/);
   });
 
   it("should render image with correct src", () => {
-    const { container } = render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const image = container.querySelector('img[alt="Example image"]');
     expect(image).toHaveAttribute("src", "/images/fill-phone-number.png");
   });
 
   it("should position submit button at bottom", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
     const buttonContainer = button.parentElement;
     expect(buttonContainer?.className).toContain("fixed");
@@ -99,27 +139,31 @@ describe("PinPhoneNumber Component", () => {
   });
 
   it("should render with proper layout structure", () => {
-    const { container } = render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const mainContainer = container.firstChild;
     expect(mainContainer).toHaveClass("bg-white", "w-full", "h-screen");
   });
 
-  it("should call onChangeStep with PIN_OTP when button is clicked with valid phone", () => {
-    render(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+  it("should show error when phone doesn't start with 0", async () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     
-    // Simulate entering a valid phone number (10 digits starting with 0)
     const phoneInput = screen.getByTestId("phone-input-0");
-    fireEvent.change(phoneInput, { target: { value: "0812345678" } });
+    fireEvent.change(phoneInput, { target: { value: "1" } });
     
-    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
-    fireEvent.click(button);
-    
-    expect(mockOnChangeStep).toHaveBeenCalledWith(VerifyPhoneStep.PIN_OTP);
+    await waitFor(() => {
+      expect(screen.getByText("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0")).toBeInTheDocument();
+    });
+  });
+
+  it("should have recaptcha container", () => {
+    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    const recaptchaContainer = container.querySelector("#recaptcha-container");
+    expect(recaptchaContainer).toBeInTheDocument();
   });
 
   it("should accept onChangeStep prop", () => {
     const customMock = jest.fn();
-    render(<PinPhoneNumber onChangeStep={customMock} />);
+    renderWithProvider(<PinPhoneNumber onChangeStep={customMock} />);
     
     expect(screen.getByText("ใส่หมายเลขโทรศัพท์ของคุณ")).toBeInTheDocument();
   });

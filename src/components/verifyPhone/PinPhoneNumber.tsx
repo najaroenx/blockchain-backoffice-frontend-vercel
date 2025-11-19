@@ -1,15 +1,149 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { useState } from "react";
 import OtpInput from "react-otp-input";
 import { VerifyPhoneStep } from "./VerifyPhone";
+import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
+import { auth } from "@/app/config/firebase";
+import { useSearchParams } from "next/navigation";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
+} from "firebase/auth";
 
 const PinPhoneNumber = ({
   onChangeStep,
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
+  const searchParams = useSearchParams();
+  const requestId = searchParams.get("requestid"); // Get 'requestid' param
+  const merchantIds = searchParams.get("merchantId"); // Get 'merchantid' param
+
+  const confirmationRef = useRef<ConfirmationResult | null>(null);
+  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { setPhoneNumber, setToken, setMerchantId } = useVerifyPhone();
+  const [recaptchaVerifier, setRecaptchaVerifier] =
+    useState<RecaptchaVerifier | null>(null);
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
+
+  useEffect(() => {
+    // Fetch data when component renders
+    const fetchData = async () => {
+      if (requestId) {
+        try {
+          const response = await fetch(
+            `/api/otp/request?requestid=${requestId}&merchantid=${merchantIds}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          setMerchantId(merchantIds);
+          const data = await response.json();
+          console.log("Data from /api/otp/request:", data);
+          // TODO: if error will going to redirect to another domain
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+    };
+
+    fetchData();
+
+    // Initialize recaptcha
+    if (!recaptchaRef.current) {
+      recaptchaRef.current = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        { size: "invisible" }
+      );
+
+      recaptchaRef.current.render().catch(console.error);
+    }
+    return () => {
+      recaptchaRef.current?.clear();
+      recaptchaRef.current = null;
+    };
+  }, [requestId]);
+
+  const handleRequestOTP = async () => {
+    // Validate phone number (10 digits, starts with 0)
+    if (otp.length !== 10 || !otp.startsWith("0")) {
+      setError("กรุณาใส่เบอร์โทรศัพท์ให้ครบ 10 หลัก");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Format phone number to international format (+66)
+      const formattedPhone = `+66${otp.substring(1)}`;
+
+      if (!recaptchaRef.current) {
+        setError("กรุณารอสักครู่...");
+        return;
+      }
+
+      const response = await fetch("/api/otp/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber: otp,
+        }),
+      });
+      const { status } = await response;
+      const resp = await response.json();
+      if (status === 200) {
+        // Send OTP via Firebase Phone Auth
+        const confirmation = await signInWithPhoneNumber(
+          auth,
+          formattedPhone,
+          recaptchaRef.current
+        );
+        confirmationRef.current = confirmation;
+        console.log("Confirmation Result:", confirmation);
+        // Save confirmation result and phone number to context
+        setConfirmationResult(confirmation);
+        (window as any).confirmationResult = confirmation; // Store globally for PinOTP
+        setPhoneNumber(otp);
+        setToken(confirmation.verificationId); // Store verification ID as token
+
+        // Navigate to OTP verification step
+        onChangeStep(VerifyPhoneStep.PIN_OTP);
+      } else {
+        setError(resp.message || "เกิดข้อผิดพลาดในการร้องขอ OTP");
+      }
+    } catch (err: any) {
+      console.error("Firebase Phone Auth Error:", err);
+
+      // Handle specific Firebase errors
+      if (err.code === "auth/invalid-phone-number") {
+        setError("หมายเลขโทรศัพท์ไม่ถูกต้อง");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("มีการร้องขอมากเกินไป กรุณาลองใหม่ภายหลัง");
+      } else if (err.code === "auth/captcha-check-failed") {
+        setError("การยืนยัน reCAPTCHA ล้มเหลว กรุณาลองใหม่");
+      } else {
+        setError(err.message || "เกิดข้อผิดพลาดในการส่ง OTP");
+      }
+
+      // Reset recaptcha on error
+      recaptchaVerifier?.clear();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
@@ -48,38 +182,62 @@ const PinPhoneNumber = ({
         <div className="text-lg text-gray-900 font-semibold text-center">
           ใส่หมายเลขโทรศัพท์ของคุณ
         </div>
-        <div className="flex flex-rows gap-3 justify-center w-full">
-          <OtpInput
-            value={otp}
-            onChange={setOtp}
-            numInputs={10}
-            inputType="tel"
-            shouldAutoFocus
-            renderSeparator={<span className="mx-1" />}
-            renderInput={(inputProps, index) => (
-              <div className="relative w-4 h-4 flex items-center justify-center">
-                <input
-                  {...inputProps}
-                  className="absolute inset-0 w-4 h-4 text-center text-md font-semibold text-gray-700 bg-transparent border-0 outline-none caret-transparent"
-                />
-                {!otp[index] && (
-                  <div className="absolute inset-0 bg-[#D9D9D9] w-4 h-4 rounded-full pointer-events-none"></div>
-                )}
-              </div>
-            )}
-          />
+
+        <div className="flex flex-col items-center gap-2 w-full">
+          <div className="flex flex-rows gap-3 justify-center w-full">
+            <OtpInput
+              value={otp}
+              onChange={(value) => {
+                // Only allow input if first character is 0 or if value is empty
+                if (value === "" || value.startsWith("0")) {
+                  setOtp(value);
+                  setError(null); // Clear error when valid input
+                } else {
+                  setError("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0");
+                }
+              }}
+              numInputs={10}
+              inputType="tel"
+              shouldAutoFocus
+              renderSeparator={<span className="mx-1" />}
+              renderInput={(inputProps, index) => (
+                <div className="relative w-4 h-4 flex items-center justify-center">
+                  <input
+                    {...inputProps}
+                    className="absolute inset-0 w-4 h-4 text-center text-md font-semibold text-gray-700 bg-transparent border-1 border-gray-300 outline-none caret-transparent"
+                  />
+                  {!otp[index] && (
+                    <div className="absolute inset-0 bg-[#D9D9D9] w-4 h-4 rounded-full pointer-events-none"></div>
+                  )}
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="text-red-500 text-sm font-semibold text-center">
+              {error}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Fixed button at bottom */}
       <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
+        {/* Recaptcha container */}
+        <div id="recaptcha-container"></div>
+
         <button
-          onClick={() => {
-            onChangeStep(VerifyPhoneStep.PIN_OTP);
-          }}
-          className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"
+          onClick={handleRequestOTP}
+          disabled={loading || otp.length !== 10}
+          className={`w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2 ${
+            loading || otp.length !== 10
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-[#16C23C]"
+          }`}
         >
-          รับรหัส OTP
+          {loading ? "กำลังส่ง..." : "รับรหัส OTP"}
           <svg
             className="w-5 h-5"
             fill="none"
