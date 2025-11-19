@@ -49,7 +49,7 @@ jest.mock("next/image", () => ({
 describe("VerifyPhoneComponent", () => {
   it("should render the component with initial step PIN_PHONE_NUMBER", () => {
     render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -59,7 +59,7 @@ describe("VerifyPhoneComponent", () => {
 
   it("should navigate to PIN_OTP step", () => {
     render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -72,7 +72,7 @@ describe("VerifyPhoneComponent", () => {
 
   it("should navigate to SUCCESS step", () => {
     render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -89,7 +89,7 @@ describe("VerifyPhoneComponent", () => {
 
   it("should navigate back to PIN_PHONE_NUMBER from SUCCESS", () => {
     render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -107,16 +107,17 @@ describe("VerifyPhoneComponent", () => {
 
   it("should provide phone context to children", () => {
     const wrapper = ({ children }: any) => (
-      <VerifyPhoneProvider value="0812345678">{children}</VerifyPhoneProvider>
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    expect(result.current).toBe("0812345678");
+    expect(result.current).toHaveProperty("phoneNumber");
+    expect(result.current).toHaveProperty("setPhoneNumber");
   });
 
-  it("should render with null phone value", () => {
+  it("should render with initial null phone value", () => {
     render(
-      <VerifyPhoneProvider value={null}>
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -124,11 +125,9 @@ describe("VerifyPhoneComponent", () => {
     expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
   });
 
-  it("should pass phone value through nested providers", () => {
-    const testPhone = "0904134444";
-    
+  it("should render with provider", () => {
     render(
-      <VerifyPhoneProvider value={testPhone}>
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -138,7 +137,7 @@ describe("VerifyPhoneComponent", () => {
 
   it("should handle all three step transitions", () => {
     render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
@@ -159,27 +158,30 @@ describe("VerifyPhoneComponent", () => {
 describe("VerifyPhoneContext", () => {
   it("should provide phone number correctly to children", () => {
     const wrapper = ({ children }: any) => (
-      <VerifyPhoneProvider value="0812345678">{children}</VerifyPhoneProvider>
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    expect(result.current).toBe("0812345678");
+    expect(result.current).toHaveProperty("phoneNumber");
+    expect(result.current).toHaveProperty("token");
+    expect(result.current).toHaveProperty("setPhoneNumber");
   });
 
-  it("should return null when no provider is used", () => {
+  it("should return context object even without provider", () => {
     const { result } = renderHook(() => useVerifyPhone());
-    expect(result.current).toBeNull();
+    expect(result.current).toHaveProperty("phoneNumber");
+    expect(result.current.phoneNumber).toBeNull();
   });
 
-  it("should handle phone number changes", () => {
+  it("should handle context state", () => {
     const { rerender } = render(
-      <VerifyPhoneProvider value="0812345678">
+      <VerifyPhoneProvider>
         <div>Test</div>
       </VerifyPhoneProvider>
     );
 
     rerender(
-      <VerifyPhoneProvider value="0904134444">
+      <VerifyPhoneProvider>
         <div>Test</div>
       </VerifyPhoneProvider>
     );

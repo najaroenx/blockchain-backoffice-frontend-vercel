@@ -45,7 +45,7 @@ const VerifyPhoneComponent = () => {
       token={token}
       otpCode={otpCode}
     >
-      <div className="">{renderStep()}</div>
+      <div className="sm:hidden">{renderStep()}</div>
     </VerifyPhoneProvider>
   );
 };
