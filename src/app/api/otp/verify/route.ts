@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Create custom token for session management (optional)
     // const customToken = await adminAuth.createCustomToken(uid);
     const email = `user${generateRandomWord(5)}@example.com`;
-    console.log("Generated email:", email);
+    // console.log("Generated email:", email);
     const response = await api(
       `${BACKEND_URL}/${merchantId}/customer`,
       {
