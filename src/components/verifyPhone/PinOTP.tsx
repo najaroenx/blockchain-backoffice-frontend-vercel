@@ -68,6 +68,7 @@ const PinOTP = ({
       console.log("Firebase OTP Verification Result:", result);
 
       // User signed in successfully
+      // Call backend to verify and create session
       const user = result.user;
       const idToken = await user.getIdToken();
 
