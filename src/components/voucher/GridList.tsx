@@ -45,7 +45,7 @@ export const GridList = ({
   }
 
   return (
-    <div className="flex flex-row flex-wrap items-center gap-5 py-5">
+    <div className="flex flex-row flex-wrap items-center gap-5 py-5" key={statusFilter}>
       <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((record) => (
           <RecordContextProvider key={record.id} value={record}>

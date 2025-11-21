@@ -115,24 +115,15 @@ const VoucherOverviewComponent = ({
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 xl:col-span-1">
           <p className="text-sm text-slate-500">ภาพรวมสถานะ</p>
-          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-medium">
-            {(["active", "upcoming", "all"] as StatusFilter[]).map((status) => (
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center text-xs font-medium">
+            {(["active", "upcoming"] as VoucherStatus[]).map((status) => (
               <div
                 key={status}
-                className={`rounded-xl py-2 ${
-                  status === "all"
-                    ? "bg-slate-100 text-slate-600"
-                    : statusStyles[status].badgeClass
-                }`}
+                className={`rounded-xl py-2 ${statusStyles[status].badgeClass}`}
               >
-                {/* TODO */}
-                {/* {statusStyles ? statusStyles[status]?.label : "ทั้งหมด"} */}
+                <p className="text-xs">{statusStyles[status].label}</p>
                 <p className="mt-1 text-lg font-semibold">
-                  {renderCount(
-                    status === "all"
-                      ? totalsByStatus.all
-                      : totalsByStatus[status]
-                  )}
+                  {renderCount(totalsByStatus[status])}
                 </p>
               </div>
             ))}
@@ -141,23 +132,19 @@ const VoucherOverviewComponent = ({
       </div>
 
       <div className="flex flex-wrap items-center justify-start gap-3">
-        {(["all", "active", "upcoming"] as StatusFilter[]).map((status) => (
+        {(["active", "upcoming"] as VoucherStatus[]).map((status) => (
           <button
             key={status}
             onClick={() => onStatusChange(status)}
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
               statusFilter === status
                 ? "bg-slate-900 text-white shadow"
-                : status === "all"
-                ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 : statusStyles[status].badgeClass
             }`}
           >
-            {status === "all"
-              ? `ทั้งหมด (${renderCount(totalsByStatus.all)})`
-              : `${statusStyles[status].label} (${renderCount(
-                  totalsByStatus[status]
-                )})`}
+            {`${statusStyles[status].label} (${renderCount(
+              totalsByStatus[status]
+            )})`}
           </button>
         ))}
       </div>
@@ -192,10 +179,7 @@ const VoucherListContentComponent = ({
   );
 
   const filtered = useMemo(
-    () =>
-      statusFilter === "all"
-        ? scoped
-        : scoped.filter((v) => v.status === statusFilter),
+    () => scoped.filter((v) => v.status === statusFilter),
     [scoped, statusFilter]
   );
 
@@ -209,7 +193,7 @@ const VoucherListContentComponent = ({
         onOpenSelect={onOpenSelect}
       />
       <ListActions title="Vouchers" />
-      <GridList records={filtered} isLoading={isLoading} />
+      <GridList records={filtered} isLoading={isLoading} statusFilter={statusFilter} />
     </>
   );
 };
@@ -220,7 +204,7 @@ export const VoucherListContent = React.memo(VoucherListContentComponent);
 /* ✅ Main Component */
 const VoucherListComponent = () => {
   const [isSelectOpen, toggleSelectDialog] = useDialog();
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const redirect = useRedirect();
   const merchantId = useMerchantId();
 
