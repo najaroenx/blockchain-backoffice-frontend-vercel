@@ -25,7 +25,7 @@ const PinOTP = ({
   } = useVerifyPhone();
 
   useEffect(() => {
-    let totalSeconds = 60; // 3 minutes
+    let totalSeconds = 120; // 3 minutes
 
     const timer = setInterval(() => {
       const minutes = Math.floor(totalSeconds / 60);
@@ -194,9 +194,13 @@ const PinOTP = ({
           />
         </div>
       </div>
-      
+
       {/* Error message */}
-      {error && <div className="text-red-500 font-semibold text-sm mt-4 text-center px-6">{error}</div>}
+      {error && (
+        <div className="text-red-500 font-semibold text-sm mt-4 text-center px-6">
+          {error}
+        </div>
+      )}
 
       {/* กรุณากด Request OTP */}
       <div className="mt-6 text-center">
