@@ -7,10 +7,11 @@ const nextConfig = {
     return config;
   },
   images: {
+    unoptimized: true,
     domains: [
-      "raw.seadn.io", 
+      "raw.seadn.io",
       "images.unsplash.com",
-      "orange-tremendous-wallaby-734.mypinata.cloud"
+      "orange-tremendous-wallaby-734.mypinata.cloud",
     ],
   },
 };
