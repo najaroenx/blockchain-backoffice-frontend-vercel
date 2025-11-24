@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-// import { adminAuth } from "@/app/config/firebase-admin";
 import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
@@ -16,43 +15,31 @@ function generateRandomWord(length: number = 8): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { idToken, phoneNumber, merchantId } = body;
+    const { phoneNumber, merchantId, otpCode } = body;
 
-    // Validate input
-    if (!idToken) {
+
+    // Verify OTP with backend SMS provider
+     const responseVerify = await api(
+      `${BACKEND_URL}/templink/verify-otp`,
+      {
+        method: "POST",
+        // headers: {
+        //   "x-api-key": process.env.MERCHANT_API_KEY || "bOCiH95dxdFVKdcYnDRl",
+        // },
+        body: {
+          phoneNumber: phoneNumber,
+          otpCode: otpCode,
+        },
+      }
+    )
+    console.log("OTP Verification Response:", responseVerify);
+    if (responseVerify.statusCode === 400) {
       return NextResponse.json(
-        { message: "ข้อมูลไม่ครบถ้วน" },
+        { message: "รหัส OTP ไม่ถูกต้อง" },
         { status: 400 }
       );
     }
-
-    // // Verify the Firebase ID token
-    // const decodedToken = await adminAuth.verifyIdToken(idToken);
-    // const uid = decodedToken.uid;
-    // const phoneNumber = decodedToken.phone_number;
-
-    // Get or create user record
-    // let userRecord;
-    // try {
-    //   userRecord = await adminAuth.getUser(uid);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "ไม่พบข้อมูลผู้ใช้" },
-    //     { status: 404 }
-    //   );
-    // }
-
-    // TODO: Save user to your database
-    // await createOrUpdateUser({
-    //   uid,
-    //   phoneNumber,
-    //   lastLogin: new Date(),
-    // });
-
-    // Create custom token for session management (optional)
-    // const customToken = await adminAuth.createCustomToken(uid);
     const email = `user${generateRandomWord(5)}@example.com`;
-    // console.log("Generated email:", email);
     const response = await api(
       `${BACKEND_URL}/${merchantId}/customer`,
       {
@@ -66,6 +53,7 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+
     return NextResponse.json({
       success: true,
       message: "ยืนยัน OTP สำเร็จ",

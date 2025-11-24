@@ -121,4 +121,39 @@ describe("VerifyPhoneSuccess Component", () => {
     
     expect(customMock).toHaveBeenCalled();
   });
+
+  it("should display success icon with proper styling", () => {
+    const { container } = render(<VerifyPhoneSuccess onChangeStep={mockOnChangeStep} />);
+    const icon = container.querySelector('svg.w-16.h-16.text-white');
+    expect(icon).toBeInTheDocument();
+  });
+
+  it("should render fixed button container with proper padding", () => {
+    render(<VerifyPhoneSuccess onChangeStep={mockOnChangeStep} />);
+    const button = screen.getByRole("button", { name: /กลับไปหน้าหลัก/i });
+    const buttonContainer = button.parentElement;
+    
+    expect(buttonContainer?.className).toContain("left-0");
+    expect(buttonContainer?.className).toContain("right-0");
+    expect(buttonContainer?.className).toContain("mb-6");
+  });
+
+  it("should render button with max width constraint", () => {
+    render(<VerifyPhoneSuccess onChangeStep={mockOnChangeStep} />);
+    const button = screen.getByRole("button", { name: /กลับไปหน้าหลัก/i });
+    expect(button.className).toContain("max-w-[327px]");
+  });
+
+  it("should render button with correct height", () => {
+    render(<VerifyPhoneSuccess onChangeStep={mockOnChangeStep} />);
+    const button = screen.getByRole("button", { name: /กลับไปหน้าหลัก/i });
+    expect(button.className).toContain("h-[56px]");
+  });
+
+  it("should render arrow icon with correct styling", () => {
+    const { container } = render(<VerifyPhoneSuccess onChangeStep={mockOnChangeStep} />);
+    const button = screen.getByRole("button", { name: /กลับไปหน้าหลัก/i });
+    const arrowIcon = button.querySelector('svg.w-5.h-5');
+    expect(arrowIcon).toBeInTheDocument();
+  });
 });

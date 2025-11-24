@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   console.log("Received OTP request");
   try {
     const body = await request.json();
-    const { phoneNumber } = body;
+    const { phoneNumber, requestId } = body;
 
     // Validate phone number
     if (!phoneNumber || phoneNumber.length !== 10) {
@@ -26,10 +26,20 @@ export async function POST(request: NextRequest) {
     console.log("Backend response for phone check:", response);
     // ไม่เจอหมายเลขโทรศัพท์ แสดงว่าสามารภลงทะเบียนใหม่ได้
     if (response.error === "NEW_OTP_GENERATED") {
-      return NextResponse.json(
-        { message: "สามารถลงทะเบียนใหม่ได้" },
-        { status: 200 }
+      const response = await api(
+        `${BACKEND_URL}/templink/${requestId}/send-otp`,
+        {
+          method: "GET",
+        }
       );
+      if (response.error) {
+        return NextResponse.json({ message: response.error }, { status: 500 });
+      } else {
+        return NextResponse.json(
+          { message: "สามารถลงทะเบียนใหม่ได้" },
+          { status: 200 }
+        );
+      }
     }
 
     if (!response || response.statusCode) {
@@ -71,6 +81,7 @@ export async function GET(request: NextRequest) {
     const response = await api(`${BACKEND_URL}/templink/${requestId}`, {
       method: "GET",
     });
+    console.log("response", response);
     if (response) {
       const { uid, phoneNumber, expire } = response;
       if (expire < Date.now()) {
@@ -79,13 +90,6 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       } else {
-        return NextResponse.json(
-          {
-            message: "Valid RequestId",
-            data: { uid, phoneNumber, expire },
-          },
-          { status: 200 }
-        );
       }
     } else {
       return NextResponse.json(
@@ -93,14 +97,6 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-    // Add your logic here to handle the GET request using the requestId
-    return NextResponse.json(
-      {
-        message: `GET request received with requestId: ${requestId}`,
-        data: { requestId, merchantId },
-      },
-      { status: 200 }
-    );
   } catch (error) {
     console.error("Error processing GET request:", error);
     return NextResponse.json(

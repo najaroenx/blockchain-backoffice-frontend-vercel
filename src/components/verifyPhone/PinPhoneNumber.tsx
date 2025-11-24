@@ -1,16 +1,10 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import OtpInput from "react-otp-input";
 import { VerifyPhoneStep } from "./VerifyPhone";
 import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
-import { auth } from "@/app/config/firebase";
 import { useSearchParams } from "next/navigation";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult,
-} from "firebase/auth";
 
 const PinPhoneNumber = ({
   onChangeStep,
@@ -21,16 +15,10 @@ const PinPhoneNumber = ({
   const requestId = searchParams.get("requestid"); // Get 'requestid' param
   const merchantIds = searchParams.get("merchantId"); // Get 'merchantid' param
 
-  const confirmationRef = useRef<ConfirmationResult | null>(null);
-  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { setPhoneNumber, setToken, setMerchantId } = useVerifyPhone();
-  const [recaptchaVerifier, setRecaptchaVerifier] =
-    useState<RecaptchaVerifier | null>(null);
-  const [confirmationResult, setConfirmationResult] =
-    useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
     // Fetch data when component renders
@@ -47,8 +35,7 @@ const PinPhoneNumber = ({
             }
           );
           setMerchantId(merchantIds);
-          const data = await response.json();
-          console.log("Data from /api/otp/request:", data);
+          // const data = await response.json();
           // TODO: if error will going to redirect to another domain
         } catch (error) {
           console.error("Error fetching data:", error);
@@ -57,22 +44,7 @@ const PinPhoneNumber = ({
     };
 
     fetchData();
-
-    // Initialize recaptcha
-    if (!recaptchaRef.current) {
-      recaptchaRef.current = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        { size: "invisible" }
-      );
-
-      recaptchaRef.current.render().catch(console.error);
-    }
-    return () => {
-      recaptchaRef.current?.clear();
-      recaptchaRef.current = null;
-    };
-  }, [requestId]);
+  }, [merchantIds, requestId, setMerchantId]);
 
   const handleRequestOTP = async () => {
     // Validate phone number (10 digits, starts with 0)
@@ -85,61 +57,34 @@ const PinPhoneNumber = ({
     setError(null);
 
     try {
-      // Format phone number to international format (+66)
-      const formattedPhone = `+66${otp.substring(1)}`;
-
-      if (!recaptchaRef.current) {
-        setError("กรุณารอสักครู่...");
-        return;
-      }
-
+      // Send OTP request to backend API (will integrate with SMS provider)
       const response = await fetch("/api/otp/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          phoneNumber: otp,
+          phoneNumber: otp, //phone number input
+          merchantId: merchantIds,
+          requestId: requestId,
         }),
       });
-      const { status } = await response;
-      const resp = await response.json();
-      if (status === 200) {
-        // Send OTP via Firebase Phone Auth
-        const confirmation = await signInWithPhoneNumber(
-          auth,
-          formattedPhone,
-          recaptchaRef.current
-        );
-        confirmationRef.current = confirmation;
-        console.log("Confirmation Result:", confirmation);
-        // Save confirmation result and phone number to context
-        setConfirmationResult(confirmation);
-        (window as any).confirmationResult = confirmation; // Store globally for PinOTP
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save phone number and token from SMS provider response
         setPhoneNumber(otp);
-        setToken(confirmation.verificationId); // Store verification ID as token
+        setToken(data.token || data.verificationId); // Token from SMS provider
 
         // Navigate to OTP verification step
         onChangeStep(VerifyPhoneStep.PIN_OTP);
       } else {
-        setError(resp.message || "เกิดข้อผิดพลาดในการร้องขอ OTP");
+        setError(data.message || "เกิดข้อผิดพลาดในการร้องขอ OTP");
       }
     } catch (err: any) {
-      console.error("Firebase Phone Auth Error:", err);
-
-      // Handle specific Firebase errors
-      if (err.code === "auth/invalid-phone-number") {
-        setError("หมายเลขโทรศัพท์ไม่ถูกต้อง");
-      } else if (err.code === "auth/too-many-requests") {
-        setError("มีการร้องขอมากเกินไป กรุณาลองใหม่ภายหลัง");
-      } else if (err.code === "auth/captcha-check-failed") {
-        setError("การยืนยัน reCAPTCHA ล้มเหลว กรุณาลองใหม่");
-      } else {
-        setError(err.message || "เกิดข้อผิดพลาดในการส่ง OTP");
-      }
-
-      // Reset recaptcha on error
-      recaptchaVerifier?.clear();
+      console.error("OTP Request Error:", err);
+      setError(err.message || "เกิดข้อผิดพลาดในการส่ง OTP");
     } finally {
       setLoading(false);
     }
@@ -225,9 +170,6 @@ const PinPhoneNumber = ({
 
       {/* Fixed button at bottom */}
       <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
-        {/* Recaptcha container */}
-        <div id="recaptcha-container"></div>
-
         <button
           onClick={handleRequestOTP}
           disabled={loading || otp.length !== 10}

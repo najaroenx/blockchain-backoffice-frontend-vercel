@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import PinPhoneNumber from "@/components/verifyPhone/PinPhoneNumber";
 import { VerifyPhoneStep } from "@/components/verifyPhone/VerifyPhone";
 import { VerifyPhoneProvider } from "@/contexts/VerifyPhoneContext";
@@ -17,24 +17,10 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => ({
     get: (key: string) => {
       if (key === "requestid") return "test-request-id";
-      if (key === "merchantid") return "test-merchant-id";
+      if (key === "merchantId") return "test-merchant-id";
       return null;
     },
   }),
-}));
-
-// Mock Firebase
-jest.mock("@/app/config/firebase", () => ({
-  auth: {},
-}));
-
-jest.mock("firebase/auth", () => ({
-  RecaptchaVerifier: jest.fn().mockImplementation(() => ({
-    render: jest.fn().mockResolvedValue(undefined),
-    clear: jest.fn(),
-  })),
-  signInWithPhoneNumber: jest.fn(),
-  ConfirmationResult: jest.fn(),
 }));
 
 // Mock react-otp-input
@@ -99,7 +85,6 @@ describe("PinPhoneNumber Component", () => {
     renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     expect(screen.getByTestId("phone-input")).toBeInTheDocument();
     
-    // Should have 10 input fields for phone number
     for (let i = 0; i < 10; i++) {
       expect(screen.getByTestId(`phone-input-${i}`)).toBeInTheDocument();
     }
@@ -120,8 +105,7 @@ describe("PinPhoneNumber Component", () => {
   it("should have green or gray background button", () => {
     renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
-    // Initially disabled (gray), becomes green when phone is valid
-    expect(button.className).toMatch(/bg-(gray-400|#16C23C)/);
+    expect(button.className).toMatch(/bg-(gray-400|\[#16C23C\])/);
   });
 
   it("should render image with correct src", () => {
@@ -148,23 +132,176 @@ describe("PinPhoneNumber Component", () => {
     renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     
     const phoneInput = screen.getByTestId("phone-input-0");
-    fireEvent.change(phoneInput, { target: { value: "1" } });
+    fireEvent.change(phoneInput, { target: { value: "1234567890" } });
     
     await waitFor(() => {
       expect(screen.getByText("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0")).toBeInTheDocument();
     });
   });
 
-  it("should have recaptcha container", () => {
-    const { container } = renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
-    const recaptchaContainer = container.querySelector("#recaptcha-container");
-    expect(recaptchaContainer).toBeInTheDocument();
+  it("should disable button when phone number is not 10 digits", () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "012345678" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    expect(button).toBeDisabled();
   });
 
-  it("should accept onChangeStep prop", () => {
-    const customMock = jest.fn();
-    renderWithProvider(<PinPhoneNumber onChangeStep={customMock} />);
+  it("should enable button when valid phone number is entered", () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
     
-    expect(screen.getByText("ใส่หมายเลขโทรศัพท์ของคุณ")).toBeInTheDocument();
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    expect(button).not.toBeDisabled();
+  });
+
+  it("should show error when phone number is incomplete on submit", async () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "012345678" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    // Button should be disabled when phone is not 10 digits
+    expect(button).toBeDisabled();
+  });
+
+  it("should call API on submit with valid phone number", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: "test-token" }),
+    });
+    global.fetch = mockFetch;
+
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/api/otp/request", expect.objectContaining({
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: expect.any(String),
+      }));
+    });
+  });
+
+  it("should navigate to PIN_OTP step on successful API call", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ token: "test-token" }),
+    });
+    global.fetch = mockFetch;
+
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(mockOnChangeStep).toHaveBeenCalledWith(VerifyPhoneStep.PIN_OTP);
+    });
+  });
+
+  it("should show error message on API failure", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: "API Error" }),
+    });
+    global.fetch = mockFetch;
+
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(screen.getByText("API Error")).toBeInTheDocument();
+    });
+  });
+
+  it("should show loading state during API call", async () => {
+    let resolveRequest: any;
+    const mockFetch = jest.fn().mockImplementation(() => 
+      new Promise((resolve) => {
+        resolveRequest = () => resolve({ 
+          ok: true, 
+          json: async () => ({ token: "test-token" }) 
+        });
+      })
+    );
+    global.fetch = mockFetch;
+
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    const button = screen.getByRole("button", { name: /รับรหัส OTP/i });
+    
+    await act(async () => {
+      fireEvent.click(button);
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+    
+    expect(screen.getByText("กำลังส่ง...")).toBeInTheDocument();
+    
+    // Resolve the request
+    act(() => {
+      resolveRequest();
+    });
+  });
+
+  it("should fetch data on component mount when requestId is present", async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+    global.fetch = mockFetch;
+
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/otp/request?requestid=test-request-id"),
+        expect.any(Object)
+      );
+    });
+  });
+
+  it("should clear error when valid input is entered", async () => {
+    renderWithProvider(<PinPhoneNumber onChangeStep={mockOnChangeStep} />);
+    
+    const phoneInput = screen.getByTestId("phone-input-0");
+    
+    // First, enter invalid input
+    fireEvent.change(phoneInput, { target: { value: "1234567890" } });
+    await waitFor(() => {
+      expect(screen.getByText("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0")).toBeInTheDocument();
+    });
+    
+    // Then enter valid input starting with 0
+    fireEvent.change(phoneInput, { target: { value: "" } });
+    fireEvent.change(phoneInput, { target: { value: "0123456789" } });
+    
+    await waitFor(() => {
+      expect(screen.queryByText("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0")).not.toBeInTheDocument();
+    });
   });
 });
