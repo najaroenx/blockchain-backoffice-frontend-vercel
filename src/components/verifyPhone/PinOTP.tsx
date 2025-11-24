@@ -1,10 +1,8 @@
 "use client";
-// import Image from "next/image";
 import { useState, useEffect } from "react";
 import OtpInput from "react-otp-input";
 import { VerifyPhoneStep } from "./VerifyPhone";
 import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
-// import { auth } from "@/app/config/firebase";
 
 const PinOTP = ({
   onChangeStep,
@@ -25,7 +23,7 @@ const PinOTP = ({
   } = useVerifyPhone();
 
   useEffect(() => {
-    let totalSeconds = 120; // 3 minutes
+    let totalSeconds = 120; // 2 minutes for OTP expiry
 
     const timer = setInterval(() => {
       const minutes = Math.floor(totalSeconds / 60);
@@ -50,37 +48,25 @@ const PinOTP = ({
       return;
     }
 
+    if (min === 0 && sec === 0) {
+      setError("รหัส OTP หมดอายุ กรุณาขอรหัสใหม่");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      // Get the confirmation result from context (window object as fallback)
-      const confirmationResult = (window as any).confirmationResult;
-
-      if (!confirmationResult) {
-        setError("กรุณาขอรหัส OTP ใหม่อีกครั้ง");
-        return;
-      }
-
-      // Confirm the OTP code with Firebase
-      const result = await confirmationResult.confirm(verifyOtp);
-
-      console.log("Firebase OTP Verification Result:", result);
-
-      // User signed in successfully
-      // Call backend to verify and create session
-      const user = result.user;
-      const idToken = await user.getIdToken();
-
-      // Call backend to verify and create session
+      // Verify OTP with backend SMS provider
       const response = await fetch("/api/otp/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          idToken,
           phoneNumber,
+          otpCode: verifyOtp,
+          token, // Token from SMS provider (stored from request step)
           merchantId,
         }),
       });
@@ -100,15 +86,15 @@ const PinOTP = ({
       // Navigate to success step
       onChangeStep(VerifyPhoneStep.SUCCESS);
     } catch (err: any) {
-      console.error("Firebase OTP Verification Error:", err);
+      console.error("OTP Verification Error:", err);
 
-      // Handle specific Firebase errors
-      if (err.code === "auth/invalid-verification-code") {
+      // Handle verification errors
+      if (err.message?.includes("invalid") || err.message?.includes("ไม่ถูกต้อง")) {
         setError("รหัส OTP ไม่ถูกต้อง");
-      } else if (err.code === "auth/code-expired") {
+      } else if (err.message?.includes("expired") || err.message?.includes("หมดอายุ")) {
         setError("รหัส OTP หมดอายุ กรุณาขอรหัสใหม่");
       } else {
-        setError(err.message || "เกิดข้อผิดพลาด");
+        setError(err.message || "เกิดข้อผิดพลาดในการยืนยัน OTP");
       }
     } finally {
       setLoading(false);
@@ -240,7 +226,7 @@ const PinOTP = ({
             loading || verifyOtp.length !== 6 || (min === 0 && sec === 0)
           }
           className={`w-full h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors ${
-            loading || verifyOtp.length !== 6 || (min === 0 && sec === 0)
+            loading || verifyOtp.length !== 6
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-[#16C23C] hover:bg-[#14AF37]"
           }`}

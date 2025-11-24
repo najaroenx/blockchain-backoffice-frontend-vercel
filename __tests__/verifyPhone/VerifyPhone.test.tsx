@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { renderHook } from "@testing-library/react";
 import VerifyPhoneComponent, { VerifyPhoneStep } from "@/components/verifyPhone/VerifyPhone";
 import { VerifyPhoneProvider, useVerifyPhone } from "@/contexts/VerifyPhoneContext";
@@ -77,10 +77,8 @@ describe("VerifyPhoneComponent", () => {
       </VerifyPhoneProvider>
     );
     
-    // Go to OTP step
     fireEvent.click(screen.getByText("Next to OTP"));
     
-    // Go to Success step
     const successButton = screen.getByText("Next to Success");
     fireEvent.click(successButton);
     
@@ -94,28 +92,16 @@ describe("VerifyPhoneComponent", () => {
       </VerifyPhoneProvider>
     );
     
-    // Navigate through all steps
     fireEvent.click(screen.getByText("Next to OTP"));
     fireEvent.click(screen.getByText("Next to Success"));
     
-    // Navigate back
     const backButton = screen.getByText("Back to Phone Input");
     fireEvent.click(backButton);
     
     expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
   });
 
-  it("should provide phone context to children", () => {
-    const wrapper = ({ children }: any) => (
-      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
-    );
-
-    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    expect(result.current).toHaveProperty("phoneNumber");
-    expect(result.current).toHaveProperty("setPhoneNumber");
-  });
-
-  it("should render with initial null phone value", () => {
+  it("should handle all three step transitions", () => {
     render(
       <VerifyPhoneProvider>
         <VerifyPhoneComponent />
@@ -123,6 +109,12 @@ describe("VerifyPhoneComponent", () => {
     );
     
     expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Next to OTP"));
+    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Next to Success"));
+    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
   });
 
   it("should render with provider", () => {
@@ -135,28 +127,18 @@ describe("VerifyPhoneComponent", () => {
     expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
   });
 
-  it("should handle all three step transitions", () => {
-    render(
+  it("should render with sm:hidden class", () => {
+    const { container } = render(
       <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
     
-    // Step 1: PIN_PHONE_NUMBER
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
-    
-    // Step 2: PIN_OTP
-    fireEvent.click(screen.getByText("Next to OTP"));
-    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
-    
-    // Step 3: SUCCESS
-    fireEvent.click(screen.getByText("Next to Success"));
-    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
+    const hiddenDiv = container.querySelector(".sm\\:hidden");
+    expect(hiddenDiv).toBeInTheDocument();
   });
-});
 
-describe("VerifyPhoneContext", () => {
-  it("should provide phone number correctly to children", () => {
+  it("should maintain context values across steps", () => {
     const wrapper = ({ children }: any) => (
       <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
     );
@@ -164,16 +146,143 @@ describe("VerifyPhoneContext", () => {
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
     expect(result.current).toHaveProperty("phoneNumber");
     expect(result.current).toHaveProperty("token");
-    expect(result.current).toHaveProperty("setPhoneNumber");
+    expect(result.current).toHaveProperty("otpCode");
   });
 
-  it("should return context object even without provider", () => {
-    const { result } = renderHook(() => useVerifyPhone());
+  it("should properly switch between all step components", () => {
+    render(
+      <VerifyPhoneProvider>
+        <VerifyPhoneComponent />
+      </VerifyPhoneProvider>
+    );
+    
+    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
+    expect(screen.queryByTestId("pin-otp")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("verify-phone-success")).not.toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Next to OTP"));
+    expect(screen.queryByTestId("pin-phone-number")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
+    expect(screen.queryByTestId("verify-phone-success")).not.toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Next to Success"));
+    expect(screen.queryByTestId("pin-phone-number")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pin-otp")).not.toBeInTheDocument();
+    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
+  });
+});
+
+describe("VerifyPhoneContext", () => {
+  it("should provide context values", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
     expect(result.current).toHaveProperty("phoneNumber");
-    expect(result.current.phoneNumber).toBeNull();
+    expect(result.current).toHaveProperty("token");
+    expect(result.current).toHaveProperty("otpCode");
+    expect(result.current).toHaveProperty("merchantId");
+    expect(result.current).toHaveProperty("setPhoneNumber");
+    expect(result.current).toHaveProperty("setToken");
+    expect(result.current).toHaveProperty("setOtpCode");
+    expect(result.current).toHaveProperty("setMerchantId");
   });
 
-  it("should handle context state", () => {
+  it("should initialize with null values", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    expect(result.current.phoneNumber).toBeNull();
+    expect(result.current.token).toBeNull();
+    expect(result.current.otpCode).toBeNull();
+    expect(result.current.merchantId).toBeNull();
+  });
+
+  it("should initialize with provided values", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider 
+        phoneNumber="0123456789" 
+        token="test-token" 
+        otpCode="123456"
+      >
+        {children}
+      </VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    expect(result.current.phoneNumber).toBe("0123456789");
+    expect(result.current.token).toBe("test-token");
+    expect(result.current.otpCode).toBe("123456");
+  });
+
+  it("should update phone number", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    
+    expect(result.current.phoneNumber).toBeNull();
+    
+    act(() => {
+      result.current.setPhoneNumber("0987654321");
+    });
+    
+    expect(result.current.phoneNumber).toBe("0987654321");
+  });
+
+  it("should update token", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    
+    expect(result.current.token).toBeNull();
+    
+    act(() => {
+      result.current.setToken("new-token");
+    });
+    
+    expect(result.current.token).toBe("new-token");
+  });
+
+  it("should update OTP code", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    
+    expect(result.current.otpCode).toBeNull();
+    
+    act(() => {
+      result.current.setOtpCode("654321");
+    });
+    
+    expect(result.current.otpCode).toBe("654321");
+  });
+
+  it("should update merchant ID", () => {
+    const wrapper = ({ children }: any) => (
+      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
+    );
+
+    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
+    
+    expect(result.current.merchantId).toBeNull();
+    
+    act(() => {
+      result.current.setMerchantId("merchant-123");
+    });
+    
+    expect(result.current.merchantId).toBe("merchant-123");
+  });
+
+  it("should handle context re-renders", () => {
     const { rerender } = render(
       <VerifyPhoneProvider>
         <div>Test</div>
