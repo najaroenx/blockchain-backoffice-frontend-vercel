@@ -28,13 +28,23 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
 
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
-    setImageUrl(url);
-    setImageError(false);
-    if (url) {
-      setImageLoading(true);
-    } else {
+    // Sanitize URL to prevent XSS - only allow http/https protocols
+    const sanitizedUrl = url.trim();
+    
+    // Validate URL format if not empty
+    if (sanitizedUrl && !sanitizedUrl.match(/^https?:\/\//i)) {
+      setImageError(true);
       setImageLoading(false);
+    } else {
+      setImageError(false);
+      if (sanitizedUrl) {
+        setImageLoading(true);
+      } else {
+        setImageLoading(false);
+      }
     }
+    
+    setImageUrl(sanitizedUrl);
     handleInputChange(e);
   };
 
