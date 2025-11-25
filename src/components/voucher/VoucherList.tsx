@@ -192,7 +192,7 @@ const VoucherListContentComponent = ({
         onStatusChange={onStatusChange}
         onOpenSelect={onOpenSelect}
       />
-      <ListActions title="Vouchers" />
+      {/* <ListActions title="Vouchers" /> */}
       <GridList records={filtered} isLoading={isLoading} statusFilter={statusFilter} />
     </>
   );
