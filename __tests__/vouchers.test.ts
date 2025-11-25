@@ -14,7 +14,7 @@ describe("vouchers data", () => {
     expect(voucher).toHaveProperty("status");
     expect(["active", "upcoming"]).toContain(voucher.status);
 
-    expect(voucher).toHaveProperty("merchant");
+    expect(voucher).toHaveProperty("merchantName");
     expect(voucher).toHaveProperty("pointsCost");
     expect(typeof voucher.pointsCost).toBe("number");
 
