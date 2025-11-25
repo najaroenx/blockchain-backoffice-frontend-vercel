@@ -8,6 +8,7 @@ import { FormControl } from "@mui/material";
 import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import { useState } from "react";
+import Image from "next/image";
 
 interface CreateMerchantDialogProps {
   onCancel: () => void;
@@ -30,7 +31,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
     const url = e.target.value;
     // Sanitize URL to prevent XSS - only allow http/https protocols
     const sanitizedUrl = url.trim();
-    
+
     // Validate URL format if not empty
     if (sanitizedUrl && !sanitizedUrl.match(/^https?:\/\//i)) {
       setImageError(true);
@@ -43,7 +44,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
         setImageLoading(false);
       }
     }
-    
+
     setImageUrl(sanitizedUrl);
     handleInputChange(e);
   };
@@ -60,12 +61,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
-    
+
     // Limit to 10 digits
     if (value.length > 10) {
       value = value.slice(0, 10);
     }
-    
+
     // Validate
     if (value.length > 0 && !value.startsWith("0")) {
       setPhoneError("เบอร์โทรศัพท์ต้องเริ่มต้นด้วย 0");
@@ -74,7 +75,7 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
     } else {
       setPhoneError("");
     }
-    
+
     // Update the input value
     e.target.value = value;
     handleInputChange(e);
@@ -98,7 +99,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
           <form className="flex w-full flex-col gap-5" onSubmit={onConfirm}>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="name">Name</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="name"
+                >
+                  Name
+                </FormLabel>
                 <TextField
                   id="name"
                   type="text"
@@ -116,7 +122,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="website">Website</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="website"
+                >
+                  Website
+                </FormLabel>
                 <TextField
                   id="website"
                   type="text"
@@ -134,7 +145,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel  className="font-semibold text-black-500" htmlFor="website">Description</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="website"
+                >
+                  Description
+                </FormLabel>
                 <TextField
                   id="description"
                   type="text"
@@ -152,7 +168,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="imageUrl">Image Url</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="imageUrl"
+                >
+                  Image Url
+                </FormLabel>
                 <TextField
                   id="imageUrl"
                   type="text"
@@ -166,7 +187,9 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
                   onChange={handleImageUrlChange}
                   disabled={loading}
                   error={imageError}
-                  helperText={imageError ? "ไม่สามารถโหลดรูปภาพได้ กรุณาตรวจสอบ URL" : ""}
+                  helperText={
+                    imageError ? "ไม่สามารถโหลดรูปภาพได้ กรุณาตรวจสอบ URL" : ""
+                  }
                 />
                 {imageUrl && (
                   <div className="mt-2 border rounded-lg p-2 bg-gray-50">
@@ -178,19 +201,32 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
                       )}
                       {imageError && (
                         <div className="absolute inset-0 flex items-center justify-center text-red-500 z-10">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-12 w-12"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
                           </svg>
                         </div>
                       )}
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
+                        id="preview-img"
                         src={imageUrl}
                         alt="Preview"
-                        className="w-full h-full object-cover rounded"
+                        fill
+                        className="object-cover rounded"
                         onLoad={handleImageLoad}
                         onError={handleImageError}
-                        style={{ display: imageError ? 'none' : 'block' }}
+                        style={{ display: imageError ? "none" : "block" }}
+                        unoptimized
                       />
                     </div>
                   </div>
@@ -199,7 +235,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="website">Location</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="website"
+                >
+                  Location
+                </FormLabel>
                 <TextField
                   id="location"
                   type="text"
@@ -217,7 +258,12 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
             </FormControl>
             <FormControl>
               <div className="flex flex-col gap-2">
-                <FormLabel className="font-semibold text-black-500" htmlFor="tel">Phone</FormLabel>
+                <FormLabel
+                  className="font-semibold text-black-500"
+                  htmlFor="tel"
+                >
+                  Phone
+                </FormLabel>
                 <TextField
                   id="tel"
                   type="tel"
@@ -225,16 +271,16 @@ export const CreateMerchantDialog: React.FC<CreateMerchantDialogProps> = (
                   placeholder="0x-xxxx-xxxx"
                   autoFocus
                   required
-                  fullWidth 
+                  fullWidth
                   size="small"
                   variant="outlined"
                   onChange={handlePhoneChange}
                   disabled={loading}
                   error={!!phoneError}
                   helperText={phoneError || ""}
-                  inputProps={{ 
+                  inputProps={{
                     maxLength: 10,
-                    pattern: "0[0-9]{9}"
+                    pattern: "0[0-9]{9}",
                   }}
                 />
               </div>
