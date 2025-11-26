@@ -218,13 +218,14 @@ export const PointForm = ({ isCreate = true }: Props) => {
             return (
               <div className="md:col-span-2">
                 <AutocompleteInput
-                  source="frameSize"
-                  label="Period Duration"
+                  source="expiryMonths"
+                  label="ระยะเวลาหมดอายุ"
                   choices={[
-                    { id: 1, name: "3 months" },
-                    { id: 2, name: "6 months" },
-                    { id: 4, name: "12 months" },
-                    { id: 8, name: "24 months" },
+                    { id: 3, name: "3 เดือน (~91 วัน)" },
+                    { id: 6, name: "6 เดือน (~183 วัน)" },
+                    { id: 9, name: "9 เดือน (~274 วัน)" },
+                    { id: 12, name: "12 เดือน (~365 วัน)" },
+                    { id: 24, name: "24 เดือน (~730 วัน)" },
                   ]}
                   variant="outlined"
                   sx={styleTextField}
