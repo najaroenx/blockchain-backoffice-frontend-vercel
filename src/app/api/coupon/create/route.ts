@@ -120,23 +120,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get auth token from session or headers
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json(
-        { message: "Unauthorized - No token provided" },
-        { status: 401 }
-      );
-    }
-
-    // Forward to backend
-    const response = await fetch(`${BACKEND_URL}/coupon/create`, {
+    // Forward to backend (no auth required)
+    const response = await fetch(`${BACKEND_URL}/coupon/dev/interim-seller`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });

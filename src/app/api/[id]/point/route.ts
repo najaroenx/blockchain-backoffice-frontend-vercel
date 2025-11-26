@@ -76,42 +76,32 @@ export async function POST(req: Request, { params }: { params: any }) {
     logger.info(`Forwarding backend request: POST ${backendUrl}`);
     logger.info(`Request body: ${JSON.stringify(body)}`);
     
-    // Remove timeMode and calculate frameSize & slotSize
-    const { timeMode, startDate, endDate, ...bodyWithoutTimeMode } = body;
+    // Remove timeMode and prepare request body
+    const { timeMode, startDate, endDate, expiryMonths, ...bodyWithoutTimeMode } = body;
     
-    let frameSize: number;
-    let slotSize: number;
+    let requestBody: any = { ...bodyWithoutTimeMode };
     
     if (timeMode === "calendar" && startDate && endDate) {
-      // Calendar mode: calculate based on days between start and end date
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const diffTime = Math.abs(end.getTime() - start.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      // Calendar mode: Convert ISO date strings to Unix timestamps (seconds)
+      requestBody.startDate = Math.floor(new Date(startDate).getTime() / 1000);
+      requestBody.endDate = Math.floor(new Date(endDate).getTime() / 1000);
+      logger.info(`Calendar mode - Converted dates: startDate=${requestBody.startDate}, endDate=${requestBody.endDate}`);
+    } else if (expiryMonths) {
+      // Preset mode: Calculate startDate (now) and endDate based on expiryMonths
+      const now = Math.floor(Date.now() / 1000); // Current Unix timestamp
+      const secondsPerMonth = 30.44 * 24 * 60 * 60; // Average month in seconds
+      const expirySeconds = Math.floor(expiryMonths * secondsPerMonth);
       
-      frameSize = diffDays;
-      // วินาทีของวัน = 86400, แล้วหารด้วย 12
-      slotSize = Math.floor((diffDays * 86400) / 12);
-      
-      logger.info(`Calendar mode - Days: ${diffDays}, frameSize: ${frameSize}, slotSize: ${slotSize}`);
-    } else {
-      // Preset mode: use frameSize from body
-      frameSize = body.frameSize || 1;
-      // คำนวณวินาทีจากจำนวน quarters (แต่ละ quarter = 3 เดือน)
-      // 1 quarter = 3 months ≈ 90 days = 7,776,000 วินาที
-      const secondsPerQuarter = 90 * 24 * 60 * 60; // 7,776,000 วินาที
-      const totalSeconds = frameSize * secondsPerQuarter;
-      slotSize = Math.floor(totalSeconds / 12);
-      
-      logger.info(`Preset mode - Quarters: ${frameSize}, totalSeconds: ${totalSeconds}, slotSize: ${slotSize}`);
+      requestBody.startDate = now;
+      requestBody.endDate = now + expirySeconds;
+      logger.info(`Preset mode - Months: ${expiryMonths}, startDate=${requestBody.startDate}, endDate=${requestBody.endDate}`);
     }
+    
+    logger.info(`Sending to backend - body: ${JSON.stringify(requestBody)}`);
     
     const response = await api(backendUrl, {
       method: "POST",
-      body: {
-        ...bodyWithoutTimeMode,
-        frameSize: slotSize, // ส่งเฉพาะ frameSize ที่มีค่าเป็น slotSize
-      },
+      body: requestBody,
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },

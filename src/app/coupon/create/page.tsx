@@ -342,7 +342,7 @@ export default function CreateCouponPage() {
         const result = await response.json();
         alert("สร้างคูปองสำเร็จ!");
         console.log("Created coupon:", result);
-        router.push("/marketplace");
+        window.location.reload();
       } else {
         const error = await response.json();
         alert(`เกิดข้อผิดพลาด: ${error.message || "ไม่สามารถสร้างคูปองได้"}`);
