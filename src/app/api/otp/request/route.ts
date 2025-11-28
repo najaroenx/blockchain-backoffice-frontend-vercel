@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   console.log("Received OTP request");
   try {
     const body = await request.json();
-    const { phoneNumber, requestId } = body;
+    const { phoneNumber, requestId, merchantId } = body;
 
     // Validate phone number
     if (!phoneNumber || phoneNumber.length !== 10) {
@@ -18,14 +18,14 @@ export async function POST(request: NextRequest) {
       );
     }
     const response = await api(
-      `${BACKEND_URL}/cmi5o77hc00079yqzgrtf0e5l/customer/phone/${phoneNumber}`,
+      `${BACKEND_URL}/${merchantId}/customer/phone/${phoneNumber}`,
       {
         method: "GET",
       }
     );
     console.log("Backend response for phone check:", response);
     // ไม่เจอหมายเลขโทรศัพท์ แสดงว่าสามารภลงทะเบียนใหม่ได้
-    if (response.error === "NEW_OTP_GENERATED") {
+    if (response.statusCode === 404) {
       const response = await api(
         `${BACKEND_URL}/templink/${requestId}/send-otp`,
         {
@@ -76,7 +76,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const requestId = searchParams.get("requestid");
-    const merchantId = searchParams.get("merchantid");
 
     const response = await api(`${BACKEND_URL}/templink/${requestId}`, {
       method: "GET",

@@ -70,6 +70,8 @@ const PinOTP = ({
 
     try {
       // Verify OTP with backend SMS provider
+      setLoading(true);
+      setError(null);
       const response = await fetch("/api/otp/verify", {
         method: "POST",
         headers: {
@@ -86,6 +88,7 @@ const PinOTP = ({
       const data = await response.json();
 
       if (!response.ok) {
+        setLoading(false);
         throw new Error(data.message || "เกิดข้อผิดพลาดในการยืนยัน");
       }
 
@@ -101,7 +104,6 @@ const PinOTP = ({
       }, 2000);
     } catch (err: any) {
       console.error("OTP Verification Error:", err);
-
       // Handle verification errors with modal
       let errorMessage = "เกิดข้อผิดพลาดในการยืนยัน OTP";
       if (
