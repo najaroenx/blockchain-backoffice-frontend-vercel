@@ -14,11 +14,12 @@ const PinPhoneNumber = ({
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestid"); // Get 'requestid' param
   const merchantIds = searchParams.get("merchantId"); // Get 'merchantid' param
+  const callbackUris = searchParams.get("callbackUri"); // Get 'callbackUri' param
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setPhoneNumber, setToken, setMerchantId } = useVerifyPhone();
+  const { setPhoneNumber, setToken, setMerchantId, setCallbackUri, callbackUri } = useVerifyPhone();
 
   useEffect(() => {
     // Fetch data when component renders
@@ -34,6 +35,7 @@ const PinPhoneNumber = ({
               },
             }
           );
+          setCallbackUri(callbackUris ? callbackUris : '');
           setMerchantId(merchantIds);
           // const data = await response.json();
           // TODO: if error will going to redirect to another domain
@@ -123,11 +125,12 @@ const PinPhoneNumber = ({
       </div>
 
       {/* Title and Input */}
+      
       <div className="mt-12 flex flex-col items-center gap-6">
         <div className="text-lg text-gray-900 font-semibold text-center">
-          ใส่หมายเลขโทรศัพท์ของคุณ
+          ใส่หมายเลขโทรศัพท์ของคุณ {callbackUri}
         </div>
-
+    
         <div className="flex flex-col items-center gap-2 w-full">
           <div className="flex flex-rows gap-3 justify-center w-full items-center">
             <OtpInput

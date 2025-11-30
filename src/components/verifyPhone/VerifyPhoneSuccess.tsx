@@ -1,4 +1,5 @@
 "use client";
+import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
 import { VerifyPhoneStep } from "./VerifyPhone";
 
 const VerifyPhoneSuccess = ({
@@ -6,6 +7,7 @@ const VerifyPhoneSuccess = ({
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
+  const { callbackUri } = useVerifyPhone();
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
       {/* Close button */}
@@ -63,7 +65,9 @@ const VerifyPhoneSuccess = ({
       <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
         <button
           onClick={() => {
-            onChangeStep(VerifyPhoneStep.PIN_PHONE_NUMBER);
+            if (callbackUri) {
+              window.location.href = callbackUri;
+            }
           }}
           className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"
         >

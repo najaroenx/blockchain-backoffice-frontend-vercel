@@ -20,6 +20,7 @@ const PinOTP = ({
   const [verifyOtp, setVerifyOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isVerificationSuccess, setIsVerificationSuccess] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({
     title: "",
@@ -98,6 +99,9 @@ const PinOTP = ({
         updateToken(data.token);
       }
 
+      // Set verification success to keep button disabled
+      setIsVerificationSuccess(true);
+
       // Navigate to success step after a delay
       setTimeout(() => {
         onChangeStep(VerifyPhoneStep.SUCCESS);
@@ -120,6 +124,7 @@ const PinOTP = ({
         errorMessage = err.message;
       }
       setError(errorMessage);
+      // Don't set isVerificationSuccess to true on error, so button can be re-enabled
     } finally {
       setLoading(false);
     }
@@ -260,10 +265,10 @@ const PinOTP = ({
           <button
             onClick={handleVerifyOTP}
             disabled={
-              loading || verifyOtp.length !== 6 || (min === 0 && sec === 0)
+              loading || verifyOtp.length !== 6 || (min === 0 && sec === 0) || isVerificationSuccess
             }
             className={`w-full h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors ${
-              loading || verifyOtp.length !== 6
+              loading || verifyOtp.length !== 6 || isVerificationSuccess
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-[#16C23C] hover:bg-[#14AF37]"
             }`}
