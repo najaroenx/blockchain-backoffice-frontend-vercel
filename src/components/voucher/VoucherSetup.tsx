@@ -385,28 +385,36 @@ const VoucherSetup = () => {
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               คะแนนที่ใช้แลกต่อ 1 สิทธิ์
               <input
-                type="number"
-                min={0}
-                max={MAX_PRICE_POINTS}
-                step={1}
-                value={pricePoints}
+                type="text"
+                inputMode="numeric"
+                value={pricePoints.toLocaleString("th-TH")}
                 onChange={(event) => {
-                  const value = Number(event.target.value);
-                  if (value <= MAX_PRICE_POINTS) {
-                    setPricePoints(value);
+                  // Remove all non-numeric characters
+                  const rawValue = event.target.value.replace(/[^\d]/g, "");
+                  const numValue = rawValue === "" ? 0 : Number(rawValue);
+                  
+                  // Enforce constraints: min=0, max<10000 (i.e., max=9999)
+                  if (numValue >= 0 && numValue < 100000) {
+                    setPricePoints(numValue);
+                  }
+                }}
+                onBlur={(event) => {
+                  // Ensure value is at least 0 on blur
+                  if (pricePoints < 0) {
+                    setPricePoints(0);
                   }
                 }}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200"
                 required
               />
-              {pricePoints > MAX_PRICE_POINTS && (
+              {pricePoints > 100000 && (
                 <span className="text-xs text-red-500">
-                  ราคาต้องไม่เกิน {MAX_PRICE_POINTS.toLocaleString("th-TH")}
+                  ราคาต้องไม่เกิน {(10000).toLocaleString("th-TH")}
                 </span>
               )}
-              <span className="text-xs text-slate-500">
-                ค่าสูงสุด: {MAX_PRICE_POINTS.toLocaleString("th-TH")}
-              </span>
+              {/* <span className="text-xs text-slate-500">
+                ค่าสูงสุด: {(10000).toLocaleString("th-TH")}
+              </span> */}
             </label>
 
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
