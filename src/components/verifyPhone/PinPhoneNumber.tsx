@@ -128,7 +128,7 @@ const PinPhoneNumber = ({
       
       <div className="mt-12 flex flex-col items-center gap-6">
         <div className="text-lg text-gray-900 font-semibold text-center">
-          ใส่หมายเลขโทรศัพท์ของคุณ {callbackUri}
+          ใส่หมายเลขโทรศัพท์ของคุณ
         </div>
     
         <div className="flex flex-col items-center gap-2 w-full">
