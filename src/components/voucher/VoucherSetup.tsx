@@ -105,6 +105,7 @@ const VoucherSetup = () => {
   const [activationPlan, setActivationPlan] = useState<
     Partial<Record<string, number>>
   >(activationFromQuery);
+  const [isActivating, setIsActivating] = useState<boolean>(false);
 
   // Fetch available points for the merchant
   const { data: pointsData } = useGetList(
@@ -175,7 +176,7 @@ const VoucherSetup = () => {
   };
 
   const handleActivate = async () => {
-    if (!selectedVoucher || !merchantId) return;
+    if (!selectedVoucher || !merchantId || isActivating) return;
 
     // Validate that a point is selected
     if (!selectedPointId) {
@@ -215,6 +216,7 @@ const VoucherSetup = () => {
       return;
     }
 
+    setIsActivating(true);
     try {
       // Get selected point's symbol as currency
       const selectedPoint = pointsData?.find((p: any) => p.id === selectedPointId);
@@ -247,6 +249,8 @@ const VoucherSetup = () => {
     } catch (error) {
       console.error("Error activating voucher:", error);
       alert(`เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : "ไม่สามารถเปิดใช้งาน Voucher ได้"}`);
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -465,14 +469,14 @@ const VoucherSetup = () => {
               <button
                 type="button"
                 onClick={handleActivate}
-                disabled={!selectedPointId}
+                disabled={!selectedPointId || isActivating}
                 className={`rounded-full px-6 py-2 text-sm font-semibold text-white transition ${
-                  selectedPointId
+                  selectedPointId && !isActivating
                     ? "bg-slate-900 hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-lg"
                     : "cursor-not-allowed bg-slate-400"
                 }`}
               >
-                เปิดใช้งาน
+                {isActivating ? "กำลังเปิดใช้งาน..." : "เปิดใช้งาน"}
               </button>
             </div>
           </form>
