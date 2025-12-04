@@ -4,7 +4,6 @@ import { api } from "@/libs/api";
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function POST(request: NextRequest) {
-  console.log("Received OTP request");
   try {
     const body = await request.json();
     const { phoneNumber, requestId, merchantId } = body;
@@ -16,47 +15,48 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const response = await api(
-      `${BACKEND_URL}/${merchantId}/customer/phone/${phoneNumber}`,
+    // Check if user with phone number already exists
+    const existingUserResponse = await api(
+      `${BACKEND_URL}/customer/${phoneNumber}`,
       {
         method: "GET",
       }
     );
-    console.log("Backend response for phone check:", response);
-    // ไม่เจอหมายเลขโทรศัพท์ แสดงว่าสามารภลงทะเบียนใหม่ได้
-    if (response.statusCode === 404) {
-      const response = await api(
-        `${BACKEND_URL}/templink/${requestId}/send-otp`,
-        {
-          method: "GET",
-        }
+
+    if (
+      existingUserResponse &&
+      existingUserResponse.status === "success" &&
+      existingUserResponse.data
+    ) {
+      return NextResponse.json(
+        { message: "หมายเลขโทรศัพท์นี้มีผู้ใช้แล้ว" },
+        { status: 400 }
       );
-      if (response.error) {
-        return NextResponse.json({ message: response.error }, { status: 500 });
-      } else {
-        return NextResponse.json(
-          { message: "สามารถลงทะเบียนใหม่ได้" },
-          { status: 200 }
-        );
-      }
     }
 
-    if (!response || response.statusCode) {
+    console.log("Processing phone number:", phoneNumber, requestId);
+
+    // Send OTP request
+    const response = await api(`${BACKEND_URL}/templink/send-otp`, {
+      method: "POST",
+      body: {
+        requestId,
+        phoneNumber,
+      },
+    });
+
+    console.log("OTP request response:", response);
+
+    if (response?.status === "error" || response?.statusCode === 404) {
       return NextResponse.json(
-        { message: "เกิดข้อผิดพลาดจากระบบหลังบ้าน" },
+        { message: "เกิดข้อผิดพลาดในการส่ง OTP" },
         { status: 500 }
       );
     }
-    // Format phone number to international format (+66)
-    const formattedPhone = `+66${phoneNumber.substring(1)}`;
 
     return NextResponse.json(
-      {
-        success: false,
-        message: "เบอร์โทรศัพท์ได้ถูกลงทะเบียนแล้ว",
-        phoneNumber: formattedPhone,
-      },
-      { status: 400 }
+      { message: "สามารถลงทะเบียนใหม่ได้" },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error processing phone number:", error);
@@ -72,34 +72,47 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const requestId = searchParams.get("requestid");
 
+    if (!requestId) {
+      return NextResponse.json(
+        { message: "RequestId is required" },
+        { status: 400 }
+      );
+    }
+
     const response = await api(`${BACKEND_URL}/templink/${requestId}`, {
       method: "GET",
     });
-    console.log("response", response);
-    if (response) {
-      const { uid, phoneNumber, expire } = response;
-      if (expire < Date.now()) {
-        return NextResponse.json(
-          { message: "RequestId has expired" },
-          { status: 400 }
-        );
-      } else {
-        return NextResponse.json(
-          {
-            message: "RequestId is valid",
-            uid,
-            phoneNumber,
-            expire,
-          },
-          { status: 200 }
-        );
-      }
-    } else {
+
+    console.log("GET templink response:", response);
+
+    if (!response || response.status !== "success" || !response.data) {
       return NextResponse.json(
         { message: "Invalid RequestId" },
         { status: 404 }
       );
     }
+
+    const { uid, phoneNumber, expire, merchantId } = response.data;
+
+    // Check if expired (expire is ISO string, convert to timestamp)
+    const expireTime = new Date(expire).getTime();
+    if (expireTime < Date.now()) {
+      return NextResponse.json(
+        { message: "RequestId has expired" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "RequestId is valid",
+        uid,
+        phoneNumber,
+        merchantId,
+        expire,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error processing GET request:", error);
     return NextResponse.json(
