@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminAuth } from "@/app/config/firebase-admin";
 import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
@@ -51,10 +50,6 @@ export async function POST(request: NextRequest) {
     // Format phone number to international format (+66)
     const formattedPhone = `+66${phoneNumber.substring(1)}`;
 
-    // Note: Firebase Phone Auth sends OTP automatically via SMS
-    // This endpoint just validates the phone number format
-    // The actual OTP sending is handled by Firebase client SDK
-
     return NextResponse.json(
       {
         success: false,
@@ -89,6 +84,15 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       } else {
+        return NextResponse.json(
+          {
+            message: "RequestId is valid",
+            uid,
+            phoneNumber,
+            expire,
+          },
+          { status: 200 }
+        );
       }
     } else {
       return NextResponse.json(

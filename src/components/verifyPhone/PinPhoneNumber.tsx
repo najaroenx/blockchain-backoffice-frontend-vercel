@@ -4,7 +4,7 @@ import Image from "next/image";
 import OtpInput from "react-otp-input";
 import { VerifyPhoneStep } from "./VerifyPhone";
 import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 
 const PinPhoneNumber = ({
   onChangeStep,
@@ -19,7 +19,14 @@ const PinPhoneNumber = ({
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setPhoneNumber, setToken, setMerchantId, setCallbackUri, callbackUri } = useVerifyPhone();
+  const [reqPhoneNumber, setReqPhoneNumber] = useState<string | null>(null);
+  const {
+    setPhoneNumber,
+    setToken,
+    setMerchantId,
+    setCallbackUri,
+    callbackUri,
+  } = useVerifyPhone();
 
   useEffect(() => {
     // Fetch data when component renders
@@ -35,7 +42,7 @@ const PinPhoneNumber = ({
               },
             }
           );
-          setCallbackUri(callbackUris ? callbackUris : '');
+          setCallbackUri(callbackUris ? callbackUris : "");
           setMerchantId(merchantIds);
           // const data = await response.json();
           // TODO: if error will going to redirect to another domain
@@ -52,6 +59,11 @@ const PinPhoneNumber = ({
     // Validate phone number (10 digits, starts with 0)
     if (otp.length !== 10 || !otp.startsWith("0")) {
       setError("กรุณาใส่เบอร์โทรศัพท์ให้ครบ 10 หลัก");
+      return;
+    }
+
+    if (otp !== reqPhoneNumber || reqPhoneNumber === null) {
+      setError("หมายเลขโทรศัพท์ไม่ตรงกับที่ส่งมาในลิงก์");
       return;
     }
 
@@ -92,26 +104,50 @@ const PinPhoneNumber = ({
     }
   };
 
+  useEffect(() => {
+    // Pre-fill phone number if available from params
+    const fetchDataUid = async () => {
+      if (requestId) {
+        try {
+          const response = await fetch(`/api/otp/uid?requestid=${requestId}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const data = await response.json();
+          if (data && data.phoneNumber) {
+            setReqPhoneNumber(data.phoneNumber);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+    };
+    fetchDataUid();
+  }, []);
+
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
-        {/* Close button */}
-        <div className="w-full flex justify-end mt-2">
-          <button className="w-6 h-6 flex items-center justify-center">
-            <svg
-              className="w-5 h-5 text-gray-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+      {/* Close button */}
+      <div className="w-full flex justify-end mt-2">
+        <button className="w-6 h-6 flex items-center justify-center">
+          <svg
+            className="w-5 h-5 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
 
       {/* Image */}
       <div className="relative w-[180px] h-[180px] mt-8">
@@ -125,12 +161,12 @@ const PinPhoneNumber = ({
       </div>
 
       {/* Title and Input */}
-      
+
       <div className="mt-12 flex flex-col items-center gap-6">
         <div className="text-lg text-gray-900 font-semibold text-center">
           ใส่หมายเลขโทรศัพท์ของคุณ
         </div>
-    
+
         <div className="flex flex-col items-center gap-2 w-full">
           <div className="flex flex-rows gap-3 justify-center w-full items-center">
             <OtpInput
@@ -160,7 +196,7 @@ const PinPhoneNumber = ({
                 </div>
               )}
             />
-            
+
             {/* Green checkmark when phone number is complete */}
             {otp.length === 10 && otp.startsWith("0") && (
               <svg

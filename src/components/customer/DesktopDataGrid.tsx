@@ -2,13 +2,24 @@ import * as React from "react";
 import { TextField, useListContext, Datagrid, ShowButton } from "react-admin";
 import { Empty } from "../layout/Empty";
 import { Loading } from "../layout/Loading";
+import { useLoading } from "@/contexts/LoadingContext";
 
 export const DesktopDataGrid = () => {
   const { data, isPending } = useListContext();
+  const { showLoading, hideLoading } = useLoading();
+  if (isPending) {
+    showLoading();
+    return;
+  } else {
+    setTimeout(() => {
+      hideLoading();
+    }, 1000);
+  }
 
-  if (isPending) return <Loading />;
-
-  if (!data || data.length === 0) return <Empty />;
+  if (!data || data.length === 0) {
+    hideLoading();
+    return <Empty />;
+  }
 
   return (
     <div className="py-5 bg-white rounded-lg shadow-lg mt-4">

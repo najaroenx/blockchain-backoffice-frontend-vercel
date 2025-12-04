@@ -34,7 +34,7 @@ export const Dashboard = () => {
         </div>
       </div>
     );
-
+  console.log("Dashboard data:", data); 
   return (
     <div className="bg-slate-100 h-full w-full md:max-w-full">
       <div className="container mx-auto px-5 py-10">
