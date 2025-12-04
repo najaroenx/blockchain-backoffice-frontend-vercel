@@ -33,21 +33,67 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return handleError("Unauthorized access", 401);
     }
 
-    const response = await api(
+    logger.info(`Fetching customer: merchantId=${merchantId}, customerId=${customerId}`);
+    logger.info(`Backend URL: ${BACKEND_URL}/${merchantId}/customer/${customerId}`);
+    logger.info(`Token present: ${!!token}`);
+
+    // Use fetch directly to see raw response
+    const fetchResponse = await fetch(
       `${BACKEND_URL}/${merchantId}/customer/${customerId}`,
       {
         method: "GET",
         headers: {
+          "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       }
     );
 
-    if (response.statusCode) {
-      return handleError(response.message, response.statusCode);
+    logger.info(`HTTP Status: ${fetchResponse.status}`);
+    logger.info(`HTTP Status Text: ${fetchResponse.statusText}`);
+    
+    const rawText = await fetchResponse.text();
+    logger.info(`Raw response text: ${rawText}`);
+
+    let rawResponse;
+    try {
+      rawResponse = JSON.parse(rawText);
+      logger.info(`Parsed JSON response:`, JSON.stringify(rawResponse, null, 2));
+    } catch (e) {
+      logger.error(`Failed to parse JSON: ${e}`);
+      return Response.json({ error: "Invalid JSON from backend" }, { status: 500 });
     }
 
-    return Response.json(response.customer, { status: 200 });
+    if (!fetchResponse.ok) {
+      logger.error(`Backend error: ${rawResponse.message || 'Unknown error'}`);
+      return handleError(rawResponse.message || 'Backend error', fetchResponse.status);
+    }
+
+    // Unwrap data: response.data.customer
+    const customerData = rawResponse.data?.customer;
+    
+    if (!customerData) {
+      logger.error(`No customer data found in response`);
+      return Response.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    logger.info(`Customer data:`, JSON.stringify(customerData, null, 2));
+
+    // Ensure all required fields are present
+    const formattedCustomer = {
+      id: customerData.id,
+      email: customerData.email,
+      walletAddress: customerData.walletAddress,
+      customerPoints: customerData.customerPoints || [],
+      transactions: customerData.transactions || [],
+      firstName: customerData.firstName,
+      lastName: customerData.lastName,
+      wallet: customerData.wallet,
+    };
+
+    logger.info(`Sending formatted customer:`, JSON.stringify(formattedCustomer, null, 2));
+
+    return Response.json(formattedCustomer, { status: 200 });
   } catch (error) {
     logger.error(`Error occurred: ${error}`);
 

@@ -12,7 +12,15 @@ import { StaticCard } from "../dashboard/widget/StaticCard";
 export const CustomerShowLayout = () => {
   const { record, isPending } = useShowContext();
 
-  if (isPending || !record.customerPoints) return <Loading />;
+  console.log("CustomerShowLayout - record:", record);
+  console.log("CustomerShowLayout - isPending:", isPending);
+
+  if (isPending) return <Loading />;
+  
+  if (!record || !record.customerPoints) {
+    console.error("Missing customerPoints in record:", record);
+    return <div className="p-5 text-red-600">Customer data is incomplete. Missing customerPoints field.</div>;
+  }
 
   return (
     <div className="w-full h-full">
