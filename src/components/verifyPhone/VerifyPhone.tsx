@@ -1,14 +1,15 @@
 "use client";
 
 import {
+  Status,
   useVerifyPhone,
   VerifyPhoneProvider,
 } from "@/contexts/VerifyPhoneContext";
-import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import PinPhoneNumber from "./PinPhoneNumber";
 import PinOTP from "./PinOTP";
 import VerifyPhoneSuccess from "./VerifyPhoneSuccess";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export enum VerifyPhoneStep {
   PIN_PHONE_NUMBER,
@@ -16,7 +17,19 @@ export enum VerifyPhoneStep {
   SUCCESS,
 }
 const VerifyPhoneComponent = () => {
-  const { phoneNumber, token, otpCode } = useVerifyPhone();
+  const searchParams = useSearchParams();
+  const requestId = searchParams.get("requestid");
+  const merchantIds = searchParams.get("merchantId");
+  const callbackUris = searchParams.get("callbackUri");
+  const {
+    phoneNumber,
+    token,
+    otpCode,
+    status,
+    setStatus,
+    setCallbackUri,
+    setMerchantId,
+  } = useVerifyPhone();
 
   const [step, setStep] = useState<VerifyPhoneStep>(
     VerifyPhoneStep.PIN_PHONE_NUMBER
@@ -25,6 +38,38 @@ const VerifyPhoneComponent = () => {
   const onChangeStep = (newStep: VerifyPhoneStep) => {
     setStep(newStep);
   };
+
+  useEffect(() => {
+    const VerifyRequest = async () => {
+      try {
+        console.log("Verifying request ID:", requestId, merchantIds);
+        const response = await fetch(
+          `/api/otp/request?requestid=${requestId}&merchantid=${merchantIds}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to verify request ID");
+        }
+        setCallbackUri(callbackUris || null);
+        setMerchantId(merchantIds || null);
+        setStatus(Status.READY);
+      } catch (error) {
+        setTimeout(() => {
+          setStatus(Status.INVALID);
+        }, 2000);
+        console.error("Error verifying request ID:", error);
+      }
+    };
+
+    const initializeComponent = async () => {
+      if (!requestId) {
+        setStatus(Status.INVALID);
+        return;
+      }
+      await VerifyRequest();
+    };
+
+    initializeComponent();
+  }, [requestId, merchantIds]);
 
   const renderStep = () => {
     switch (step) {
@@ -38,7 +83,28 @@ const VerifyPhoneComponent = () => {
         return null;
     }
   };
+  // Loading State
+  if (status === Status.INITIALIZING) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-white">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="text-gray-600 font-semibold animate-pulse">
+          กำลังโหลด...
+        </div>
+      </div>
+    );
+  }
 
+  // Error/Invalid State
+  if (status === Status.INVALID) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="text-center text-gray-600 font-semibold">
+          หน้านี้ยังไม่พร้อมใช้งาน หรือ ลิงก์หมดอายุ
+        </div>
+      </div>
+    );
+  }
   return (
     <VerifyPhoneProvider
       phoneNumber={phoneNumber}

@@ -97,6 +97,7 @@ export async function GET(request: NextRequest) {
     // Check if expired (expire is ISO string, convert to timestamp)
     const expireTime = new Date(expire).getTime();
     if (expireTime < Date.now()) {
+      console.log("RequestId has expired");
       return NextResponse.json(
         { message: "RequestId has expired" },
         { status: 400 }
