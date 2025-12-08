@@ -7,7 +7,7 @@ const VerifyPhoneSuccess = ({
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
-  const { callbackUri } = useVerifyPhone();
+  const { callbackUri, phoneNumber } = useVerifyPhone();
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
       {/* Close button */}
@@ -66,7 +66,7 @@ const VerifyPhoneSuccess = ({
         <button
           onClick={() => {
             if (callbackUri) {
-              window.location.href = callbackUri;
+              window.location.href = `${callbackUri}?phoneNumber=${phoneNumber}`;
             }
           }}
           className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"
