@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/libs/api";
-import { generateRandomWord } from "../verify/route";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
-
+const generateRandomWord = (length: number = 8): string => {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

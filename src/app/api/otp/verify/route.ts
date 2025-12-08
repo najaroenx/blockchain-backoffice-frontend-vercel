@@ -3,7 +3,7 @@ import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export const generateRandomWord = (length: number = 8): string => {
+const generateRandomWord = (length: number = 8): string => {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
