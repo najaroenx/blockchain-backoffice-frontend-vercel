@@ -3,7 +3,7 @@ import { api } from "@/libs/api";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-function generateRandomWord(length: number = 8): string {
+export const generateRandomWord = (length: number = 8): string => {
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const email = `user${generateRandomWord(5)}@example.com`;
-    const response = await api(
+     await api(
       `${BACKEND_URL}/${merchantId}/customer`,
       {
         method: "POST",
