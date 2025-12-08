@@ -1,13 +1,16 @@
 "use client";
 import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
 import { VerifyPhoneStep } from "./VerifyPhone";
+import { useSearchParams } from "next/navigation";
 
 const VerifyPhoneSuccess = ({
   onChangeStep,
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
-  const { callbackUri, phoneNumber } = useVerifyPhone();
+  const { phoneNumber } = useVerifyPhone();
+  const searchParams = useSearchParams();
+  const callbackUri = searchParams.get("callbackUri");
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
       {/* Close button */}
@@ -65,7 +68,15 @@ const VerifyPhoneSuccess = ({
       <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
         <button
           onClick={() => {
+            console.log(
+              "Redirecting to callback URI:",
+              `${callbackUri}?phoneNumber=${phoneNumber}`
+            );
             if (callbackUri) {
+              console.log(
+                "Redirecting to callback URI:",
+                `${callbackUri}?phoneNumber=${phoneNumber}`
+              );
               window.location.href = `${callbackUri}?phoneNumber=${phoneNumber}`;
             }
           }}

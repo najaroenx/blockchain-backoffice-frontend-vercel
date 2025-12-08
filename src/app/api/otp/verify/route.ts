@@ -4,34 +4,30 @@ import { api } from "@/libs/api";
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 const generateRandomWord = (length: number = 8): string => {
-  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
-}
+};
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { phoneNumber, merchantId, otpCode } = body;
 
-
     // Verify OTP with backend SMS provider
-     const responseVerify = await api(
-      `${BACKEND_URL}/templink/verify-otp`,
-      {
-        method: "POST",
-        // headers: {
-        //   "x-api-key": process.env.MERCHANT_API_KEY || "bOCiH95dxdFVKdcYnDRl",
-        // },
-        body: {
-          phoneNumber: phoneNumber,
-          otpCode: otpCode,
-        },
-      }
-    )
+    const responseVerify = await api(`${BACKEND_URL}/templink/verify-otp`, {
+      method: "POST",
+      // headers: {
+      //   "x-api-key": process.env.MERCHANT_API_KEY || "bOCiH95dxdFVKdcYnDRl",
+      // },
+      body: {
+        phoneNumber: phoneNumber,
+        otpCode: otpCode,
+      },
+    });
     console.log("OTP Verification Response:", responseVerify);
     if (responseVerify.statusCode === 400) {
       return NextResponse.json(
@@ -40,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const email = `user${generateRandomWord(5)}@example.com`;
-     await api(
+    const responseCustomer = await api(
       `${BACKEND_URL}/${merchantId}/customer`,
       {
         method: "POST",
@@ -53,6 +49,7 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+    console.log("Customer Response:", responseCustomer);
 
     return NextResponse.json({
       success: true,

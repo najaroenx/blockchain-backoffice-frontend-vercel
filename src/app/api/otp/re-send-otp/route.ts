@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
     const email = `user${generateRandomWord(5)}@example.com`;
-     await api(
+     const responseCustomer = await api(
       `${BACKEND_URL}/${merchantId}/customer`,
       {
         method: "POST",
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         },
       }
     );
+    console.log("Create Customer Response:", responseCustomer);
 
     return NextResponse.json(
       { message: "ส่ง OTP อีกครั้งสำเร็จ" },

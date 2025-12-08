@@ -85,14 +85,18 @@ export async function GET(request: NextRequest) {
 
     console.log("GET templink response:", response);
 
-    if (!response || response.status !== "success" || !response.data) {
+    if (
+      response.statusCode === 404 ||
+      response.statusCode === 400
+    ) {
+      console.log("Invalid RequestId");
       return NextResponse.json(
         { message: "Invalid RequestId" },
         { status: 404 }
       );
     }
 
-    const { uid, phoneNumber, expire, merchantId } = response.data;
+    const { uid, phoneNumber, expire, merchantId } = response;
 
     // Check if expired (expire is ISO string, convert to timestamp)
     const expireTime = new Date(expire).getTime();

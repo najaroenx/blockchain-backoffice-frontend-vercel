@@ -49,8 +49,9 @@ const VerifyPhoneComponent = () => {
         if (!response.ok) {
           throw new Error("Failed to verify request ID");
         }
-        setCallbackUri(callbackUris || null);
-        setMerchantId(merchantIds || null);
+        console.log("callbackUris", callbackUris);
+        setCallbackUri(callbackUris);
+        setMerchantId(merchantIds);
         setStatus(Status.READY);
       } catch (error) {
         setTimeout(() => {

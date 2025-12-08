@@ -176,7 +176,7 @@ const PinOTP = ({
           phoneNumber,
           otpCode: verifyOtp,
           token,
-          merchantId,
+          merchantId: merchantId || merchantIds,
         }),
       });
       const data = await response.json();
