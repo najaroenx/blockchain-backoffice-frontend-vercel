@@ -17,32 +17,40 @@ const parseSelectedParam = (value: string | null) =>
     .map((id) => id.trim())
     .filter(Boolean) ?? [];
 const isSafeKey = (key: string) =>
-  /^[a-zA-Z0-9_-]+$/.test(key) && !["__proto__", "prototype", "constructor"].includes(key);
+  /^[a-zA-Z0-9_-]+$/.test(key) &&
+  !["__proto__", "prototype", "constructor"].includes(key);
 
-export const parseActivationParam = (value: string | null): Partial<Record<string, number>> => {
+export const parseActivationParam = (
+  value: string | null
+): Partial<Record<string, number>> => {
   if (!value) return {};
 
-  return value.split("|").reduce<Partial<Record<string, number>>>((acc, segment) => {
-    const [rawId, rawValue] = segment.split(":").map((v) => v.trim());
+  return value
+    .split("|")
+    .reduce<Partial<Record<string, number>>>((acc, segment) => {
+      const [rawId, rawValue] = segment.split(":").map((v) => v.trim());
 
-    /**Validate id format*/
-    if (!rawId || !isSafeKey(rawId)) return acc;
+      /**Validate id format*/
+      if (!rawId || !isSafeKey(rawId)) return acc;
 
-    /**Validate number*/ 
-    const valueNum = Number(rawValue);
-    if (Number.isNaN(valueNum)) return acc;
+      /**Validate number*/
+      const valueNum = Number(rawValue);
+      if (Number.isNaN(valueNum)) return acc;
 
-    /**Assign only safe and normalized value*/
-    acc[rawId] = Math.max(0, Math.floor(valueNum));
-    return acc;
-  }, {});
+      /**Assign only safe and normalized value*/
+      acc[rawId] = Math.max(0, Math.floor(valueNum));
+      return acc;
+    }, {});
 };
 
 const VoucherSetup = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const searchParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
 
   const selectedFromQuery = useMemo(
     () => parseSelectedParam(searchParams.get("selected")),
@@ -55,7 +63,8 @@ const VoucherSetup = () => {
   );
 
   // Get merchantId from location state or query params
-  const merchantId = (location.state as any)?.merchantId || searchParams.get("merchantId");
+  const merchantId =
+    (location.state as any)?.merchantId || searchParams.get("merchantId");
 
   // Fetch vouchers from API
   const { data: vouchersData } = useGetList<Voucher>(
@@ -70,17 +79,15 @@ const VoucherSetup = () => {
     }
   );
 
-  const availableVouchers = useMemo(
-    () => {
-      if (!vouchersData) return [];
-      return vouchersData.filter(
-        (voucher: Voucher) =>
-          voucher.status === "upcoming" &&
-          (selectedFromQuery.length === 0 || selectedFromQuery.includes(voucher.id))
-      );
-    },
-    [vouchersData, selectedFromQuery]
-  );
+  const availableVouchers = useMemo(() => {
+    if (!vouchersData) return [];
+    return vouchersData.filter(
+      (voucher: Voucher) =>
+        voucher.status === "upcoming" &&
+        (selectedFromQuery.length === 0 ||
+          selectedFromQuery.includes(voucher.id))
+    );
+  }, [vouchersData, selectedFromQuery]);
 
   const initialVoucher = availableVouchers[0];
   const initialActivationPlan = initialVoucher
@@ -96,15 +103,17 @@ const VoucherSetup = () => {
   const MAX_PRICE_POINTS = MAX_SAFE_INTEGER;
   const MAX_QUANTITY = MAX_SAFE_INTEGER;
 
-  const [voucherId, setVoucherId] = useState<string>(availableVouchers[0]?.id ?? "");
+  const [voucherId, setVoucherId] = useState<string>(
+    availableVouchers[0]?.id ?? ""
+  );
   const [pricePoints, setPricePoints] = useState<number>(
     availableVouchers[0]?.pointsCost ?? 0
   );
-  const [totalQuantity, setTotalQuantity] = useState<number>(initialTotalQuantity);
+  const [totalQuantity, setTotalQuantity] =
+    useState<number>(initialTotalQuantity);
   const [selectedPointId, setSelectedPointId] = useState<string>("");
-  const [activationPlan, setActivationPlan] = useState<
-    Partial<Record<string, number>>
-  >(activationFromQuery);
+  const [activationPlan, setActivationPlan] =
+    useState<Partial<Record<string, number>>>(activationFromQuery);
   const [isActivating, setIsActivating] = useState<boolean>(false);
 
   // Fetch available points for the merchant
@@ -161,7 +170,10 @@ const VoucherSetup = () => {
   }, [selectedVoucher, activationPlan]);
 
   const availableTotalForSelected = selectedVoucher?.totalIssued ?? 0;
-  const reservedQuantity = Math.max(0, availableTotalForSelected - totalQuantity);
+  const reservedQuantity = Math.max(
+    0,
+    availableTotalForSelected - totalQuantity
+  );
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -212,28 +224,37 @@ const VoucherSetup = () => {
     }
 
     if (totalQuantity > availableTotalForSelected) {
-      alert(`จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ (${availableTotalForSelected.toLocaleString("th-TH")})`);
+      alert(
+        `จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ (${availableTotalForSelected.toLocaleString(
+          "th-TH"
+        )})`
+      );
       return;
     }
 
     setIsActivating(true);
     try {
       // Get selected point's symbol as currency
-      const selectedPoint = pointsData?.find((p: any) => p.id === selectedPointId);
+      const selectedPoint = pointsData?.find(
+        (p: any) => p.id === selectedPointId
+      );
       const currency = selectedPoint?.symbol || "POINTS";
 
-      const response = await fetch(`/api/${merchantId}/voucher/activate/${voucherId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pointsCost: pricePoints,
-          amount: totalQuantity,
-          pointId: selectedPointId,
-          currency: currency,
-        }),
-      });
+      const response = await fetch(
+        `/api/${merchantId}/voucher/activate/${voucherId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            pointsCost: pricePoints,
+            amount: totalQuantity,
+            pointId: selectedPointId,
+            currency: currency,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json();
@@ -242,13 +263,19 @@ const VoucherSetup = () => {
 
       const result = await response.json();
       console.log("Voucher activated successfully:", result);
-      
+
       // Navigate back to voucher list or show success message
       alert("เปิดใช้งาน Voucher สำเร็จ!");
       window.location.href = `/admin/${merchantId}#/voucher`;
     } catch (error) {
       console.error("Error activating voucher:", error);
-      alert(`เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : "ไม่สามารถเปิดใช้งาน Voucher ได้"}`);
+      alert(
+        `เกิดข้อผิดพลาด: ${
+          error instanceof Error
+            ? error.message
+            : "ไม่สามารถเปิดใช้งาน Voucher ได้"
+        }`
+      );
     } finally {
       setIsActivating(false);
     }
@@ -284,7 +311,8 @@ const VoucherSetup = () => {
             ตั้งค่า Voucher สำหรับแคมเปญ
           </h1>
           <p className="text-slate-600 max-w-2xl">
-            กำหนดจำนวนสิทธิ์การแลก ราคาคะแนน และรายละเอียดสำคัญก่อนปล่อย Voucher ให้สมาชิกใช้งาน
+            กำหนดจำนวนสิทธิ์การแลก ราคาคะแนน และรายละเอียดสำคัญก่อนปล่อย Voucher
+            ให้สมาชิกใช้งาน
           </p>
         </div>
         <RouterLink
@@ -327,7 +355,9 @@ const VoucherSetup = () => {
           {selectedVoucher && (
             <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[selectedVoucher.status].badgeClass}`}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                  statusStyles[selectedVoucher.status].badgeClass
+                }`}
               >
                 {statusStyles[selectedVoucher.status].label}
               </span>
@@ -346,7 +376,8 @@ const VoucherSetup = () => {
                     {formatValueLabel(selectedVoucher)}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    ใช้คะแนนแลก {selectedVoucher.pointsCost.toLocaleString("th-TH")} คะแนน
+                    ใช้คะแนนแลก{" "}
+                    {selectedVoucher.pointsCost.toLocaleString("th-TH")} คะแนน
                   </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 p-4">
@@ -354,7 +385,6 @@ const VoucherSetup = () => {
                     จนถึงวันที่
                   </p>
                   <p className="mt-1 text-sm font-medium text-slate-900">
-                  
                     {dateFormatter.format(new Date(selectedVoucher.endDate))}
                   </p>
                 </div>
@@ -363,7 +393,6 @@ const VoucherSetup = () => {
           )}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               เลือก Point Token
               <select
@@ -396,7 +425,7 @@ const VoucherSetup = () => {
                   // Remove all non-numeric characters
                   const rawValue = event.target.value.replace(/[^\d]/g, "");
                   const numValue = rawValue === "" ? 0 : Number(rawValue);
-                  
+
                   // Enforce constraints: min=0, max<10000 (i.e., max=9999)
                   if (numValue >= 0 && numValue < 100000) {
                     setPricePoints(numValue);
@@ -431,7 +460,10 @@ const VoucherSetup = () => {
                 value={totalQuantity}
                 onChange={(event) => {
                   const value = Number(event.target.value);
-                  const maxAllowed = Math.min(availableTotalForSelected, MAX_QUANTITY);
+                  const maxAllowed = Math.min(
+                    availableTotalForSelected,
+                    MAX_QUANTITY
+                  );
                   if (value <= maxAllowed && value >= 0) {
                     setTotalQuantity(value);
                   }
@@ -441,7 +473,8 @@ const VoucherSetup = () => {
               />
               {totalQuantity > availableTotalForSelected && (
                 <span className="text-xs text-red-500">
-                  จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ ({availableTotalForSelected.toLocaleString("th-TH")})
+                  จำนวนสิทธิ์ต้องไม่เกินที่มีอยู่ (
+                  {availableTotalForSelected.toLocaleString("th-TH")})
                 </span>
               )}
               {totalQuantity > MAX_QUANTITY && (
@@ -450,11 +483,16 @@ const VoucherSetup = () => {
                 </span>
               )}
               <span className="text-xs text-slate-500">
-                สำรองไว้รอบหน้า {" "}
+                สำรองไว้รอบหน้า{" "}
                 <span className="font-semibold text-slate-900">
                   {reservedQuantity.toLocaleString("th-TH")}
                 </span>{" "}
-                สิทธิ์ (สูงสุด: {Math.min(availableTotalForSelected, MAX_QUANTITY).toLocaleString("th-TH")})
+                สิทธิ์ (สูงสุด:{" "}
+                {Math.min(
+                  availableTotalForSelected,
+                  MAX_QUANTITY
+                ).toLocaleString("th-TH")}
+                )
               </span>
             </label>
 
@@ -522,7 +560,7 @@ const VoucherSetup = () => {
                   {item.name}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  เปิดรอบนี้ {" "}
+                  เปิดรอบนี้{" "}
                   <span className="font-semibold text-slate-900">
                     {item.planned.toLocaleString("th-TH")}
                   </span>{" "}

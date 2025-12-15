@@ -44,6 +44,7 @@ export async function GET(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
+    console.log("GET /merchant response:", response);
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
     }
