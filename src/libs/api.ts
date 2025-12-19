@@ -12,6 +12,23 @@ type BackendResponse<T = any> = {
   data: T;
 };
 
+// Allowlist of trusted backend URLs from environment variables
+const ALLOWED_BACKEND_URLS = [
+  process.env.MERCHANT_BACKEND,
+  process.env.NEXT_PUBLIC_BACKEND_URL,
+  "http://localhost:4000", // Development fallback
+].filter(Boolean) as string[];
+
+// Extract base URL (protocol + hostname + port)
+const getBaseUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return `${urlObj.protocol}//${urlObj.host}`;
+  } catch {
+    return "";
+  }
+};
+
 export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
@@ -26,6 +43,16 @@ export const api = async (url: string, options: RequestOptions) => {
   // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
   if (!["http:", "https:"].includes(urlObj.protocol)) {
     throw new Error(`Invalid protocol: ${urlObj.protocol}`);
+  }
+
+  // Validate that the URL is from an allowed backend
+  const baseUrl = getBaseUrl(url);
+  const isAllowed = ALLOWED_BACKEND_URLS.some(
+    (allowedUrl) => getBaseUrl(allowedUrl) === baseUrl
+  );
+
+  if (!isAllowed) {
+    throw new Error(`URL not in allowlist: ${baseUrl}`);
   }
 
   if (fetchOptions.queryParams) {
