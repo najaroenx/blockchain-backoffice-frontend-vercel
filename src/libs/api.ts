@@ -27,7 +27,7 @@ export const api = async (url: string, options: RequestOptions) => {
 
   // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
   if (!["http:", "https:"].includes(urlObj.protocol)) {
-    throw new Error(`Invalid protocol: ${urlObj.protocol}`);
+    throw new Error(`Invalid protocol:: ${urlObj.protocol}`);
   }
 
   const response = await fetch(urlObj.toString(), {
