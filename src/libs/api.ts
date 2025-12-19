@@ -15,7 +15,18 @@ type BackendResponse<T = any> = {
 export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
-  const urlObj = new URL(url);
+  // Validate and parse URL first
+  let urlObj: URL;
+  try {
+    urlObj = new URL(url);
+  } catch (error) {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+
+  // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
+  if (!["http:", "https:"].includes(urlObj.protocol)) {
+    throw new Error(`Invalid protocol: ${urlObj.protocol}`);
+  }
 
   if (fetchOptions.queryParams) {
     Object.entries(fetchOptions.queryParams).forEach(([key, value]) => {
@@ -23,11 +34,6 @@ export const api = async (url: string, options: RequestOptions) => {
         urlObj.searchParams.append(key, value.toString());
       }
     });
-  }
-
-  // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
-  if (!["http:", "https:"].includes(urlObj.protocol)) {
-    throw new Error(`Invalid protocol:: ${urlObj.protocol}`);
   }
 
   const response = await fetch(urlObj.toString(), {
