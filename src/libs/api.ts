@@ -40,33 +40,33 @@ export const api = async (url: string, options: RequestOptions) => {
     throw new Error(`Invalid URL: ${url}`);
   }
 
-  // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
-  if (!["http:", "https:"].includes(urlObj.protocol)) {
-    throw new Error(`Invalid protocol: ${urlObj.protocol}`);
-  }
-
   // Validate that the URL is from an allowed backend
   const baseUrl = getBaseUrl(url);
-  const isAllowed = ALLOWED_BACKEND_URLS.some(
+  const matchedTrustedUrl = ALLOWED_BACKEND_URLS.find(
     (allowedUrl) => getBaseUrl(allowedUrl) === baseUrl
   );
 
-  if (!isAllowed) {
+  if (!matchedTrustedUrl) {
     throw new Error(`URL not in allowlist: ${baseUrl}`);
   }
+
+  // Reconstruct the URL using the trusted origin to prevent SSRF
+  // We treat the origin from our allowlist as the source of truth
+  const trustedBaseUrl = getBaseUrl(matchedTrustedUrl);
+  const sanitizedUrlObj = new URL(
+    urlObj.pathname + urlObj.search,
+    trustedBaseUrl
+  );
 
   if (fetchOptions.queryParams) {
     Object.entries(fetchOptions.queryParams).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        urlObj.searchParams.append(key, value.toString());
+        sanitizedUrlObj.searchParams.append(key, value.toString());
       }
     });
   }
 
-  // Reconstruct the sanitized URL to ensure it hasn't been tampered with
-  const sanitizedUrl = urlObj.toString();
-
-  const response = await fetch(sanitizedUrl, {
+  const response = await fetch(sanitizedUrlObj.toString(), {
     method: fetchOptions.method,
     headers: {
       "Content-Type": "application/json",
