@@ -15,39 +15,22 @@ type BackendResponse<T = any> = {
 export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
+  const urlObj = new URL(url);
+
   if (fetchOptions.queryParams) {
-    const urlObj = new URL(url);
-
     Object.entries(fetchOptions.queryParams).forEach(([key, value]) => {
-      urlObj.searchParams.append(key, value.toString());
+      if (value !== undefined && value !== null) {
+        urlObj.searchParams.append(key, value.toString());
+      }
     });
-
-    const response = await fetch(urlObj.toString(), {
-      method: fetchOptions.method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(fetchOptions.headers || {}),
-      },
-      body: fetchOptions.body ? JSON.stringify(fetchOptions.body) : undefined,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      const message = errorData.message || errorData.data?.message || 'Request failed';
-      return { statusCode: response.status, message };
-    }
-
-    const jsonData = await response.json();
-    
-    // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
-    if (unwrapData && jsonData.data !== undefined) {
-      return jsonData.data;
-    }
-    
-    return jsonData;
   }
 
-  const response = await fetch(url, {
+  // Validate protocol to prevent usage of non-standard protocols (e.g. javascript:, file:)
+  if (!["http:", "https:"].includes(urlObj.protocol)) {
+    throw new Error(`Invalid protocol:: ${urlObj.protocol}`);
+  }
+
+  const response = await fetch(urlObj.toString(), {
     method: fetchOptions.method,
     headers: {
       "Content-Type": "application/json",
@@ -57,17 +40,18 @@ export const api = async (url: string, options: RequestOptions) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    const message = errorData.message || errorData.data?.message || 'Request failed';
+    const errorData = await response.json().catch(() => ({}));
+    const message =
+      errorData.message || errorData.data?.message || "Request failed";
     return { statusCode: response.status, message };
   }
 
-  const jsonData = await response.json();
-  
+  const jsonData = await response.json().catch(() => ({}));
+
   // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
   if (unwrapData && jsonData.data !== undefined) {
     return jsonData.data;
   }
-  
+
   return jsonData;
 };
