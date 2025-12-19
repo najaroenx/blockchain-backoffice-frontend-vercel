@@ -17,6 +17,13 @@ import { VerifyPhoneStep } from "./VerifyPhone";
 import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
 import InputOTP from "./InputOTP";
 import { useSearchParams } from "next/navigation";
+import { Noto_Sans_Thai } from "next/font/google";
+
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -35,7 +42,11 @@ const TermsModal = ({
   onClose: () => void;
 }) => {
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className={`relative z-50 ${notoSansThai.className}`}
+    >
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-black/30 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200"
@@ -228,7 +239,9 @@ const PinOTP = ({
 
   return (
     <>
-      <div className="bg-white w-full h-full min-h-screen flex flex-col items-center p-6 relative">
+      <div
+        className={`bg-white w-full h-full min-h-screen flex flex-col items-center p-6 relative ${notoSansThai.className}`}
+      >
         {/* Header / Close Button */}
         <div className="w-full flex justify-end">
           <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors">

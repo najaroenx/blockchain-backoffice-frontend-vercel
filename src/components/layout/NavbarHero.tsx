@@ -70,7 +70,7 @@ export const NavbarHero = () => {
                 <li>
                   <a
                     className="text-gray-500 transition hover:text-gray-500/75"
-                    href="/marketplace"
+                    href="/marketv1"
                   >
                     Marketplace
                   </a>

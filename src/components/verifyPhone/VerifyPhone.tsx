@@ -10,6 +10,13 @@ import PinPhoneNumber from "./PinPhoneNumber";
 import PinOTP from "./PinOTP";
 import VerifyPhoneSuccess from "./VerifyPhoneSuccess";
 import { useEffect, useState } from "react";
+import { Noto_Sans_Thai } from "next/font/google";
+
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export enum VerifyPhoneStep {
   PIN_PHONE_NUMBER,
@@ -87,7 +94,9 @@ const VerifyPhoneComponent = () => {
   // Loading State
   if (status === Status.INITIALIZING) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-white">
+      <div
+        className={`flex flex-col items-center justify-center h-screen bg-white ${notoSansThai.className}`}
+      >
         <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <div className="text-gray-600 font-semibold animate-pulse">
           กำลังโหลด...
@@ -99,7 +108,9 @@ const VerifyPhoneComponent = () => {
   // Error/Invalid State
   if (status === Status.INVALID) {
     return (
-      <div className="flex items-center justify-center h-screen bg-white">
+      <div
+        className={`flex items-center justify-center h-screen bg-white ${notoSansThai.className}`}
+      >
         <div className="text-center text-gray-600 font-semibold">
           หน้านี้ยังไม่พร้อมใช้งาน หรือ ลิงก์หมดอายุ
         </div>
@@ -112,7 +123,7 @@ const VerifyPhoneComponent = () => {
       token={token}
       otpCode={otpCode}
     >
-      <div className="">{renderStep()}</div>
+      <div className={notoSansThai.className}>{renderStep()}</div>
     </VerifyPhoneProvider>
   );
 };
