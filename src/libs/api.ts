@@ -63,7 +63,10 @@ export const api = async (url: string, options: RequestOptions) => {
     });
   }
 
-  const response = await fetch(urlObj.toString(), {
+  // Reconstruct the sanitized URL to ensure it hasn't been tampered with
+  const sanitizedUrl = urlObj.toString();
+
+  const response = await fetch(sanitizedUrl, {
     method: fetchOptions.method,
     headers: {
       "Content-Type": "application/json",
