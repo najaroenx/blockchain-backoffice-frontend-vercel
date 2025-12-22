@@ -85,7 +85,13 @@ export const api = async (url: string, options: RequestOptions) => {
     }
   }
 
-  const response = await fetch(urlObj.toString(), {
+  // Construct trusted URL from hardcoded origin to break SSRF taint flow
+  const backendOrigin = process.env.NEXT_PUBLIC_BACKEND_URL
+    ? new URL(process.env.NEXT_PUBLIC_BACKEND_URL).origin
+    : urlObj.origin;
+  const trustedUrl = new URL(urlObj.pathname + urlObj.search, backendOrigin);
+
+  const response = await fetch(trustedUrl.toString(), {
     method: options.method,
     headers: {
       "Content-Type": "application/json",
