@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import { IProductResponse, useProduct } from "../hooks/useProduct";
 
 interface Product {
   id: string;
@@ -88,14 +89,15 @@ const initialProducts: Product[] = [
 ];
 
 export default function ProductListPage() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const { getProducts, isLoading } = useProduct();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [product, setProduct] = useState<IProductResponse | null>(null);
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === products.length) {
+    if (selectedIds.size === product?.vouchers.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(products.map((p) => p.id)));
+      setSelectedIds(new Set(product?.vouchers.map((p) => p.id)));
     }
   };
 
@@ -108,7 +110,23 @@ export default function ProductListPage() {
     }
     setSelectedIds(newSelected);
   };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await getProducts();
 
+        if (res && res.status === 200) {
+          const fetchedData = await res.json();
+          console.log(fetchedData);
+          setProduct(fetchedData?.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
   return (
     <div className="bg-slate-50 min-h-full">
       <div className="flex items-center justify-between mb-6">
@@ -152,8 +170,8 @@ export default function ProductListPage() {
                     type="checkbox"
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                     checked={
-                      selectedIds.size === products.length &&
-                      products.length > 0
+                      selectedIds.size === product?.vouchers.length &&
+                      product?.vouchers.length > 0
                     }
                     onChange={toggleSelectAll}
                   />
@@ -176,7 +194,7 @@ export default function ProductListPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {products.map((product) => (
+              {product?.vouchers.map((product) => (
                 <tr
                   key={product.id}
                   className="hover:bg-slate-50/50 transition-colors group"
@@ -193,7 +211,7 @@ export default function ProductListPage() {
                     <div className="flex items-center gap-4">
                       <div className="relative w-12 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shrink-0">
                         <img
-                          src={product.image}
+                          src={product.imageUrl}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />
@@ -203,34 +221,35 @@ export default function ProductListPage() {
                           {product.name}
                         </h4>
                         <p className="text-xs text-slate-400">
-                          {product.descriptionID}
+                          {product.description}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4 text-sm font-medium text-slate-700">
-                    ${product.price.toFixed(2)}
+                    {product.value}
                   </td>
                   <td className="p-4 text-sm font-medium text-slate-700">
-                    {product.quantity}
+                    {product.totalIssued}
                   </td>
                   <td className="p-4">
                     <div className="w-full max-w-[200px]">
                       <div className="flex justify-between mb-1">
                         <span className="text-xs text-slate-500">
-                          {product.sales} Sales
+                          {product.totalRedeemed} Sales
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            product.sales > 1000
+                            product.totalRedeemed > 1000
                               ? "bg-orange-500"
                               : "bg-emerald-500"
                           }`}
                           style={{
                             width: `${
-                              (product.sales / product.salesTarget) * 100
+                              (product.totalRedeemed / product.totalIssued) *
+                              100
                             }%`,
                           }}
                         ></div>
