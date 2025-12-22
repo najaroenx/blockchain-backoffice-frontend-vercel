@@ -65,6 +65,26 @@ export const api = async (url: string, options: RequestOptions) => {
     });
   }
 
+  // SSRF Protection: Ensure we are only talking to our backend or self.
+  if (
+    process.env.NEXT_PUBLIC_BACKEND_URL &&
+    !options.unsafePath &&
+    urlObj.origin !== new URL(process.env.NEXT_PUBLIC_BACKEND_URL).origin &&
+    (typeof window !== "undefined"
+      ? urlObj.origin !== window.location.origin
+      : true)
+  ) {
+    // Allow localhost for dev
+    if (
+      process.env.NODE_ENV !== "development" ||
+      urlObj.hostname !== "localhost"
+    ) {
+      throw new Error(
+        `SSRF Prevention: Request to ${urlObj.origin} is not allowed.`
+      );
+    }
+  }
+
   const response = await fetch(urlObj.toString(), {
     method: options.method,
     headers: {
