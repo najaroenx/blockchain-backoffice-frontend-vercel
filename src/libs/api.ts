@@ -3,107 +3,73 @@ type RequestOptions = {
   headers?: Record<string, string>;
   body?: Record<string, unknown>;
   queryParams?: Record<string, string | number>;
-  /**
-   * When true, disables pathname safety checks in the api helper.
-   * Use with caution and only for trusted URLs.
-   */
-  unsafePath?: boolean;
+  unwrapData?: boolean; // Option to unwrap { status, message, data } response
 };
 
-const SAFE_PATH_SEGMENT_REGEX = /^[A-Za-z0-9_-]+$/;
-
-function isSafePathname(pathname: string): boolean {
-  // Normalize multiple slashes and split into segments
-  const segments = pathname.split("/").filter(Boolean);
-
-  for (const segment of segments) {
-    // Disallow path traversal and empty/meaningless segments
-    if (segment === "." || segment === "..") {
-      return false;
-    }
-    // Only allow simple identifier-like segments
-    if (!SAFE_PATH_SEGMENT_REGEX.test(segment)) {
-      return false;
-    }
-  }
-
-  return true;
-}
+type BackendResponse<T = any> = {
+  status: string;
+  message: string;
+  data: T;
+};
 
 export const api = async (url: string, options: RequestOptions) => {
-  let urlObj: URL;
+  const { unwrapData = true, ...fetchOptions } = options;
 
-  try {
-    urlObj = new URL(url);
-  } catch (error) {
-    // If we're on the client, we might be dealing with a relative path
-    if (typeof window !== "undefined" && !url.startsWith("http")) {
-      urlObj = new URL(url, window.location.origin);
-    } else {
-      throw new Error(`Invalid URL: ${url}`);
-    }
-  }
+  if (fetchOptions.queryParams) {
+    const urlObj = new URL(url);
 
-  // Security Check: Protocol (SSRF protection)
-  if (urlObj.protocol !== "http:" && urlObj.protocol !== "https:") {
-    throw new Error(
-      `Invalid protocol: ${urlObj.protocol}. Only http and https are allowed.`
-    );
-  }
-
-  // Security Check: Path Traversal
-  if (!options.unsafePath && !isSafePathname(urlObj.pathname)) {
-    throw new Error("Unsafe pathname detected in API request URL");
-  }
-
-  // Handle Query Parameters
-  if (options.queryParams) {
-    Object.entries(options.queryParams).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        urlObj.searchParams.append(key, value.toString());
-      }
+    Object.entries(fetchOptions.queryParams).forEach(([key, value]) => {
+      urlObj.searchParams.append(key, value.toString());
     });
-  }
 
-  // SSRF Protection: Ensure we are only talking to our backend or self.
-  if (
-    process.env.NEXT_PUBLIC_BACKEND_URL &&
-    !options.unsafePath &&
-    urlObj.origin !== new URL(process.env.NEXT_PUBLIC_BACKEND_URL).origin &&
-    (typeof window !== "undefined"
-      ? urlObj.origin !== window.location.origin
-      : true)
-  ) {
-    // Allow localhost for dev
-    if (
-      process.env.NODE_ENV !== "development" ||
-      urlObj.hostname !== "localhost"
-    ) {
-      throw new Error(
-        `SSRF Prevention: Request to ${urlObj.origin} is not allowed.`
-      );
+    const response = await fetch(urlObj.toString(), {
+      method: fetchOptions.method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(fetchOptions.headers || {}),
+      },
+      body: fetchOptions.body ? JSON.stringify(fetchOptions.body) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      const message =
+        errorData.message || errorData.data?.message || "Request failed";
+      return { statusCode: response.status, message };
     }
+
+    const jsonData = await response.json();
+
+    // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
+    if (unwrapData && jsonData.data !== undefined) {
+      return jsonData.data;
+    }
+
+    return jsonData;
   }
 
-  // Construct trusted URL from hardcoded origin to break SSRF taint flow
-  const backendOrigin = process.env.NEXT_PUBLIC_BACKEND_URL
-    ? new URL(process.env.NEXT_PUBLIC_BACKEND_URL).origin
-    : urlObj.origin;
-  const trustedUrl = new URL(urlObj.pathname + urlObj.search, backendOrigin);
-
-  const response = await fetch(trustedUrl.toString(), {
-    method: options.method,
+  const response = await fetch(url, {
+    method: fetchOptions.method,
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers || {}),
+      ...(fetchOptions.headers || {}),
     },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: fetchOptions.body ? JSON.stringify(fetchOptions.body) : undefined,
   });
 
   if (!response.ok) {
-    const { message } = await response.json();
+    const errorData = await response.json();
+    const message =
+      errorData.message || errorData.data?.message || "Request failed";
     return { statusCode: response.status, message };
   }
 
-  return await response.json();
+  const jsonData = await response.json();
+
+  // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
+  if (unwrapData && jsonData.data !== undefined) {
+    return jsonData.data;
+  }
+
+  return jsonData;
 };
