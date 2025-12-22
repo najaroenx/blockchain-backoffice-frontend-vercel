@@ -23,16 +23,16 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    if (
-      existingUserResponse &&
-      existingUserResponse.status === "success" &&
-      existingUserResponse.data
-    ) {
-      return NextResponse.json(
-        { message: "หมายเลขโทรศัพท์นี้มีผู้ใช้แล้ว" },
-        { status: 400 }
-      );
-    }
+    // if (
+    //   existingUserResponse &&
+    //   existingUserResponse.status === "success" &&
+    //   existingUserResponse.data
+    // ) {
+    //   return NextResponse.json(
+    //     { message: "หมายเลขโทรศัพท์นี้มีผู้ใช้แล้ว" },
+    //     { status: 400 }
+    //   );
+    // }
 
     console.log("Processing phone number:", phoneNumber, requestId);
 
@@ -85,10 +85,7 @@ export async function GET(request: NextRequest) {
 
     console.log("GET templink response:", response);
 
-    if (
-      response.statusCode === 404 ||
-      response.statusCode === 400
-    ) {
+    if (response.statusCode === 404 || response.statusCode === 400) {
       console.log("Invalid RequestId");
       return NextResponse.json(
         { message: "Invalid RequestId" },
