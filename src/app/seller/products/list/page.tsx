@@ -117,6 +117,7 @@ export default function ProductListPage() {
 
         if (res && res.status === 200) {
           const fetchedData = await res.json();
+          console.log("fetchedData", fetchedData);
           console.log(fetchedData);
           setProduct(fetchedData?.data);
         }
