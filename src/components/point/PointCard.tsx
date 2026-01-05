@@ -1,4 +1,5 @@
 import { EditButton, useRecordContext } from "react-admin";
+import Image from "next/image";
 import { ShowPointDialog, type PointDetails } from "./ShowPointDialog";
 import { useCallback, useMemo } from "react";
 import { useDialog } from "@/hooks/useDialog";
@@ -112,10 +113,12 @@ export const PointCard: React.FC<Props> = ({ name, contractAddress, id }) => {
   return (
     <div className="bg-white p-4 rounded-lg max-w-md shadow-lg">
       <div className="relative w-full h-48 overflow-hidden rounded-lg">
-        <img
+        <Image
           src={imageSrc}
           alt={name}
-          className="h-full w-full object-cover"
+          width={48}
+          height={48}
+          className="w-full h-full object-cover"
           onError={(event) => {
             event.currentTarget.onerror = null;
             event.currentTarget.src = DEFAULT_POINT_IMAGE;

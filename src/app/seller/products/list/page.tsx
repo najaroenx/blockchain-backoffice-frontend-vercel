@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -211,9 +212,11 @@ export default function ProductListPage() {
                   <td className="p-4">
                     <div className="flex items-center gap-4">
                       <div className="relative w-12 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shrink-0">
-                        <img
+                        <Image
                           src={product.imageUrl}
                           alt={product.name}
+                          width={48}
+                          height={48}
                           className="w-full h-full object-cover"
                         />
                       </div>
