@@ -165,7 +165,7 @@ export const SellerSidebar = () => {
           </p>
         </div>
         <nav className="space-y-1">
-          <MenuItem
+          {/* <MenuItem
             icon={ShoppingCartIcon}
             label="Ecommerce"
             href="/seller/ecommerce"
@@ -176,7 +176,7 @@ export const SellerSidebar = () => {
             label="Project"
             href="/seller/project"
             isCollapsed={isSidebarCollapsed}
-          />
+          /> */}
           <MenuItem
             icon={CampaignIcon}
             label="Marketing"
@@ -184,12 +184,12 @@ export const SellerSidebar = () => {
             isActive={pathname === "/seller" || pathname === "/seller/"}
             isCollapsed={isSidebarCollapsed}
           />
-          <MenuItem
+          {/* <MenuItem
             icon={TimelineIcon}
             label="Analytic"
             href="/seller/analytic"
             isCollapsed={isSidebarCollapsed}
-          />
+          /> */}
         </nav>
 
         <div
@@ -202,7 +202,7 @@ export const SellerSidebar = () => {
           </p>
         </div>
         <nav className="space-y-1">
-          <MenuItem
+          {/* <MenuItem
             icon={AutoAwesomeIcon}
             label="AI"
             hasSubmenu
@@ -213,7 +213,7 @@ export const SellerSidebar = () => {
             label="Projects"
             hasSubmenu
             isCollapsed={isSidebarCollapsed}
-          />
+          /> */}
           <MenuItem
             icon={PeopleIcon}
             label="Customer"
@@ -243,6 +243,13 @@ export const SellerSidebar = () => {
             icon={ReceiptIcon}
             label="Orders"
             hasSubmenu
+            isActive={pathname.startsWith("/seller/orders")}
+            subItems={[
+              { label: "List", href: "/seller/orders/list" },
+              { label: "Edit", href: "/seller/orders/edit" },
+              { label: "Create", href: "/seller/orders/create" },
+              { label: "Details", href: "/seller/orders/details" },
+            ]}
             isCollapsed={isSidebarCollapsed}
           />
           <MenuItem
@@ -251,7 +258,7 @@ export const SellerSidebar = () => {
             hasSubmenu
             isCollapsed={isSidebarCollapsed}
           />
-          <MenuItem
+          {/* <MenuItem
             icon={HelpOutlineIcon}
             label="Help Center"
             hasSubmenu
@@ -276,7 +283,7 @@ export const SellerSidebar = () => {
             icon={ChatBubbleOutlineIcon}
             label="Chat"
             isCollapsed={isSidebarCollapsed}
-          />
+          /> */}
         </nav>
       </div>
     </aside>

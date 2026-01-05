@@ -36,13 +36,12 @@ export async function GET(req: Request) {
         method: "GET",
       }
     );
-    console.log(response);
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
     }
 
     return Response.json(
-      { message: "success", data: response?.data },
+      { message: "success", data: response },
       { status: 200 }
     );
   } catch (error) {
