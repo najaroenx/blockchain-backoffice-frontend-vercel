@@ -6,7 +6,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
-
+import Image from "next/image";
 interface Customer {
   id: string;
   name: string;
@@ -208,9 +208,11 @@ export default function CustomerListPage() {
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
-                        <img
+                        <Image
                           src={customer.avatar}
                           alt={customer.name}
+                          width={36}
+                          height={36}
                           className="w-full h-full object-cover"
                         />
                       </div>

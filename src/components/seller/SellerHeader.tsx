@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
@@ -31,9 +32,11 @@ export const SellerHeader = () => {
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-1 hidden sm:flex">
           <div className="w-6 h-6 rounded-full overflow-hidden border border-slate-200">
-            <img
+            <Image
               src="https://flagcdn.com/w40/us.png"
               alt="US"
+              width={24}
+              height={24}
               className="w-full h-full object-cover"
             />
           </div>
