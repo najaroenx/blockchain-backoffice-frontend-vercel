@@ -4,7 +4,6 @@ import {
   CreateProps,
   SimpleForm,
   Create,
-  useRedirect,
   useNotify,
 } from "react-admin";
 import { PointForm } from "./PointForm";
@@ -14,7 +13,6 @@ import { useParams } from "next/navigation";
 import { useLoading } from "@/contexts/LoadingContext";
 
 export const PointCreate = (props: CreateProps) => {
-  const redirect = useRedirect();
   const notify = useNotify();
   const { merchantId } = useParams();
   const { showLoading, hideLoading } = useLoading();

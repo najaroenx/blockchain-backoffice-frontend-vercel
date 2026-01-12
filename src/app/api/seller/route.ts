@@ -2,12 +2,13 @@ import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
 
-const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4004";
 
 export async function POST(req: Request) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   const body = await req.json();
+  console.log(body);
   try {
     const response = await api(`${BACKEND_URL}/coupon/dev/interim-seller`, {
       method: "POST",
