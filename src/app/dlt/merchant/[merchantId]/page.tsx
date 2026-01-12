@@ -19,47 +19,6 @@ import { useLoading } from "@/app/dlt/contexts/merchantContext";
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-// Skeleton Component
-const Skeleton = ({ className = "" }: { className?: string }) => (
-  <div className={`animate-pulse bg-white/10 rounded-xl ${className}`} />
-);
-
-// Loading Skeleton for Stats Card
-const StatCardSkeleton = () => (
-  <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
-    <div className="flex items-center gap-4">
-      <Skeleton className="w-12 h-12 rounded-xl" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-32" />
-      </div>
-    </div>
-  </div>
-);
-
-// Loading Skeleton for Chart Section
-const ChartSkeleton = ({ height = "h-[300px]" }: { height?: string }) => (
-  <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
-    <Skeleton className="h-6 w-40 mb-4" />
-    <Skeleton className={`w-full ${height}`} />
-  </div>
-);
-
-// Loading Skeleton for Section Card
-const SectionSkeleton = () => (
-  <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
-    <div className="flex items-center gap-3 mb-6">
-      <Skeleton className="w-10 h-10 rounded-xl" />
-      <Skeleton className="h-5 w-32" />
-    </div>
-    <div className="space-y-3">
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-    </div>
-  </div>
-);
-
 // Stats Item Component
 const StatsItem = ({
   label,

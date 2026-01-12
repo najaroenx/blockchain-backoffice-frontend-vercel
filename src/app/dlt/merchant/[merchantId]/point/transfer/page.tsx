@@ -1,65 +1,68 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-
-interface Point {
-  id: string;
-  name: string;
-  symbol: string;
-  initialSupply: number;
-}
+import { usePoints, useTransferPoint } from "@/app/dlt/hooks/usePoints";
 
 export default function PointTransferPage() {
   const merchantId = useMerchantId();
   const { showLoading, hideLoading } = useLoading();
-  const [points, setPoints] = useState<Point[]>([]);
+
   const [formData, setFormData] = useState({
     pointId: "",
     fromUserId: "cmk2ahqy600069y5bhd5e22ku",
     toUserId: "",
     amount: "",
+    phone: "",
     note: "",
   });
 
-  // Fetch points on mount
-  useEffect(() => {
-    const fetchPoints = async () => {
-      if (!merchantId) return;
+  // Use Points hook
+  const { points, isLoading: pointsLoading } = usePoints({
+    merchantId: merchantId || "",
+  });
 
-      showLoading("กำลังโหลดข้อมูล...");
-      try {
-        const response = await fetch(`/api/${merchantId}/point`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch points");
-        }
-
-        const data = await response.json();
-        setPoints(data);
-      } catch (err) {
-        console.error("Error fetching points:", err);
-      } finally {
-        hideLoading();
-      }
-    };
-
-    fetchPoints();
-  }, [merchantId]);
+  // Use Transfer hook
+  console.log("=>", {
+    merchantId: merchantId || "",
+    pointId: formData.pointId,
+    phone: formData.toUserId,
+  });
+  const { transfer, isTransferring } = useTransferPoint({
+    merchantId: merchantId || "",
+    pointId: formData.pointId,
+    phone: formData.toUserId,
+  });
 
   // Get selected point details
   const selectedPoint = points.find((p) => p.id === formData.pointId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.pointId || !formData.toUserId || !formData.amount) {
+      alert("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
+
     showLoading("กำลังโอน Points...");
 
     try {
-      console.log("Transferring points for merchant:", merchantId, formData);
-      // TODO: Implement API call for transfer
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await transfer({
+        transactionTypeId: "TRANSFER",
+        amount: parseInt(formData.amount, 10),
+        phone: formData.toUserId,
+      });
+
       alert("Transfer successful!");
+      // Reset form
+      setFormData({
+        ...formData,
+        toUserId: "",
+        amount: "",
+        note: "",
+      });
     } catch (error) {
       console.error("Error transferring points:", error);
       alert("Transfer failed!");

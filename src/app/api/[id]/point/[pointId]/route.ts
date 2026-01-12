@@ -133,14 +133,16 @@ export async function POST(req: Request, { params }: { params: any }) {
   try {
     const backendUrl = `${BACKEND_URL}/${merchantId}/transaction/${pointId}`;
     logger.info(`Forwarding backend request: POST ${backendUrl}`);
-
+    logger.info(
+      `Forwarding backend request: POST BODY ${JSON.stringify(body)}`
+    );
     const response = await api(backendUrl, {
       method: "POST",
       body: {
         ...body,
-        senderAddress: "0x32D5a21376C0dF3F98200a00380b06adeE341B91", // TODO: remove hard code wallet address
-        transactionTypeId: "redeem",
-        amount: parseInt(body.amount),
+        // senderAddress: "0x32D5a21376C0dF3F98200a00380b06adeE341B91", // TODO: remove hard code wallet address
+        // transactionTypeId: "redeem",
+        // amount: parseInt(body.amount),
       },
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

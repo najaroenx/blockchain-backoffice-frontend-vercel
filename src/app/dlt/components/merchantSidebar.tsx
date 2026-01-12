@@ -8,10 +8,7 @@ import {
   PointOfSaleOutlined,
   ReceiptLongOutlined,
   ApiSharp,
-  Inventory2Outlined,
 } from "@mui/icons-material";
-import InventoryIcon from "@mui/icons-material/Inventory2Outlined";
-import ReceiptIcon from "@mui/icons-material/ReceiptLongOutlined";
 import AccountCircleIcon from "@mui/icons-material/AccountCircleOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
@@ -57,9 +54,9 @@ const MenuItem = ({
   const Content = (
     <div
       onClick={handleClick}
-      className={`flex items-center px-4 py-3 cursor-pointer group transition-all duration-300 relative overflow-hidden whitespace-nowrap rounded-lg mx-2 ${
-        isSubActive && !hasSubmenu
-          ? "text-white bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-l-2 border-purple-500"
+      className={`flex items-center px-4 py-3 cursor-pointer group transition-all duration-300 relative overflow-hidden whitespace-nowrap rounded-xl mx-2 ${
+        isActive || isSubActive
+          ? "text-white bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/25"
           : "text-gray-400 hover:text-white hover:bg-white/5"
       } ${isCollapsed ? "justify-center px-2 mx-1" : "justify-between"}`}
       title={isCollapsed ? label : ""}
@@ -71,7 +68,9 @@ const MenuItem = ({
       >
         <Icon
           className={`w-5 h-5 shrink-0 ${
-            isSubActive ? "text-purple-400" : "group-hover:text-purple-400"
+            isActive || isSubActive
+              ? "text-white"
+              : "group-hover:text-purple-400"
           }`}
         />
         <span
@@ -85,9 +84,17 @@ const MenuItem = ({
       {!isCollapsed &&
         hasSubmenu &&
         (isOpen ? (
-          <KeyboardArrowDownIcon className="w-4 h-4 text-gray-500 shrink-0" />
+          <KeyboardArrowDownIcon
+            className={`w-4 h-4 shrink-0 ${
+              isActive || isSubActive ? "text-white/70" : "text-gray-500"
+            }`}
+          />
         ) : (
-          <KeyboardArrowRightIcon className="w-4 h-4 text-gray-500 shrink-0" />
+          <KeyboardArrowRightIcon
+            className={`w-4 h-4 shrink-0 ${
+              isActive || isSubActive ? "text-white/70" : "text-gray-500"
+            }`}
+          />
         ))}
     </div>
   );
@@ -154,8 +161,14 @@ export const MerchantSidebar = () => {
             isSidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
           }`}
         >
-          <span className="text-white">DLT</span>
-          <span className="text-purple-400">loyalty</span>
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-white whitespace-nowrap">
+              DLT<span className="text-purple-400">loyalty</span>
+            </span>
+            <span className="text-xs text-white font-semibold">
+              Merchant Portal
+            </span>
+          </div>
         </span>
       </div>
 
@@ -209,9 +222,12 @@ export const MerchantSidebar = () => {
             hasSubmenu
             isActive={pathname.startsWith(`${basePath}/voucher`)}
             subItems={[
-              { label: "Campaigns", href: `${basePath}/voucher/list` },
-              { label: "Create Campaign", href: `${basePath}/voucher/create` },
-              { label: "Products", href: `${basePath}/voucher/rewards` },
+              { label: "Products", href: `${basePath}/voucher/list` },
+              {
+                label: "Set Product price",
+                href: `${basePath}/voucher/create`,
+              },
+              { label: "Coupons", href: `${basePath}/voucher/rewards` },
             ]}
             isCollapsed={isSidebarCollapsed}
           />
@@ -233,32 +249,7 @@ export const MerchantSidebar = () => {
             label="Customer"
             hasSubmenu
             isActive={pathname.startsWith(`${basePath}/customer`)}
-            subItems={[
-              { label: "List", href: `${basePath}/customer/list` },
-              { label: "Create", href: `${basePath}/customer/create` },
-            ]}
-            isCollapsed={isSidebarCollapsed}
-          />
-          <MenuItem
-            icon={InventoryIcon}
-            label="Products"
-            hasSubmenu
-            isActive={pathname.startsWith(`${basePath}/product`)}
-            subItems={[
-              { label: "List", href: `${basePath}/product/list` },
-              { label: "Create", href: `${basePath}/product/create` },
-            ]}
-            isCollapsed={isSidebarCollapsed}
-          />
-          <MenuItem
-            icon={ReceiptIcon}
-            label="Orders"
-            hasSubmenu
-            isActive={pathname.startsWith(`${basePath}/order`)}
-            subItems={[
-              { label: "List", href: `${basePath}/order/list` },
-              { label: "Create", href: `${basePath}/order/create` },
-            ]}
+            subItems={[{ label: "List", href: `${basePath}/customer/list` }]}
             isCollapsed={isSidebarCollapsed}
           />
           <MenuItem
@@ -271,6 +262,8 @@ export const MerchantSidebar = () => {
             icon={ApiSharp}
             label="API Key"
             hasSubmenu
+            isActive={pathname.startsWith(`${basePath}/api-key`)}
+            subItems={[{ label: "List", href: `${basePath}/api-key/list` }]}
             isCollapsed={isSidebarCollapsed}
           />
         </nav>
