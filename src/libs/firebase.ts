@@ -23,6 +23,8 @@ const db = getFirestore(app, "dlt-db");
 if (process.env.NEXT_PUBLIC_USE_EMULATOR === "true") {
   console.log("🔥 Connecting to Firestore Emulator");
   connectFirestoreEmulator(db, "localhost", 8080);
+} else {
+  console.log("✅ Using Firestore Cloud");
 }
 
 export { db };
