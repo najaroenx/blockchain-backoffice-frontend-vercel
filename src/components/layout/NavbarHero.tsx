@@ -77,7 +77,7 @@ export const NavbarHero = () => {
                 <li>
                   <Link
                     className="rounded-full text-white px-5 py-2.5 text-sm font-bold bg-[#16C23C] hover:bg-[#16C23C] hover:shadow-md"
-                    href="/seller/auth/sign-in"
+                    href="/dlt/seller/auth/sign-in"
                   >
                     เข้าสู่ระบบผู้ขาย
                   </Link>

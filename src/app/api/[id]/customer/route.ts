@@ -11,7 +11,6 @@ const shouldProtectAdmin =
 
 export async function GET(req: NextRequest, { params }: { params: any }) {
   logger.info(`Received request: ${req.method} ${req.url}`);
-
   try {
     const start = parseInt(req.nextUrl.searchParams.get("_start") ?? "0", 10);
     const end = parseInt(req.nextUrl.searchParams.get("_end") ?? "0", 10);

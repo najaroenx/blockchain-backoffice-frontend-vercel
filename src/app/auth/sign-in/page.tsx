@@ -21,8 +21,6 @@ const Login = () => {
     password: "",
   });
 
-  const router = useRouter();
-
   const mutation = useMutation({
     mutationFn: async () => {
       return await signIn("credentials", {

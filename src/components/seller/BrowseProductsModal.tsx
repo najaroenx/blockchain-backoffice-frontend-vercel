@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
-import { IVoucher } from "@/app/seller/orders/create/page";
+import { IVoucher } from "@/app/dlt/seller/orders/create/page";
 
 interface Product {
   id: string;

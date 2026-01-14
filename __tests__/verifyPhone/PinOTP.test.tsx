@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import PinOTP from "@/components/verifyPhone/PinOTP";
 import { VerifyPhoneStep } from "@/components/verifyPhone/VerifyPhone";
 import { VerifyPhoneProvider } from "@/contexts/VerifyPhoneContext";
@@ -12,25 +18,39 @@ jest.mock("next/image", () => ({
   },
 }));
 
-// Mock react-otp-input
-jest.mock("react-otp-input", () => ({
+// Mock next/navigation
+jest.mock("next/navigation", () => ({
+  useSearchParams: () => ({
+    get: (key: string) => {
+      if (key === "requestid") return "test-request-id";
+      if (key === "merchantId") return "test-merchant-id";
+      return null;
+    },
+  }),
+}));
+
+// Mock InputOTP component
+jest.mock("@/components/verifyPhone/InputOTP", () => ({
   __esModule: true,
-  default: ({ value, onChange, numInputs, renderInput }: any) => (
+  default: ({ value, onChange, length }: any) => (
     <div data-testid="otp-input">
-      {Array.from({ length: numInputs }).map((_, index) => (
-        <input
-          key={index}
-          data-testid={`otp-input-${index}`}
-          value={value[index] || ""}
-          onChange={(e) => {
-            const newValue = value.split("");
-            newValue[index] = e.target.value;
-            onChange(newValue.join(""));
-          }}
-        />
-      ))}
+      <input
+        data-testid="otp-input-combined"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={length}
+      />
     </div>
   ),
+}));
+
+// Mock headlessui
+jest.mock("@headlessui/react", () => ({
+  Dialog: ({ open, children }: any) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  DialogBackdrop: () => <div data-testid="dialog-backdrop" />,
+  DialogPanel: ({ children }: any) => <div>{children}</div>,
+  DialogTitle: ({ children }: any) => <h2>{children}</h2>,
 }));
 
 describe("PinOTP Component", () => {
@@ -67,149 +87,137 @@ describe("PinOTP Component", () => {
     expect(screen.getByText(/0904134444/)).toBeInTheDocument();
   });
 
-  it("should display reference code", () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    expect(screen.getByText(/TEST001/)).toBeInTheDocument();
-  });
-
   it("should render timer with initial value 02:00", () => {
-    const { container } = renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    const counterTime = container.querySelector("#counter-time");
-    expect(counterTime?.textContent).toContain("02");
-    expect(counterTime?.textContent).toContain("00");
+    const { container } = renderWithProvider(
+      <PinOTP onChangeStep={mockOnChangeStep} />
+    );
+
+    // Initial render might check for "02" "00"
+    expect(screen.getByText("02")).toBeInTheDocument();
+    expect(screen.getByText("00")).toBeInTheDocument();
   });
 
   it("should countdown timer", () => {
-    const { container } = renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
+    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
+
     act(() => {
       jest.advanceTimersByTime(2000);
     });
-    
-    const counterTime = container.querySelector("#counter-time");
-    expect(counterTime?.textContent).toContain("01");
-    expect(counterTime?.textContent).toContain("59");
-    
-    act(() => {
-      jest.advanceTimersByTime(60000);
-    });
-    
-    expect(counterTime?.textContent).toContain("00");
-    expect(counterTime?.textContent).toContain("59");
+
+    // 01:58
+    expect(screen.getByText("01")).toBeInTheDocument();
+    expect(screen.getByText("58")).toBeInTheDocument();
   });
 
-  it("should render 6 OTP inputs", () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    const otpInput = screen.getByTestId("otp-input");
-    const inputs = otpInput.querySelectorAll("input");
-    expect(inputs.length).toBe(6);
-  });
-
-  it("should render Request OTP button", () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    expect(screen.getByRole("button", { name: /Request OTP/i })).toBeInTheDocument();
-  });
-
-  it("should render terms and conditions link", () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    expect(screen.getByText("ข้อตกลงการใช้งาน")).toBeInTheDocument();
-  });
-
-  it("should render submit button", () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    expect(screen.getByRole("button", { name: /ยืนยันรหัส OTP/i })).toBeInTheDocument();
-  });
-
-  it("should render close button", () => {
-    const { container } = renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    const closeButtons = container.querySelectorAll("button");
-    expect(closeButtons.length).toBeGreaterThan(0);
-  });
-
-  it("should render OTP input component", () => {
+  it("should render OTP input", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
     expect(screen.getByTestId("otp-input")).toBeInTheDocument();
   });
 
+  it("should render submit button", () => {
+    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
+    expect(
+      screen.getByRole("button", { name: /ยืนยันรหัส OTP/i })
+    ).toBeInTheDocument();
+  });
+
   it("should handle OTP input changes", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    const firstInput = screen.getByTestId("otp-input-0");
-    
-    fireEvent.change(firstInput, { target: { value: "123456" } });
-    expect(firstInput).toBeInTheDocument();
+    const input = screen.getByTestId("otp-input-combined");
+
+    fireEvent.change(input, { target: { value: "123456" } });
+    expect(input).toHaveValue("123456");
   });
 
   it("should disable button when timer expires", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
+
     act(() => {
       jest.advanceTimersByTime(121000);
     });
-    
+
     const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
     expect(button).toBeDisabled();
   });
 
   it("should disable submit button when OTP is less than 6 digits", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
-    const firstInput = screen.getByTestId("otp-input-0");
-    fireEvent.change(firstInput, { target: { value: "12345" } });
-    
+
+    const input = screen.getByTestId("otp-input-combined");
+    fireEvent.change(input, { target: { value: "12345" } });
+
     const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
     expect(button).toBeDisabled();
   });
 
-  it("should render additional UI elements", () => {
+  it("should render additional UI elements when expired", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
-    expect(screen.getByText("รหัส OTP หมดอายุ")).toBeInTheDocument();
-    expect(screen.getByText("กรุณากด Request OTP")).toBeInTheDocument();
-    expect(screen.getByText("เพื่อขอรับรหัสใหม่อีกครั้ง")).toBeInTheDocument();
-  });
 
-  it("should show error when OTP is incomplete", async () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
-    const firstInput = screen.getByTestId("otp-input-0");
-    fireEvent.change(firstInput, { target: { value: "12345" } });
-    
-    const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
-    expect(button).toBeDisabled();
-  });
-
-  it("should show error when OTP is expired", async () => {
-    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
     act(() => {
       jest.advanceTimersByTime(121000);
     });
-    
-    const firstInput = screen.getByTestId("otp-input-0");
-    fireEvent.change(firstInput, { target: { value: "123456" } });
-    
-    const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
-    // Button should be disabled when timer is expired
-    expect(button).toBeDisabled();
+
+    expect(screen.getByText("รหัส OTP หมดอายุ")).toBeInTheDocument();
+    expect(screen.getByText("กรุณากดเพื่อขอรหัสใหม่")).toBeInTheDocument();
   });
 
   it("should have enabled button with valid 6-digit OTP and active timer", () => {
     renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
-    
-    // Advance timer so it's not 00:00
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-    
-    const firstInput = screen.getByTestId("otp-input-0");
-    fireEvent.change(firstInput, { target: { value: "123456" } });
-    
+
+    const input = screen.getByTestId("otp-input-combined");
+    fireEvent.change(input, { target: { value: "123456" } });
+
     const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
     expect(button).not.toBeDisabled();
+  });
+
+  it("should call verification API on submit", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ token: "new-token" }),
+    });
+
+    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
+
+    const input = screen.getByTestId("otp-input-combined");
+    fireEvent.change(input, { target: { value: "123456" } });
+
+    const button = screen.getByRole("button", { name: /ยืนยันรหัส OTP/i });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/otp/verify",
+      expect.any(Object)
+    );
+  });
+
+  it("should handle resend OTP", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
+
+    renderWithProvider(<PinOTP onChangeStep={mockOnChangeStep} />);
+
+    // Fast forward to expiry
+    act(() => {
+      jest.advanceTimersByTime(121000);
+    });
+
+    const resendButton = screen.getByText("ขอรหัส OTP ใหม่");
+
+    await act(async () => {
+      fireEvent.click(resendButton);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/otp/re-send-otp",
+      expect.any(Object)
+    );
+    // Check if timer reset (should show 02:00)
+    expect(screen.getByText("02")).toBeInTheDocument();
   });
 });

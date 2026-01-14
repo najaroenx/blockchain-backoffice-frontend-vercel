@@ -23,7 +23,7 @@ const SellerSignIn = () => {
     mutationFn: async () => {
       return await signIn("credentials", {
         redirect: true,
-        callbackUrl: "/seller",
+        callbackUrl: "/dlt/seller",
         email: formValues.email,
         password: formValues.password,
       });
@@ -36,7 +36,7 @@ const SellerSignIn = () => {
 
       //   if (mutation.isPending) return;
       //   mutation.mutate();
-      window.location.href = "/seller";
+      window.location.href = "/dlt/seller";
     },
     []
   );

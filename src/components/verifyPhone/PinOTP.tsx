@@ -150,8 +150,8 @@ const PinOTP = ({
   const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   // Derived State
-  const isExpired = timeLeft === 0;
-  const { min, sec } = formatTime(timeLeft);
+  const isExpired = timeLeft <= 0;
+  const { min, sec } = formatTime(Math.max(0, timeLeft));
   const canSubmit =
     verifyOtp.length === 6 && !loading && !isExpired && !isVerificationSuccess;
 
@@ -160,7 +160,7 @@ const PinOTP = ({
     if (timeLeft <= 0) return;
 
     const timerId = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(timerId);

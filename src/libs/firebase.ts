@@ -1,9 +1,6 @@
 // src/libs/firebase.ts
 import { initializeApp, getApps } from "firebase/app";
-import {
-  getFirestore,
-  // connectFirestoreEmulator
-} from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
   // เอาค่าจาก Firebase Console มาใส่ตรงนี้
@@ -23,11 +20,9 @@ const db = getFirestore(app, "dlt-db");
 // -----------------------------------------------------------
 // 🔥 ส่วนสำคัญ: ถ้ากำลังรัน Local (dev) ให้ต่อ Emulator แทน Cloud จริง
 // -----------------------------------------------------------
-// if (process.env.NODE_ENV === "development") {
-//   console.log("🔥 Connecting to Firestore Emulator");
-//   // Port 8080 คือ port มาตรฐานของ Firestore Emulator
-// connectFirestoreEmulator(db, "localhost", 8080);
-// }
-// connectFirestoreEmulator(db, "localhost", 8080);
-console.log("🔥 Connecting to Firestore Emulator");
+if (process.env.NEXT_PUBLIC_USE_EMULATOR === "true") {
+  console.log("🔥 Connecting to Firestore Emulator");
+  connectFirestoreEmulator(db, "localhost", 8080);
+}
+
 export { db };
