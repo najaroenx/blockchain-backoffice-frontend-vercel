@@ -28,6 +28,11 @@ const config = {
     "/e2e/",
   ],
 
+  // ✅ Transform ESM modules from node_modules
+  transformIgnorePatterns: [
+    "/node_modules/(?!(react-hotkeys-hook|react-admin|ra-core|ra-ui-materialui)/)",
+  ],
+
   moduleNameMapper: {
     // "^@/(.*)$": "<rootDir>/$1",
     "^@/(.*)$": "<rootDir>/src/$1",

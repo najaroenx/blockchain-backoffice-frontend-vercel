@@ -3,7 +3,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { PointCreate } from "@/components/point/PointCreate";
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
@@ -15,9 +14,19 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
+// Mock LoadingContext
+jest.mock("@/contexts/LoadingContext", () => ({
+  useLoading: () => ({
+    showLoading: jest.fn(),
+    hideLoading: jest.fn(),
+  }),
+}));
+
 // Mock react-admin
 jest.mock("react-admin", () => ({
-  Create: ({ children }: any) => <div data-testid="create-wrapper">{children}</div>,
+  Create: ({ children }: any) => (
+    <div data-testid="create-wrapper">{children}</div>
+  ),
   SimpleForm: ({ children, toolbar }: any) => (
     <form data-testid="simple-form">
       {children}
@@ -46,6 +55,8 @@ jest.mock("@/components/layout/ComponentWrapper", () => ({
 jest.mock("@/components/customs/SaveToolbar", () => ({
   SaveToolbar: () => <div data-testid="save-toolbar">Save Toolbar</div>,
 }));
+
+import { PointCreate } from "@/components/point/PointCreate";
 
 describe("PointCreate Component", () => {
   it("should render without crashing", () => {

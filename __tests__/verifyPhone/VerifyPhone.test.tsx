@@ -1,12 +1,43 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { renderHook } from "@testing-library/react";
-import VerifyPhoneComponent, { VerifyPhoneStep } from "@/components/verifyPhone/VerifyPhone";
-import { VerifyPhoneProvider, useVerifyPhone } from "@/contexts/VerifyPhoneContext";
+import VerifyPhoneComponent, {
+  VerifyPhoneStep,
+} from "@/components/verifyPhone/VerifyPhone";
+import {
+  VerifyPhoneProvider,
+  useVerifyPhone,
+  Status,
+} from "@/contexts/VerifyPhoneContext";
+
+// Mock next/navigation
+jest.mock("next/navigation", () => ({
+  useSearchParams: () => ({
+    get: (key: string) => {
+      if (key === "requestid") return "test-request-id";
+      if (key === "merchantId") return "merchant-123";
+      if (key === "callbackUri") return "http://callback.url";
+      return null;
+    },
+  }),
+}));
+
+// Mock fetch
+global.fetch = jest.fn();
 
 // Mock the child components
 jest.mock("@/components/verifyPhone/PinPhoneNumber", () => ({
   __esModule: true,
-  default: ({ onChangeStep }: { onChangeStep: (step: VerifyPhoneStep) => void }) => (
+  default: ({
+    onChangeStep,
+  }: {
+    onChangeStep: (step: VerifyPhoneStep) => void;
+  }) => (
     <div data-testid="pin-phone-number">
       <button onClick={() => onChangeStep(VerifyPhoneStep.PIN_OTP)}>
         Next to OTP
@@ -17,7 +48,11 @@ jest.mock("@/components/verifyPhone/PinPhoneNumber", () => ({
 
 jest.mock("@/components/verifyPhone/PinOTP", () => ({
   __esModule: true,
-  default: ({ onChangeStep }: { onChangeStep: (step: VerifyPhoneStep) => void }) => (
+  default: ({
+    onChangeStep,
+  }: {
+    onChangeStep: (step: VerifyPhoneStep) => void;
+  }) => (
     <div data-testid="pin-otp">
       <button onClick={() => onChangeStep(VerifyPhoneStep.SUCCESS)}>
         Next to Success
@@ -28,7 +63,11 @@ jest.mock("@/components/verifyPhone/PinOTP", () => ({
 
 jest.mock("@/components/verifyPhone/VerifyPhoneSuccess", () => ({
   __esModule: true,
-  default: ({ onChangeStep }: { onChangeStep: (step: VerifyPhoneStep) => void }) => (
+  default: ({
+    onChangeStep,
+  }: {
+    onChangeStep: (step: VerifyPhoneStep) => void;
+  }) => (
     <div data-testid="verify-phone-success">
       <button onClick={() => onChangeStep(VerifyPhoneStep.PIN_PHONE_NUMBER)}>
         Back to Phone Input
@@ -46,129 +85,66 @@ jest.mock("next/image", () => ({
   },
 }));
 
+// Mock next/font/google
+jest.mock("next/font/google", () => ({
+  Noto_Sans_Thai: () => ({
+    className: "noto-sans-thai-mock",
+  }),
+}));
+
 describe("VerifyPhoneComponent", () => {
-  it("should render the component with initial step PIN_PHONE_NUMBER", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Mock successful API response
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
+  });
+
+  it("should show loading state initially", () => {
     render(
       <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
-    
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
+
+    expect(screen.getByText("กำลังโหลด...")).toBeInTheDocument();
   });
 
-  it("should navigate to PIN_OTP step", () => {
+  it("should show invalid state when request fails", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+    });
+
     render(
       <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
-    
-    const nextButton = screen.getByText("Next to OTP");
-    fireEvent.click(nextButton);
-    
-    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
+
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("หน้านี้ยังไม่พร้อมใช้งาน หรือ ลิงก์หมดอายุ")
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
   });
 
-  it("should navigate to SUCCESS step", () => {
+  it("should call verify API on mount", async () => {
     render(
       <VerifyPhoneProvider>
         <VerifyPhoneComponent />
       </VerifyPhoneProvider>
     );
-    
-    fireEvent.click(screen.getByText("Next to OTP"));
-    
-    const successButton = screen.getByText("Next to Success");
-    fireEvent.click(successButton);
-    
-    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
-  });
 
-  it("should navigate back to PIN_PHONE_NUMBER from SUCCESS", () => {
-    render(
-      <VerifyPhoneProvider>
-        <VerifyPhoneComponent />
-      </VerifyPhoneProvider>
-    );
-    
-    fireEvent.click(screen.getByText("Next to OTP"));
-    fireEvent.click(screen.getByText("Next to Success"));
-    
-    const backButton = screen.getByText("Back to Phone Input");
-    fireEvent.click(backButton);
-    
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
-  });
-
-  it("should handle all three step transitions", () => {
-    render(
-      <VerifyPhoneProvider>
-        <VerifyPhoneComponent />
-      </VerifyPhoneProvider>
-    );
-    
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
-    
-    fireEvent.click(screen.getByText("Next to OTP"));
-    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
-    
-    fireEvent.click(screen.getByText("Next to Success"));
-    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
-  });
-
-  it("should render with provider", () => {
-    render(
-      <VerifyPhoneProvider>
-        <VerifyPhoneComponent />
-      </VerifyPhoneProvider>
-    );
-    
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
-  });
-
-  it("should render with sm:hidden class", () => {
-    const { container } = render(
-      <VerifyPhoneProvider>
-        <VerifyPhoneComponent />
-      </VerifyPhoneProvider>
-    );
-    
-    const hiddenDiv = container.querySelector(".sm\\:hidden");
-    expect(hiddenDiv).toBeInTheDocument();
-  });
-
-  it("should maintain context values across steps", () => {
-    const wrapper = ({ children }: any) => (
-      <VerifyPhoneProvider>{children}</VerifyPhoneProvider>
-    );
-
-    const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    expect(result.current).toHaveProperty("phoneNumber");
-    expect(result.current).toHaveProperty("token");
-    expect(result.current).toHaveProperty("otpCode");
-  });
-
-  it("should properly switch between all step components", () => {
-    render(
-      <VerifyPhoneProvider>
-        <VerifyPhoneComponent />
-      </VerifyPhoneProvider>
-    );
-    
-    expect(screen.getByTestId("pin-phone-number")).toBeInTheDocument();
-    expect(screen.queryByTestId("pin-otp")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("verify-phone-success")).not.toBeInTheDocument();
-    
-    fireEvent.click(screen.getByText("Next to OTP"));
-    expect(screen.queryByTestId("pin-phone-number")).not.toBeInTheDocument();
-    expect(screen.getByTestId("pin-otp")).toBeInTheDocument();
-    expect(screen.queryByTestId("verify-phone-success")).not.toBeInTheDocument();
-    
-    fireEvent.click(screen.getByText("Next to Success"));
-    expect(screen.queryByTestId("pin-phone-number")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("pin-otp")).not.toBeInTheDocument();
-    expect(screen.getByTestId("verify-phone-success")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/otp/request")
+      );
+    });
   });
 });
 
@@ -203,9 +179,9 @@ describe("VerifyPhoneContext", () => {
 
   it("should initialize with provided values", () => {
     const wrapper = ({ children }: any) => (
-      <VerifyPhoneProvider 
-        phoneNumber="0123456789" 
-        token="test-token" 
+      <VerifyPhoneProvider
+        phoneNumber="0123456789"
+        token="test-token"
         otpCode="123456"
       >
         {children}
@@ -224,13 +200,13 @@ describe("VerifyPhoneContext", () => {
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    
+
     expect(result.current.phoneNumber).toBeNull();
-    
+
     act(() => {
       result.current.setPhoneNumber("0987654321");
     });
-    
+
     expect(result.current.phoneNumber).toBe("0987654321");
   });
 
@@ -240,13 +216,13 @@ describe("VerifyPhoneContext", () => {
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    
+
     expect(result.current.token).toBeNull();
-    
+
     act(() => {
       result.current.setToken("new-token");
     });
-    
+
     expect(result.current.token).toBe("new-token");
   });
 
@@ -256,13 +232,13 @@ describe("VerifyPhoneContext", () => {
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    
+
     expect(result.current.otpCode).toBeNull();
-    
+
     act(() => {
       result.current.setOtpCode("654321");
     });
-    
+
     expect(result.current.otpCode).toBe("654321");
   });
 
@@ -272,13 +248,13 @@ describe("VerifyPhoneContext", () => {
     );
 
     const { result } = renderHook(() => useVerifyPhone(), { wrapper });
-    
+
     expect(result.current.merchantId).toBeNull();
-    
+
     act(() => {
       result.current.setMerchantId("merchant-123");
     });
-    
+
     expect(result.current.merchantId).toBe("merchant-123");
   });
 

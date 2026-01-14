@@ -30,7 +30,8 @@ describe("api utility", () => {
           body: undefined,
         }
       );
-      expect(result).toEqual(mockResponse);
+      // Because unwrapData is true by default, it returns mockResponse.data
+      expect(result).toEqual(mockResponse.data);
     });
 
     it("should make a successful GET request with query params", async () => {
@@ -55,7 +56,7 @@ describe("api utility", () => {
           body: undefined,
         }
       );
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual(mockResponse.data);
     });
 
     it("should handle multiple query params with different types", async () => {
@@ -65,13 +66,13 @@ describe("api utility", () => {
         json: async () => mockResponse,
       });
 
-      await api("https://example.com/api/test", {
+      const result = await api("https://example.com/api/test", {
         method: "GET",
-        queryParams: { 
-          page: 1, 
-          limit: "20", 
+        queryParams: {
+          page: 1,
+          limit: "20",
           active: "true",
-          merchantId: "merchant123"
+          merchantId: "merchant123",
         },
       });
 
@@ -79,6 +80,7 @@ describe("api utility", () => {
         "https://example.com/api/test?page=1&limit=20&active=true&merchantId=merchant123",
         expect.any(Object)
       );
+      expect(result).toEqual(mockResponse.data);
     });
   });
 
@@ -311,7 +313,7 @@ describe("api utility", () => {
         json: async () => mockResponse,
       });
 
-      await api("https://example.com/api/test", {
+      const result = await api("https://example.com/api/test", {
         method: "GET",
         queryParams: {},
       });
@@ -320,6 +322,8 @@ describe("api utility", () => {
         "https://example.com/api/test",
         expect.any(Object)
       );
+      // expect unwrapped data
+      expect(result).toEqual(mockResponse.data);
     });
 
     it("should handle numeric values in query params", async () => {
@@ -329,7 +333,7 @@ describe("api utility", () => {
         json: async () => mockResponse,
       });
 
-      await api("https://example.com/api/test", {
+      const result = await api("https://example.com/api/test", {
         method: "GET",
         queryParams: { page: 0, limit: 100 },
       });
@@ -338,6 +342,7 @@ describe("api utility", () => {
         "https://example.com/api/test?page=0&limit=100",
         expect.any(Object)
       );
+      expect(result).toEqual(mockResponse.data);
     });
 
     it("should preserve custom headers with query params", async () => {
