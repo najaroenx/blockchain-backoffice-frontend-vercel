@@ -46,17 +46,23 @@ export async function GET(req: NextRequest) {
   }
 }
 export async function POST(req: Request) {
+  console.log("📝 POST /api/merchant received");
+
   try {
     if (!shouldProtectPortal) {
       return Response.json({ message: "noop (portal auth disabled)" });
     }
 
     const body = await req.json();
+    console.log("📝 Body:", body);
     const session = await getServerSession(authOptions);
     const token = session?.user.accessToken;
     const userId = session?.user.id;
-
-    await api(`${BACKEND_URL}/merchant`, {
+    console.log("new body", {
+      ...body,
+      userId,
+    });
+    const response = await api(`${BACKEND_URL}/merchant`, {
       method: "POST",
       body: {
         ...body,
@@ -66,7 +72,7 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${token}`,
       },
     });
-
+    console.log("response", response);
     return Response.json({ message: "success" }, { status: 200 });
   } catch (error) {
     logger.error(`Error occurred: ${error}`);

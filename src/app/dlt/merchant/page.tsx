@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import AddIcon from "@mui/icons-material/Add";
 import { useMerchants } from "@/hooks/useMerchant";
 
 const heroSlides = [
@@ -45,8 +46,18 @@ export default function MerchantPage() {
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white">
       {/* Hero Carousel */}
-      <section className="relative bg-gradient-to-br from-[#1a1a2e] to-[#0f0f24] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 py-16 lg:py-24">
+      <section
+        className="relative overflow-hidden"
+        style={{
+          backgroundImage: `url('https://wpriverthemes.com/nexux/wp-content/uploads/2024/12/background.png')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-[#0a0a1a]/70"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
             <div className="order-2 lg:order-1">
@@ -85,54 +96,6 @@ export default function MerchantPage() {
                 ))}
               </div>
             </div>
-
-            {/* Product Display */}
-            <div className="order-1 lg:order-2 relative">
-              <div className="relative w-full aspect-square max-w-lg mx-auto">
-                {/* Main Product */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-3xl flex items-center justify-center border border-white/10 backdrop-blur-sm">
-                    <span className="text-8xl md:text-9xl">
-                      {heroSlides[currentSlide].image}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Floating Cards */}
-                <div
-                  className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-[#1a1a2e] rounded-2xl border border-white/10 flex items-center justify-center shadow-xl animate-bounce"
-                  style={{ animationDuration: "3s" }}
-                >
-                  <span className="text-4xl md:text-5xl">🎁</span>
-                </div>
-                <div
-                  className="absolute bottom-0 left-0 w-20 h-20 md:w-28 md:h-28 bg-[#1a1a2e] rounded-2xl border border-white/10 flex items-center justify-center shadow-xl animate-bounce"
-                  style={{ animationDuration: "4s" }}
-                >
-                  <span className="text-3xl md:text-4xl">💎</span>
-                </div>
-                <div
-                  className="absolute top-1/4 -left-4 w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-2xl border border-white/10 flex items-center justify-center shadow-xl animate-bounce"
-                  style={{ animationDuration: "3.5s" }}
-                >
-                  <span className="text-2xl md:text-3xl">⭐</span>
-                </div>
-              </div>
-
-              {/* Navigation Arrows */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center border border-white/10 transition-all"
-              >
-                <KeyboardArrowLeftIcon className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center border border-white/10 transition-all"
-              >
-                <KeyboardArrowRightIcon className="w-6 h-6" />
-              </button>
-            </div>
           </div>
         </div>
       </section>
@@ -158,20 +121,47 @@ export default function MerchantPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {/* Add Merchant Card */}
+            <Link
+              href="/dlt/merchant/create"
+              className="group bg-[#1a1a2e] rounded-xl border-2 border-dashed border-white/20 hover:border-purple-500/50 overflow-hidden transition-all hover:scale-[1.02] flex flex-col h-full"
+            >
+              {/* Placeholder for image area - same aspect as merchant cards */}
+              <div className="aspect-square flex items-center justify-center bg-[#12122a]">
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-3 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all">
+                    <AddIcon className="w-8 h-8 text-purple-400 group-hover:text-purple-300" />
+                  </div>
+                  <p className="text-white font-semibold text-sm mb-1">
+                    Add Merchant
+                  </p>
+                  <p className="text-gray-500 text-xs">Create new store</p>
+                </div>
+              </div>
+              {/* Placeholder for info area */}
+              <div className="p-3 flex-1">
+                <p className="text-[10px] text-purple-400/50 mb-0.5">
+                  New Store
+                </p>
+                <h3 className="text-white/50 font-semibold text-sm mb-0.5">
+                  Click to create
+                </h3>
+                <p className="text-gray-600 text-xs mb-2">Add your business</p>
+                <span className="inline-block px-2 py-0.5 bg-purple-500/30 text-purple-300 text-[10px] font-medium rounded-full">
+                  + New
+                </span>
+              </div>
+            </Link>
+
             {merchants &&
               merchants.map((merchant: any) => (
                 <Link
                   key={merchant.id}
                   href={`/dlt/merchant/${merchant.id}`}
-                  className="group bg-[#1a1a2e] rounded-2xl border border-white/5 hover:border-purple-500/30 overflow-hidden transition-all hover:scale-[1.02]"
+                  className="group bg-[#1a1a2e] rounded-xl border border-white/5 hover:border-purple-500/30 overflow-hidden transition-all hover:scale-[1.02] flex flex-col h-full"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    {/* {product.badge && (
-                    <span className="absolute top-4 left-4 z-10 px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-full">
-                      {product.badge}
-                    </span>
-                  )} */}
+                  <div className="relative aspect-square overflow-hidden">
                     <Image
                       src={merchant.imageUrl}
                       alt={merchant.name}
@@ -179,21 +169,19 @@ export default function MerchantPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="p-6">
-                    <p className="text-xs text-purple-400 mb-1">
-                      {merchant.walletAddress}
+                  <div className="p-3 flex-1">
+                    <p className="text-[10px] text-purple-400 mb-0.5 truncate">
+                      {merchant.walletAddress?.slice(0, 12)}...
                     </p>
-                    <h3 className="text-white font-semibold mb-1 group-hover:text-purple-400 transition-colors">
+                    <h3 className="text-white font-semibold text-sm mb-0.5 group-hover:text-purple-400 transition-colors truncate">
                       {merchant.name}
                     </h3>
-                    <p className="text-gray-500 text-sm mb-4">
+                    <p className="text-gray-500 text-xs mb-2 line-clamp-1">
                       {merchant.description}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded-full">
-                        Manage Merchant
-                      </span>
-                    </div>
+                    <span className="inline-block px-2 py-0.5 bg-purple-500 text-white text-[10px] font-medium rounded-full">
+                      Manage
+                    </span>
                   </div>
                 </Link>
               ))}

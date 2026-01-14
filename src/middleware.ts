@@ -12,7 +12,9 @@ const shouldProtectDLT =
 const protectedRoutePatterns = [
   ...(shouldProtectAdmin ? [/^\/admin(\/|$)/] : []),
   ...(shouldProtectPortal ? [/^\/portal(\/|$)/] : []),
-  ...(shouldProtectDLT ? [/^\/dlt\/merchant(\/|$)/] : []),
+  ...(shouldProtectDLT
+    ? [/^\/dlt\/merchant(\/|$)/, /^\/dlt\/seller(\/|$)/]
+    : []),
 ];
 
 // Auth pages - redirect away if already authenticated

@@ -389,16 +389,6 @@ export default function MerchantPage({
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
-          <AdsPerformanceChart />
-        </div>
-        <div className="lg:col-span-1 bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
-          <LeadPerformanceScore />
-        </div>
-      </div>
-
       {/* Store Overview Section */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">

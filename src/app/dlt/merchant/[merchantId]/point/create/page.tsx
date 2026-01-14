@@ -92,10 +92,28 @@ export default function PointCreatePage() {
           <div className="p-5 rounded-xl bg-gradient-to-r from-purple-600/10 to-pink-600/10 border border-purple-500/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {/* Token Icon */}
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                  <span className="text-2xl">🪙</span>
-                </div>
+                {/* Token Icon - Show image preview if URL exists */}
+                {formData.imageUrl ? (
+                  <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg shadow-purple-500/30 bg-white/10 flex items-center justify-center">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Token Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Hide image and show fallback on error
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
+                      }}
+                    />
+                    <span className="text-2xl hidden">🪙</span>
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <span className="text-2xl">🪙</span>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-purple-400 uppercase tracking-widest mb-1">
                     Token Preview

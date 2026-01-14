@@ -5,8 +5,7 @@ import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import Link from "next/link";
 import React, { useCallback, useState } from "react";
-import { signIn } from "next-auth/react";
-import { useMutation } from "@tanstack/react-query";
+import { useDLTAuth } from "../hooks/useDLTAuth";
 
 type FormValues = {
   email: string;
@@ -19,26 +18,28 @@ const SellerSignIn = () => {
     password: "",
   });
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      return await signIn("credentials", {
-        redirect: true,
-        callbackUrl: "/dlt/merchant",
-        email: formValues.email,
-        password: formValues.password,
-      });
-    },
-  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  const { login } = useDLTAuth();
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      setError("");
 
-      //   if (mutation.isPending) return;
-      //   mutation.mutate();
-      window.location.href = "/dlt/merchant";
+      if (isSubmitting) return;
+
+      setIsSubmitting(true);
+
+      try {
+        await login(formValues.email, formValues.password, "/dlt/merchant");
+      } catch (err) {
+        setError("Invalid email or password");
+        setIsSubmitting(false);
+      }
     },
-    []
+    [isSubmitting, formValues, login]
   );
 
   const handleInputChange = useCallback(
@@ -184,13 +185,20 @@ const SellerSignIn = () => {
             </div>
           </FormControl>
 
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={mutation.isPending}
+            disabled={isSubmitting}
             className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mt-3 py-3 px-5 rounded-lg text-white font-semibold shadow-lg shadow-purple-500/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {mutation.isPending ? "Signing in..." : "Sign In"}
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
         </form>
 

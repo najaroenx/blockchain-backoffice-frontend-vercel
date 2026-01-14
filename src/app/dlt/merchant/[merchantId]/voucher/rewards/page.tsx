@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
@@ -109,9 +110,14 @@ export default function OurRewardsPage() {
             Manage all products for merchant {merchantId}
           </p>
         </div>
-        <button className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25">
-          + Add Product
-        </button>
+        <Link
+          href={`/dlt/merchant/${merchantId}/marketplace`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25"
+        >
+          Shopping product
+        </Link>
       </div>
 
       {/* Stats Cards */}

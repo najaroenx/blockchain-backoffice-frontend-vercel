@@ -5,7 +5,7 @@ import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
 import Link from "next/link";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
-
+import Image from "next/image";
 interface Point {
   id: string;
   name: string;
@@ -197,9 +197,13 @@ export default function PointListPage() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-lg">
-                            🪙
-                          </div>
+                          <Image
+                            src={point.imageUrl || ""}
+                            alt={point.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-lg"
+                          />
                           <span className="text-sm font-medium text-white">
                             {point.name}
                           </span>

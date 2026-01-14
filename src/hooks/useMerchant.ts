@@ -14,7 +14,14 @@ export const useMerchants = () => {
 
   // Create merchant
   const createMerchant = useMutation({
-    mutationFn: async (newMerchant: { name: string; website: string }) => {
+    mutationFn: async (newMerchant: {
+      name: string;
+      website: string;
+      description?: string;
+      imageUrl?: string;
+      location?: string;
+      phone?: string;
+    }) => {
       return api("/api/merchant", {
         method: "POST",
         body: newMerchant,

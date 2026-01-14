@@ -5,60 +5,61 @@ import FormLabel from "@mui/material/FormLabel";
 import TextField from "@mui/material/TextField";
 import Link from "next/link";
 import React, { useCallback, useState } from "react";
-import { api } from "@/libs/api";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
 
 type FormValues = {
-  username: string;
   email: string;
   password: string;
-  confirmPassword: string;
 };
 
 const SellerSignUp = () => {
   const router = useRouter();
 
   const [formValues, setFormValues] = useState<FormValues>({
-    username: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
-  const [passwordError, setPasswordError] = useState<string>("");
-
-  const mutation = useMutation({
-    mutationFn: () => {
-      return api(`/api/seller/register`, {
-        method: "POST",
-        body: {
-          username: formValues.username,
-          email: formValues.email,
-          password: formValues.password,
-        },
-      });
-    },
-    onSuccess: () => {
-      router.push("/dlt/sign-in");
-    },
-  });
+  const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      setError("");
 
-      // Validate passwords match
-      if (formValues.password !== formValues.confirmPassword) {
-        setPasswordError("Passwords do not match");
-        return;
+      if (isSubmitting) return;
+
+      setIsSubmitting(true);
+
+      try {
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: formValues.email,
+            password: formValues.password,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.message || "Registration failed");
+          return;
+        }
+
+        // Success - redirect to sign-in
+        router.push("/dlt/sign-in");
+      } catch (err) {
+        setError("Something went wrong. Please try again.");
+      } finally {
+        setIsSubmitting(false);
       }
-      setPasswordError("");
-
-      if (mutation.isPending) return;
-      mutation.mutate();
     },
-    [mutation, formValues]
+    [isSubmitting, formValues, router]
   );
 
   const handleInputChange = useCallback(
@@ -67,13 +68,6 @@ const SellerSignUp = () => {
         ...formValues,
         [event.target.name]: event.target.value,
       });
-      // Clear password error when user starts typing
-      if (
-        event.target.name === "password" ||
-        event.target.name === "confirmPassword"
-      ) {
-        setPasswordError("");
-      }
     },
     [formValues]
   );
@@ -129,37 +123,6 @@ const SellerSignUp = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex w-full flex-col gap-5">
-          {/* Username */}
-          <FormControl>
-            <div className="flex flex-col gap-1.5">
-              <FormLabel
-                htmlFor="username"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "0.875rem",
-                  color: "#9ca3af",
-                }}
-              >
-                User name
-              </FormLabel>
-              <TextField
-                id="username"
-                type="text"
-                name="username"
-                placeholder="User Name"
-                autoComplete="username"
-                autoFocus
-                required
-                fullWidth
-                size="small"
-                variant="outlined"
-                value={formValues.username}
-                onChange={handleInputChange}
-                sx={inputSx}
-              />
-            </div>
-          </FormControl>
-
           {/* Email */}
           <FormControl>
             <div className="flex flex-col gap-1.5">
@@ -179,6 +142,7 @@ const SellerSignUp = () => {
                 name="email"
                 placeholder="Email"
                 autoComplete="email"
+                autoFocus
                 required
                 fullWidth
                 size="small"
@@ -219,59 +183,20 @@ const SellerSignUp = () => {
               />
             </div>
           </FormControl>
-
-          {/* Confirm Password */}
-          <FormControl error={!!passwordError}>
-            <div className="flex flex-col gap-1.5">
-              <FormLabel
-                htmlFor="confirmPassword"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "0.875rem",
-                  color: "#9ca3af",
-                }}
-              >
-                Confirm Password
-              </FormLabel>
-              <TextField
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                type="password"
-                id="confirmPassword"
-                autoComplete="new-password"
-                required
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formValues.confirmPassword}
-                onChange={handleInputChange}
-                error={!!passwordError}
-                helperText={passwordError}
-                sx={{
-                  ...inputSx,
-                  "& .MuiOutlinedInput-root": {
-                    ...inputSx["& .MuiOutlinedInput-root"],
-                    "& fieldset": {
-                      borderColor: passwordError
-                        ? "#ef4444"
-                        : "rgba(255,255,255,0.1)",
-                    },
-                  },
-                  "& .MuiFormHelperText-root": {
-                    color: "#ef4444",
-                  },
-                }}
-              />
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+              <p className="text-red-400 text-sm text-center">{error}</p>
             </div>
-          </FormControl>
+          )}
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={mutation.isPending}
+            disabled={isSubmitting}
             className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 mt-3 py-3 px-5 rounded-lg text-white font-semibold shadow-lg shadow-purple-500/25 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {mutation.isPending ? "Signing up..." : "Sign Up"}
+            {isSubmitting ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 

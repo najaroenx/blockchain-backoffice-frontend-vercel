@@ -37,6 +37,18 @@ export default function ProductCreatePage() {
     >
   ) => {
     const { name, value } = e.target;
+
+    // Auto-set valueType based on productType
+    if (name === "productType") {
+      const newValueType = value === "voucher" ? "cash" : "aispoint";
+      setFormData((prev) => ({
+        ...prev,
+        productType: value,
+        valueType: newValueType,
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: ["value", "pointsCost", "totalIssued"].includes(name)
@@ -77,15 +89,20 @@ export default function ProductCreatePage() {
 
       console.log("Submitting product:", payload);
 
-      // TODO: Call API to create product
-      // const response = await fetch('/api/seller/products', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(payload),
-      // });
+      const response = await fetch("/api/seller/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      alert("Product created successfully!");
-      router.push("/dlt/seller/products/list");
+      const result = await response.json();
+
+      if (result.status === "success") {
+        alert("Product created successfully!");
+        router.push("/dlt/seller/products/list");
+      } else {
+        alert(result.message || "Failed to create product");
+      }
     } catch (error) {
       console.error("Error creating product:", error);
       alert("Failed to create product");
