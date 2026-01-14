@@ -17,7 +17,7 @@ export interface UseDLTAuthResult {
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  // Actions
+  // Action
   login: (
     email: string,
     password: string,
