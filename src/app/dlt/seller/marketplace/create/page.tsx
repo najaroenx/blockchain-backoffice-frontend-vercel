@@ -12,10 +12,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { BrowseProductsModal } from "@/components/seller/BrowseProductsModal";
 import { useVoucher } from "../../hooks/useVoucher";
-import { ModalCustom } from "@/components/ui/ModalCustom";
-import { Spinner } from "@/components/ui/Spinner";
-import { useListToMarketplace } from "../../hooks/useListToMarketplace";
-import { useListToMarketplaceStore } from "../../hooks/useListToMarketplaceStore";
+import { useMarketplaceSellerProduct } from "@/app/dlt/hooks/useMarketplace";
+import { useLoading } from "@/app/dlt/contexts/merchantContext";
 // Types
 interface Product {
   id: string;
@@ -62,20 +60,11 @@ export default function CreateOrderPage() {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [voucherList, setVoucherList] = useState<IFetchVoucher | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
+  const { showLoading, hideLoading } = useLoading();
   //   Hooks
   const { vouchers, isLoading, isError } = useVoucher();
-  const { orders, loadingOrders, errorOrders, addOrder } =
-    useListToMarketplaceStore();
-  const {
-    listToMarketplace,
-    isLoadingCreateOrder,
-    isErrorCreateOrder,
-    errorCreateOrder,
-    dataCreateOrder,
-  } = useListToMarketplace();
+  const { listBatchToMarketplace, isListing, listError, listResult } =
+    useMarketplaceSellerProduct();
 
   // Filter products based on search
   const filteredProducts = voucherList?.vouchers.filter((product) =>
@@ -207,28 +196,29 @@ export default function CreateOrderPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Order submitted:", { selectedProducts, customerForm });
-    setIsProcessing(true);
+    showLoading("dispatching order...");
     try {
-      // Call the POST API with your data
-      const reqBody: any[] = [];
-      selectedProducts.forEach((product) => {
-        reqBody.push({
+      const timestamp = new Date().toLocaleString();
+      const payload = {
+        name: `Marketplace Batch - ${timestamp}`,
+        description: `Batch listing with ${selectedProducts.length} products`,
+        sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c", //TODO: fix later and should be get from merchant
+        items: selectedProducts.map((product) => ({
           voucherId: product.id,
           amount: product.quantity,
           pricePerUnitTHB: product.value,
-          sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c", //TODO: fix later and should be get from merchant
-          total: product.value * product.quantity,
-        });
-      });
-      await addOrder(reqBody, "0xf5e40ec8bfa4818278c04489b34a486281658e5c");
+        })),
+      };
 
-      setIsSuccess(true);
+      await listBatchToMarketplace(payload);
+      hideLoading();
     } catch (err) {
       console.error("Error:", err);
-      setIsProcessing(false);
+      hideLoading();
       // Handle error
     } finally {
-      setIsProcessing(false);
+      hideLoading();
+      router.push("/dlt/seller/marketplace/list");
     }
   };
 
@@ -878,52 +868,6 @@ export default function CreateOrderPage() {
         onConfirm={handleProductsSelected}
         existingProducts={voucherList?.vouchers || []}
       />
-      {/* Modal during create*/}
-      <ModalCustom
-        isOpen={isLoadingCreateOrder}
-        title="กำลังดำเนินการ"
-        confirmText="Discard"
-        cancelText="Keep Editing"
-        // onConfirm={() => router.back()}
-        // onCancel={() => setShowDiscardModal(false)}
-      >
-        <div className="flex flex-col items-center justify-center gap-2 my-10">
-          <Spinner size="lg" color="text-purple-400" />
-          <p className="text-sm text-black font-semibold text-gray-500">
-            กำลังดำเนินการ กรุณารอสักครู่...
-          </p>
-        </div>
-      </ModalCustom>
-      {/* Modal during create*/}
-      <ModalCustom
-        isOpen={isSuccess}
-        title="ระบบกำลังดำเนินการ"
-        confirmText="ยืนยัน"
-        // cancelText="Keep Editing"
-        onConfirm={() => router.push("/dlt/seller/marketplace/list")}
-        // onCancel={() => setShowDiscardModal(false)}
-      >
-        <div className="flex flex-col items-center justify-center gap-2 my-10">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-500/20 mb-4">
-            <svg
-              className="h-6 w-6 text-emerald-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <p className="text-sm text-black font-semibold text-gray-500">
-            ดำเนินการสำเร็จ และรอการยืนยันจากระบบ
-          </p>
-        </div>
-      </ModalCustom>
     </div>
   );
 }

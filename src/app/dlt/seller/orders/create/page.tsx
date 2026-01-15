@@ -14,8 +14,9 @@ import { BrowseProductsModal } from "@/components/seller/BrowseProductsModal";
 import { useVoucher } from "../../hooks/useVoucher";
 import { ModalCustom } from "@/components/ui/ModalCustom";
 import { Spinner } from "@/components/ui/Spinner";
-import { useListToMarketplace } from "../../hooks/useListToMarketplace";
-import { useListToMarketplaceStore } from "../../hooks/useListToMarketplaceStore";
+import { useMarketplaceSellerProduct } from "@/app/dlt/hooks/useMarketplace";
+import { useLoading } from "@/app/dlt/contexts/merchantContext";
+
 // Types
 interface Product {
   id: string;
@@ -64,18 +65,11 @@ export default function CreateOrderPage() {
   const [voucherList, setVoucherList] = useState<IFetchVoucher | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
+  const { showLoading, hideLoading } = useLoading();
   //   Hooks
   const { vouchers, isLoading, isError } = useVoucher();
-  const { orders, loadingOrders, errorOrders, addOrder } =
-    useListToMarketplaceStore();
-  const {
-    listToMarketplace,
-    isLoadingCreateOrder,
-    isErrorCreateOrder,
-    errorCreateOrder,
-    dataCreateOrder,
-  } = useListToMarketplace();
+  const { listBatchToMarketplace, isListing, listError, listResult } =
+    useMarketplaceSellerProduct();
 
   // Filter products based on search
   const filteredProducts = voucherList?.vouchers.filter((product) =>
@@ -207,32 +201,36 @@ export default function CreateOrderPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Order submitted:", { selectedProducts, customerForm });
-    setIsProcessing(true);
+    // setIsProcessing(true);
+
     try {
-      // Call the POST API with your data
-      const reqBody: any[] = [];
-      selectedProducts.forEach((product) => {
-        reqBody.push({
-          voucherId: product.id,
-          amount: product.quantity,
-          pricePerUnitTHB: product.value,
-          sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c", //TODO: fix later and should be get from merchant
-          total: product.value * product.quantity,
-        });
-      });
-      await addOrder(reqBody, "0xf5e40ec8bfa4818278c04489b34a486281658e5c");
+      showLoading("dispatching order...");
+      // Prepare items for batch listing
+      const items = selectedProducts.map((product) => ({
+        voucherId: product.id,
+        amount: product.quantity,
+        pricePerUnitTHB: product.value,
+      }));
+
+      // Create batch listing payload
+      const payload = {
+        name: `Order - ${new Date().toLocaleString("th-TH")}`,
+        description: `Batch order with ${selectedProducts.length} products`,
+        sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c", // TODO: Get from merchant context
+        items: items,
+      };
+
+      // Call the API
+      await listBatchToMarketplace(payload);
 
       setIsSuccess(true);
     } catch (err) {
       console.error("Error:", err);
-      setIsProcessing(false);
       // Handle error
     } finally {
-      setIsProcessing(false);
+      hideLoading()
     }
-  };
-
-  // Handle products selected from modal
+  }; // Handle products selected from modal
   const handleProductsSelected = (products: IVoucher[]) => {
     setSelectedProducts(products);
   };
@@ -313,7 +311,7 @@ export default function CreateOrderPage() {
             className="bg-[#1a1a2e] rounded-2xl border border-white/5 shadow-sm p-6"
           >
             <h2 className="text-lg font-bold text-white mb-6">
-              Select products
+              Select products!
             </h2>
 
             {/* Search and Browse */}
@@ -878,22 +876,7 @@ export default function CreateOrderPage() {
         onConfirm={handleProductsSelected}
         existingProducts={voucherList?.vouchers || []}
       />
-      {/* Modal during create*/}
-      <ModalCustom
-        isOpen={isLoadingCreateOrder}
-        title="กำลังดำเนินการ"
-        confirmText="Discard"
-        cancelText="Keep Editing"
-        // onConfirm={() => router.back()}
-        // onCancel={() => setShowDiscardModal(false)}
-      >
-        <div className="flex flex-col items-center justify-center gap-2 my-10">
-          <Spinner size="lg" color="text-purple-400" />
-          <p className="text-sm text-black font-semibold text-gray-500">
-            กำลังดำเนินการ กรุณารอสักครู่...
-          </p>
-        </div>
-      </ModalCustom>
+
       {/* Modal during create*/}
       <ModalCustom
         isOpen={isSuccess}

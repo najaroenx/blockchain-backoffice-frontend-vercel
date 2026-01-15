@@ -342,6 +342,67 @@ export function useBuyFromSeller(merchantId: string) {
   };
 }
 
+// ==================== LIST BATCH TO MARKETPLACE ====================
+
+interface ListBatchItem {
+  voucherId: string;
+  amount: number;
+  pricePerUnitTHB: number;
+}
+
+interface ListBatchToMarketplacePayload {
+  name: string;
+  description: string;
+  sellerWalletAddress: string;
+  items: ListBatchItem[];
+}
+
+interface ListBatchToMarketplaceResult {
+  message: string;
+  data?: unknown;
+}
+
+// List batch fetcher (POST)
+const listBatchFetcher = async (
+  url: string,
+  { arg }: { arg: ListBatchToMarketplacePayload }
+) => {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(arg),
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || "Failed to list products to marketplace");
+  }
+
+  return json;
+};
+
+/**
+ * Hook to list multiple products to marketplace in batch
+ */
+export function useMarketplaceSellerProduct() {
+  const url = "/api/seller/litst-batch-to-marketplace";
+
+  const { trigger, isMutating, error, data } = useSWRMutation(
+    url,
+    listBatchFetcher
+  );
+
+  return {
+    listBatchToMarketplace: trigger,
+    isListing: isMutating,
+    listError: error,
+    listResult: data as ListBatchToMarketplaceResult | undefined,
+  };
+}
+
 // ==================== MOCK DATA (for development fallback) ====================
 
 export const mockMarketplaceCategories: MarketplaceCategory[] = [

@@ -4,6 +4,7 @@ import { Space_Grotesk, Outfit } from "next/font/google";
 import { SellerSidebar } from "@/components/seller/SellerSidebar";
 import { SellerHeader } from "@/components/seller/SellerHeader";
 import { SellerProvider } from "@/contexts/SellerDashboardContext";
+import { MerchantProvider } from "@/app/dlt/contexts/merchantContext";
 
 // Modern fonts for DLT theme
 const spaceGrotesk = Space_Grotesk({
@@ -24,20 +25,22 @@ export default function SellerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SellerProvider>
-      <div
-        className={`flex min-h-screen bg-[#0a0a14] ${spaceGrotesk.variable} ${outfit.variable}`}
-        style={{
-          fontFamily:
-            "var(--font-outfit), var(--font-space-grotesk), system-ui, sans-serif",
-        }}
-      >
-        <SellerSidebar />
-        <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
-          <SellerHeader />
-          <main className="flex-1 overflow-auto p-8">{children}</main>
+    <MerchantProvider value="seller">
+      <SellerProvider>
+        <div
+          className={`flex min-h-screen bg-[#0a0a14] ${spaceGrotesk.variable} ${outfit.variable}`}
+          style={{
+            fontFamily:
+              "var(--font-outfit), var(--font-space-grotesk), system-ui, sans-serif",
+          }}
+        >
+          <SellerSidebar />
+          <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out">
+            <SellerHeader />
+            <main className="flex-1 overflow-auto p-8">{children}</main>
+          </div>
         </div>
-      </div>
-    </SellerProvider>
+      </SellerProvider>
+    </MerchantProvider>
   );
 }
