@@ -1,7 +1,7 @@
 type RequestOptions = {
   method: string;
   headers?: Record<string, string>;
-  body?: Record<string, unknown>;
+  body?: object;
   queryParams?: Record<string, string | number>;
   unwrapData?: boolean; // Option to unwrap { status, message, data } response
 };
@@ -16,13 +16,13 @@ export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
   if (fetchOptions.queryParams) {
-    const urlObj = new URL(url);
+    const separator = url.includes("?") ? "&" : "?";
+    const queryString = new URLSearchParams(
+      fetchOptions.queryParams as any
+    ).toString();
+    const finalUrl = `${url}${separator}${queryString}`;
 
-    Object.entries(fetchOptions.queryParams).forEach(([key, value]) => {
-      urlObj.searchParams.append(key, value.toString());
-    });
-
-    const response = await fetch(urlObj.toString(), {
+    const response = await fetch(finalUrl, {
       method: fetchOptions.method,
       headers: {
         "Content-Type": "application/json",

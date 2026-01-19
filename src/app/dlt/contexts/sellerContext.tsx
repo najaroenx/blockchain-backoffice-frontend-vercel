@@ -11,8 +11,8 @@ import { SuccessLoadingComponent } from "@/app/dlt/components/SuccessLoadingComp
 import LoadingDefaultComponent from "../components/LoadingDefaultComponent";
 import { ErrorLoadingComponent } from "@/app/dlt/components/ErrorLoadingComponent";
 
-interface MerchantContextProps {
-  merchantId: string | null;
+interface SellerContextProps {
+  sellerId: string | null;
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   // Loading state
@@ -32,11 +32,9 @@ interface MerchantContextProps {
   hideLoadingError: () => void;
 }
 
-const MerchantContext = createContext<MerchantContextProps | undefined>(
-  undefined
-);
+const SellerContext = createContext<SellerContextProps | undefined>(undefined);
 
-interface MerchantProviderProps {
+interface SellerProviderProps {
   value: string | null;
   children: ReactNode;
 }
@@ -46,10 +44,7 @@ const MIN_LOADING_TIME = 500;
 const SUCCESS_DISPLAY_TIME = 2000;
 const ERROR_DISPLAY_TIME = 3000;
 
-export const MerchantProvider = ({
-  value,
-  children,
-}: MerchantProviderProps) => {
+export const SellerProvider = ({ value, children }: SellerProviderProps) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("กรุณารอสักครู่...");
@@ -157,9 +152,9 @@ export const MerchantProvider = ({
   }, []);
 
   return (
-    <MerchantContext.Provider
+    <SellerContext.Provider
       value={{
-        merchantId: value,
+        sellerId: value,
         isSidebarCollapsed,
         toggleSidebar,
         isLoading,
@@ -220,28 +215,26 @@ export const MerchantProvider = ({
           </div>
         </div>
       )}
-    </MerchantContext.Provider>
+    </SellerContext.Provider>
   );
 };
 
-export const useMerchantContext = () => {
-  const context = useContext(MerchantContext);
+export const useSellerContext = () => {
+  const context = useContext(SellerContext);
   if (!context) {
-    throw new Error(
-      "useMerchantContext must be used within a MerchantProvider"
-    );
+    throw new Error("useSellerContext must be used within a SellerProvider");
   }
   return context;
 };
 
-export const useMerchantId = () => {
-  const context = useMerchantContext();
-  return context.merchantId;
+export const useSellerId = () => {
+  const context = useSellerContext();
+  return context.sellerId;
 };
 
 // Hook สำหรับใช้ loading
-export const useLoading = () => {
-  const context = useMerchantContext();
+export const useSellerLoading = () => {
+  const context = useSellerContext();
   return {
     isLoading: context.isLoading,
     showLoading: context.showLoading,
@@ -250,8 +243,8 @@ export const useLoading = () => {
 };
 
 // Hook สำหรับใช้ success loading
-export const useLoadingSuccess = () => {
-  const context = useMerchantContext();
+export const useSellerLoadingSuccess = () => {
+  const context = useSellerContext();
   return {
     isLoadingSuccess: context.isLoadingSuccess,
     showLoadingSuccess: context.showLoadingSuccess,
@@ -260,8 +253,8 @@ export const useLoadingSuccess = () => {
 };
 
 // Hook สำหรับใช้ error loading
-export const useLoadingError = () => {
-  const context = useMerchantContext();
+export const useSellerLoadingError = () => {
+  const context = useSellerContext();
   return {
     isLoadingError: context.isLoadingError,
     showLoadingError: context.showLoadingError,

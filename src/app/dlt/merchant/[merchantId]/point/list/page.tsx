@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
+import { useState, useEffect, useCallback } from "react";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import Link from "next/link";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
@@ -20,7 +21,7 @@ interface Point {
 
 export default function PointListPage() {
   const merchantId = useMerchantId();
-  const { showLoading, hideLoading } = useLoading();
+  const { execute } = useApiWithLoading();
   const [points, setPoints] = useState<Point[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -36,42 +37,41 @@ export default function PointListPage() {
     }
   };
 
-  // Fetch points on mount
-  useEffect(() => {
-    const fetchPoints = async () => {
-      if (!merchantId) return;
+  // Fetch points function using useApiWithLoading
+  const fetchPoints = useCallback(async () => {
+    if (!merchantId) return;
 
-      showLoading("กำลังโหลดข้อมูล...");
-      try {
-        const response = await fetch(`/api/${merchantId}/point`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch points");
+    try {
+      const data = await execute(
+        async () => {
+          const response = await fetch(`/api/${merchantId}/point`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch points");
+          }
+          return response.json();
+        },
+        {
+          loadingText: "กำลังโหลดข้อมูล...",
+          showSuccessOnComplete: false, // ไม่ต้องแสดง success animation สำหรับ GET
+          showErrorOnFail: true,
+          errorText: "ไม่สามารถโหลดข้อมูลได้",
         }
+      );
 
-        const data = await response.json();
+      if (data) {
         setPoints(data);
         setError(null);
-      } catch (err) {
-        console.error("Error fetching points:", err);
-        setError(err instanceof Error ? err.message : "Failed to load points");
-      } finally {
-        hideLoading();
       }
-    };
+    } catch (err) {
+      console.error("Error fetching points:", err);
+      setError(err instanceof Error ? err.message : "Failed to load points");
+    }
+  }, [merchantId, execute]);
 
+  // Fetch on mount
+  useEffect(() => {
     fetchPoints();
-  }, [merchantId]);
-
-  // Format date from Unix timestamp
-  const formatDate = (timestamp?: number) => {
-    if (!timestamp) return "-";
-    return new Date(timestamp * 1000).toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  }, [fetchPoints]);
 
   // Calculate total supply
   const totalSupply = points.reduce(

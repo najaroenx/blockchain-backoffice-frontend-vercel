@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import ImageIcon from "@mui/icons-material/Image";
@@ -9,11 +8,11 @@ import LanguageIcon from "@mui/icons-material/Language";
 import DescriptionIcon from "@mui/icons-material/Description";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
-import { useCreateMerchant } from "@/app/dlt/hooks/useMerchants";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
+import { api } from "@/libs/api";
 
 export default function CreateMerchantPage() {
-  const router = useRouter();
-  const { createMerchant, isCreating } = useCreateMerchant();
+  const { execute, isExecuting } = useApiWithLoading();
   const [formData, setFormData] = useState({
     name: "hydroflask",
     website: "https://www.hydroflask.com/",
@@ -35,15 +34,28 @@ export default function CreateMerchantPage() {
     e.preventDefault();
 
     try {
-      await createMerchant({
-        name: formData.name,
-        website: formData.website,
-        description: formData.description,
-        imageUrl: formData.imageUrl,
-        location: formData.location,
-        tel: formData.tel,
-      });
-      router.push("/dlt/merchant");
+      await execute(
+        () =>
+          api("/api/merchant", {
+            method: "POST",
+            body: {
+              name: formData.name,
+              website: formData.website,
+              description: formData.description,
+              imageUrl: formData.imageUrl,
+              location: formData.location,
+              tel: formData.tel,
+            },
+          }),
+        {
+          loadingText: "กำลังสร้าง Merchant...",
+          successText: "สร้าง Merchant สำเร็จ!",
+          errorText: "ไม่สามารถสร้าง Merchant ได้",
+          showSuccessOnComplete: true,
+          redirectOnSuccess: "/dlt/merchant",
+          redirectDelay: 2000,
+        }
+      );
     } catch (error) {
       console.error("Failed to create merchant:", error);
     }
@@ -51,18 +63,6 @@ export default function CreateMerchantPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white relative">
-      {/* Loading Overlay */}
-      {isCreating && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
-            <p className="text-white text-lg font-medium">
-              กำลังสร้าง Merchant...
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="bg-[#1a1a2e] border-b border-white/5">
         <div className="max-w-4xl mx-auto px-6 py-6">
@@ -190,10 +190,10 @@ export default function CreateMerchantPage() {
             <div className="flex items-center gap-4 pt-4 border-t border-white/5">
               <button
                 type="submit"
-                disabled={isCreating || !formData.name}
+                disabled={isExecuting || !formData.name}
                 className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isCreating ? (
+                {isExecuting ? (
                   <span className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Creating...

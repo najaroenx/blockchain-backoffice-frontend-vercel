@@ -212,7 +212,6 @@ export const MerchantSidebar = () => {
               { label: "List", href: `${basePath}/point/list` },
               { label: "Create", href: `${basePath}/point/create` },
               { label: "Transfer", href: `${basePath}/point/transfer` },
-              { label: "Transaction", href: `${basePath}/point/transaction` },
             ]}
             isCollapsed={isSidebarCollapsed}
           />
@@ -229,6 +228,14 @@ export const MerchantSidebar = () => {
               },
               { label: "Coupons", href: `${basePath}/voucher/rewards` },
             ]}
+            isCollapsed={isSidebarCollapsed}
+          />
+          <MenuItem
+            icon={ReceiptLongOutlined}
+            label="Transactions"
+            hasSubmenu
+            isActive={pathname.startsWith(`${basePath}/transaction`)}
+            subItems={[{ label: "List", href: `${basePath}/transaction/list` }]}
             isCollapsed={isSidebarCollapsed}
           />
         </nav>

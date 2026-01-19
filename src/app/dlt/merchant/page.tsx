@@ -1,11 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import AddIcon from "@mui/icons-material/Add";
-import { useMerchants } from "@/hooks/useMerchant";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
+import { api } from "@/libs/api";
 
 const heroSlides = [
   {
@@ -30,8 +29,27 @@ const heroSlides = [
 ];
 
 export default function MerchantPage() {
-  const { merchants, merchantLoading, createMerchant } = useMerchants();
+  const { execute } = useApiWithLoading();
+  const [merchants, setMerchants] = useState<any[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Fetch merchants on mount
+  useEffect(() => {
+    const fetchMerchants = async () => {
+      const data = await execute(
+        () => api("/api/merchant", { method: "GET" }),
+        {
+          loadingText: "กำลังโหลดข้อมูล Merchant...",
+          showSuccessOnComplete: false,
+          redirectDelay: 5000,
+        }
+      );
+      if (data) {
+        setMerchants(data);
+      }
+    };
+    fetchMerchants();
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -99,7 +117,6 @@ export default function MerchantPage() {
           </div>
         </div>
       </section>
-
       {/* Our merchant */}
       <section className="py-20 bg-gradient-to-b from-[#0a0a1a] to-[#0f0f24]">
         <div className="max-w-7xl mx-auto px-6">
@@ -156,9 +173,8 @@ export default function MerchantPage() {
 
             {merchants &&
               merchants.map((merchant: any) => (
-                <Link
+                <div
                   key={merchant.id}
-                  href={`/dlt/merchant/${merchant.id}`}
                   className="group bg-[#1a1a2e] rounded-xl border border-white/5 hover:border-purple-500/30 overflow-hidden transition-all hover:scale-[1.02] flex flex-col h-full"
                 >
                   <div className="relative aspect-square overflow-hidden">
@@ -179,11 +195,23 @@ export default function MerchantPage() {
                     <p className="text-gray-500 text-xs mb-2 line-clamp-1">
                       {merchant.description}
                     </p>
-                    <span className="inline-block px-2 py-0.5 bg-purple-500 text-white text-[10px] font-medium rounded-full">
-                      Manage
-                    </span>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/dlt/merchant/${merchant.id}`}
+                        target="_blank"
+                      >
+                        <span className="inline-block px-2 py-0.5 bg-purple-500 text-white text-[10px] font-medium rounded-full">
+                          Manage Merchant
+                        </span>
+                      </Link>
+                      <Link href={`/dlt/seller/${merchant.id}`} target="_blank">
+                        <span className="inline-block px-2 py-0.5 bg-purple-500 text-white text-[10px] font-medium rounded-full">
+                          Manage Seller
+                        </span>
+                      </Link>
+                    </div>
                   </div>
-                </Link>
+                </div>
               ))}
           </div>
 

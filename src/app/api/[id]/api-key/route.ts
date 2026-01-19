@@ -7,12 +7,12 @@ import { NextRequest } from "next/server";
 import logger from "@/libs/logger";
 import { mockApiKeys } from "@/data/mockAdmin";
 
-const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4004";
 const shouldProtectAdmin =
   (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: NextRequest, { params }: { params: any }) {
-  logger.info(`Received request: ${req.method} ${req.url}`);
+  logger.info(`Received request API KEY: ${req.method} ${req.url}`);
 
   try {
     const start = parseInt(req.nextUrl.searchParams.get("_start") ?? "0", 10);
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     if (shouldProtectAdmin && !token) {
       return handleError("Unauthorized access", 401);
     }
-
+    console.log("merchantId", merchantId);
     if (!merchantId) {
       return Response.json([], {
         headers: {
@@ -55,18 +55,20 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
         },
       });
     }
-
+    console.log("queryParams", {
+      take,
+      page,
+    });
     const response = await api(`${BACKEND_URL}/${merchantId}/api-key/`, {
       method: "GET",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       queryParams: {
-        take,
+        take: 100, //TODO: to fix later
         page,
       },
     });
-
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
     }
@@ -96,7 +98,7 @@ export async function POST(req: Request, { params }: { params: any }) {
     const body = await req.json();
     const merchantId = params.id;
 
-    let token:any = "";
+    let token: any = "";
     if (shouldProtectAdmin) {
       const session = await getServerSession(authOptions);
       token = session?.user.accessToken ?? "";

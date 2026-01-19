@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import SearchIcon from "@mui/icons-material/Search";
+import { WalletOutlined } from "@mui/icons-material";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -11,10 +12,12 @@ import HistoryIcon from "@mui/icons-material/History";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useMerchantContext } from "@/app/dlt/contexts/merchantContext";
 import { signOut } from "next-auth/react";
+import WalletCustomComponent from "./walletCustomComponent";
 
 export const MerchantHeader = () => {
   const { toggleSidebar } = useMerchantContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -72,6 +75,29 @@ export const MerchantHeader = () => {
             />
           </div>
         </div>
+        {/* Wallet with Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsWalletOpen(!isWalletOpen)}
+            className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+          >
+            <WalletOutlined />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
+          </button>
+
+          {/* Wallet Popup Dropdown */}
+          {isWalletOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsWalletOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <WalletCustomComponent />
+              </div>
+            </>
+          )}
+        </div>
         <button className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
           <NotificationsNoneIcon />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
@@ -102,7 +128,9 @@ export const MerchantHeader = () => {
                   </div>
                   <div>
                     <p className="text-gray-900 font-semibold">John Doe</p>
-                    <p className="text-gray-500 text-sm">admin@dltloyalty.com</p>
+                    <p className="text-gray-500 text-sm">
+                      admin@dltloyalty.com
+                    </p>
                   </div>
                 </div>
               </div>
