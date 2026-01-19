@@ -133,7 +133,7 @@ export default function MerchantPage({
 
       if (result) {
         console.log("result", result);
-        setData(result);
+        setData(null);
       }
     };
 
@@ -141,7 +141,8 @@ export default function MerchantPage({
   }, [params.merchantId]);
 
   // Default stats if data is loading or null
-  const stats = data || {
+  // Default stats definition to ensure structure safety
+  const defaultStats: DashboardData = {
     dateRange: { startDate: "", endDate: "" },
     couponCount: {
       total: 0,
@@ -162,6 +163,35 @@ export default function MerchantPage({
     points: { total: 0, types: [] },
     thbToken: { deposited: 0, usedForPromotion: 0, usedForRedeem: 0 },
   };
+
+  // Safe merge: usage user data if available, otherwise fallback to defaults
+  // Note: Simple spread {...defaultStats, ...data} works well for shallow merging.
+  // if data has nested missing objects, we might still need deeper safety,
+  // but based on typical API responses, the high level object presence is the main issue.
+  // For extra safety on nested objects, we can spread them individually if needed,
+  // but let's start with a safe object initialization.
+  const stats = data
+    ? {
+        ...defaultStats,
+        ...data,
+        // Ensure nested objects are also safe if data partially exists
+        couponCount: {
+          ...defaultStats.couponCount,
+          ...(data.couponCount || {}),
+        },
+        couponValue: {
+          ...defaultStats.couponValue,
+          ...(data.couponValue || {}),
+        },
+        endUsers: { ...defaultStats.endUsers, ...(data.endUsers || {}) },
+        transactions: {
+          ...defaultStats.transactions,
+          ...(data.transactions || {}),
+        },
+        points: { ...defaultStats.points, ...(data.points || {}) },
+        thbToken: { ...defaultStats.thbToken, ...(data.thbToken || {}) },
+      }
+    : defaultStats;
 
   // Chart configurations
   const couponDonutOptions: ApexOptions = {
