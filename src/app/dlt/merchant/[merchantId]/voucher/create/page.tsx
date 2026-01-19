@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useLoading, useMerchantId } from "@/app/dlt/contexts/merchantContext";
+import { useState, useEffect, useCallback } from "react";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import Image from "next/image";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import PercentIcon from "@mui/icons-material/Percent";
@@ -69,12 +68,9 @@ const campaignTypes = [
 
 export default function CampaignCreatePage() {
   const merchantId = useMerchantId();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const { execute } = useApiWithLoading();
 
-  const { showLoading, hideLoading } = useLoading();
   const [points, setPoints] = useState<Point[]>([]);
   const [isPointDropdownOpen, setIsPointDropdownOpen] = useState(false);
   const [rewards, setRewards] = useState<Reward[]>([]);
@@ -103,42 +99,6 @@ export default function CampaignCreatePage() {
     targetAudience: "all",
     memberTiers: [] as string[],
   });
-
-  // Mock available coupons
-  const availableCoupons = [
-    {
-      id: "CPN-001",
-      name: "Welcome Discount 20%",
-      type: "Percentage",
-      value: "20%",
-      remaining: 450,
-      image: "🎫",
-    },
-    {
-      id: "CPN-002",
-      name: "฿100 Cash Voucher",
-      type: "Fixed",
-      value: "฿100",
-      remaining: 200,
-      image: "💵",
-    },
-    {
-      id: "CPN-003",
-      name: "Free Shipping",
-      type: "Shipping",
-      value: "Free",
-      remaining: 1000,
-      image: "🚚",
-    },
-    {
-      id: "CPN-004",
-      name: "Buy 1 Get 1 Free",
-      type: "Bundle",
-      value: "BOGO",
-      remaining: 100,
-      image: "🎁",
-    },
-  ];
 
   // Mock available point programs
   const availablePointPrograms = [
@@ -176,35 +136,9 @@ export default function CampaignCreatePage() {
     },
   ];
 
-  const steps = [
-    { number: 1, title: "Campaign Type" },
-    { number: 2, title: "Details" },
-    { number: 3, title: "Schedule" },
-  ];
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setFormData({ ...formData, image: null });
-    setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating campaign for merchant:", merchantId, formData);
+
     const body = {
       pointsCost: +formData.pointsRequired,
       amount: +formData.maxUsage,
@@ -213,42 +147,35 @@ export default function CampaignCreatePage() {
         (point) => point.id === formData.selectedPointProgram
       )?.symbol,
     };
-    console.info("BODY CREATE", body);
-    try {
-      showLoading("กำลังโหลดข้อมูล...");
-      const response = await fetch(
-        `/api/${merchantId}/voucher/activate/${formData.selectedCoupon}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+
+    await execute(
+      async () => {
+        const response = await fetch(
+          `/api/${merchantId}/voucher/activate/${formData.selectedCoupon}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to activate voucher");
         }
-      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to activate voucher");
+        return response.json();
+      },
+      {
+        loadingText: "กำลังเปิดใช้งาน Voucher...",
+        successText: "Voucher activated successfully",
+        errorText: "ไม่สามารถเปิดใช้งาน Voucher ได้",
+        redirectOnSuccess: `/dlt/merchant/${merchantId}/voucher/list`,
+        redirectDelay: 3000,
       }
-
-      const result = await response.json();
-      console.log("Voucher activated successfully:", result);
-
-      // Navigate back to voucher list or show success message
-      window.location.href = `/dlt/merchant/${merchantId}/voucher/list`;
-    } catch (error) {
-      console.error("Error activating voucher:", error);
-      alert(
-        `เกิดข้อผิดพลาด: ${
-          error instanceof Error
-            ? error.message
-            : "ไม่สามารถเปิดใช้งาน Voucher ได้"
-        }`
-      );
-    } finally {
-      hideLoading();
-    }
+    );
   };
 
   const getColorClasses = (color: string, isSelected: boolean) => {
@@ -278,47 +205,53 @@ export default function CampaignCreatePage() {
     return colors[color];
   };
 
-  useEffect(() => {
-    const fetchPoints = async () => {
-      if (!merchantId) return;
+  // Fetch data on mount
+  const fetchData = useCallback(async () => {
+    if (!merchantId) return;
 
-      showLoading("กำลังโหลดข้อมูล...");
-      try {
-        const response = await fetch(`/api/${merchantId}/point`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch points");
+    // Fetch Points
+    try {
+      const pointsData = await execute(
+        async () => {
+          const response = await fetch(`/api/${merchantId}/point`);
+          if (!response.ok) throw new Error("Failed to fetch points");
+          return response.json();
+        },
+        {
+          loadingText: "กำลังโหลดข้อมูล...",
+          showSuccessOnComplete: false,
+          showErrorOnFail: false,
         }
-
-        const data = await response.json();
-        setPoints(data);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching points:", err);
-        setError(err instanceof Error ? err.message : "Failed to load points");
-      } finally {
-        hideLoading();
+      );
+      if (pointsData) {
+        setPoints(pointsData);
       }
-    };
-    const fetchRewards = async () => {
-      if (!merchantId) return;
+    } catch (err) {
+      console.error("Error fetching points:", err);
+    }
 
-      showLoading("กำลังโหลดข้อมูล Rewards...");
-      try {
-        const response = await fetch(`/api/${merchantId}/voucher`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch vouchers");
+    // Fetch Rewards
+    try {
+      const rewardsData = await execute(
+        async () => {
+          const response = await fetch(`/api/${merchantId}/voucher`);
+          if (!response.ok) throw new Error("Failed to fetch vouchers");
+          return response.json();
+        },
+        {
+          loadingText: "กำลังโหลดข้อมูล Rewards...",
+          showSuccessOnComplete: false,
+          showErrorOnFail: false,
         }
-        const data = await response.json();
-        console.log(data);
+      );
 
-        // Map API data to Reward structure
-        const mappedRewards: Reward[] = data.map((v: any) => ({
+      if (rewardsData) {
+        const mappedRewards: Reward[] = rewardsData.map((v: any) => ({
           id: v.id,
           name: v.name,
           imageUrl:
             v.imageUrl || "https://placehold.co/100x100/purple/white?text=RWD",
-          type: "Voucher", // Assuming API returns vouchers
+          type: "Voucher",
           value: v.valueType === "FIXED" ? `฿${v.value}` : `${v.value}%`,
           pointsCost: v.pointsCost || 0,
           totalIssued: v.totalIssued || 0,
@@ -331,19 +264,16 @@ export default function CampaignCreatePage() {
             year: "numeric",
           }),
         }));
-
         setRewards(mappedRewards.filter((v) => v.status === "upcoming"));
-      } catch (error) {
-        console.error("Error fetching rewards:", error);
-      } finally {
-        hideLoading();
       }
-    };
+    } catch (err) {
+      console.error("Error fetching rewards:", err);
+    }
+  }, [merchantId, execute]);
 
-    fetchRewards();
-
-    fetchPoints();
-  }, [merchantId]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -355,62 +285,10 @@ export default function CampaignCreatePage() {
         </p>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center gap-4">
-        {steps.map((step, index) => (
-          <div key={step.number} className="flex items-center">
-            <div
-              className={`flex items-center gap-3 px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                currentStep === step.number
-                  ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/50"
-                  : currentStep > step.number
-                  ? "bg-emerald-500/20 border border-emerald-500/50"
-                  : "bg-white/5 border border-white/10"
-              }`}
-              onClick={() => setCurrentStep(step.number)}
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                  currentStep === step.number
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                    : currentStep > step.number
-                    ? "bg-emerald-500 text-white"
-                    : "bg-white/10 text-gray-400"
-                }`}
-              >
-                {currentStep > step.number ? (
-                  <CheckCircleIcon fontSize="small" />
-                ) : (
-                  step.number
-                )}
-              </div>
-              <span
-                className={`text-sm font-medium ${
-                  currentStep === step.number
-                    ? "text-white"
-                    : currentStep > step.number
-                    ? "text-emerald-400"
-                    : "text-gray-500"
-                }`}
-              >
-                {step.title}
-              </span>
-            </div>
-            {index < steps.length - 1 && (
-              <div
-                className={`w-12 h-0.5 mx-2 ${
-                  currentStep > step.number ? "bg-emerald-500" : "bg-white/10"
-                }`}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        {/* Step 1: Campaign Type */}
-        {currentStep === 1 && (
+        {/* Step 2: Campaign Details */}
+        <div>
           <div className="space-y-6">
             {/* Campaign Type Selection */}
             <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6">
@@ -459,54 +337,6 @@ export default function CampaignCreatePage() {
                 Campaign Information
               </h3>
 
-              {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Campaign Image
-                </label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-                {imagePreview ? (
-                  <div className="relative group w-full h-40 rounded-xl overflow-hidden border border-white/10">
-                    <Image
-                      src={imagePreview}
-                      alt="Campaign preview"
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg"
-                      >
-                        Change
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-40 border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-purple-500/50 hover:bg-purple-500/5 transition-all"
-                  >
-                    <CloudUploadIcon className="w-10 h-10 text-gray-500 mb-2" />
-                    <p className="text-gray-400 text-sm">Click to upload</p>
-                  </div>
-                )}
-              </div>
-
               {/* Campaign Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -540,11 +370,7 @@ export default function CampaignCreatePage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Step 2: Campaign Details */}
-        {currentStep === 2 && (
-          <div className="space-y-6">
+          <div className="space-y-6 py-4">
             {/* Select Reward Coupon */}
             <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6 space-y-4">
               <div className="flex items-center justify-between">
@@ -1081,11 +907,7 @@ export default function CampaignCreatePage() {
               )}
             </div>
           </div>
-        )}
-
-        {/* Step 3: Schedule & Targeting */}
-        {currentStep === 3 && (
-          <div className="space-y-6">
+          <div className="space-y-6 py-4">
             {/* Schedule */}
             <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6 space-y-5">
               <h3 className="text-lg font-semibold text-white">
@@ -1120,92 +942,17 @@ export default function CampaignCreatePage() {
                 </div>
               </div>
             </div>
-
-            {/* Target Audience */}
-            <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-6 space-y-5">
-              <h3 className="text-lg font-semibold text-white">
-                Target Audience
-              </h3>
-              <div className="space-y-3">
-                {[
-                  {
-                    id: "all",
-                    label: "All Customers",
-                    desc: "Everyone can use this campaign",
-                  },
-                  {
-                    id: "members",
-                    label: "Members Only",
-                    desc: "Only registered members",
-                  },
-                  {
-                    id: "new",
-                    label: "New Customers",
-                    desc: "First-time customers only",
-                  },
-                  {
-                    id: "vip",
-                    label: "VIP Members",
-                    desc: "Gold & Platinum tier members",
-                  },
-                ].map((audience) => (
-                  <div
-                    key={audience.id}
-                    onClick={() =>
-                      setFormData({ ...formData, targetAudience: audience.id })
-                    }
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      formData.targetAudience === audience.id
-                        ? "bg-purple-500/20 border-purple-500"
-                        : "bg-white/5 border-white/10 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">
-                          {audience.label}
-                        </p>
-                        <p className="text-gray-400 text-sm">{audience.desc}</p>
-                      </div>
-                      {formData.targetAudience === audience.id && (
-                        <CheckCircleIcon className="text-purple-400" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        )}
+        </div>
 
         {/* Navigation Buttons */}
         <div className="flex gap-4 mt-6">
-          {currentStep > 1 && (
-            <button
-              type="button"
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="px-6 py-3 bg-white/5 text-gray-300 font-medium rounded-xl border border-white/10 hover:bg-white/10 transition-all"
-            >
-              Back
-            </button>
-          )}
-          <div className="flex-1" />
-          {currentStep < 4 ? (
-            <button
-              type="button"
-              onClick={() => setCurrentStep(currentStep + 1)}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
-            >
-              Continue
-            </button>
-          ) : (
-            <button
-              type="submit"
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
-            >
-              🚀 Launch Campaign
-            </button>
-          )}
+          <button
+            type="submit"
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
+          >
+            🚀 Launch Campaign
+          </button>
         </div>
       </form>
     </div>

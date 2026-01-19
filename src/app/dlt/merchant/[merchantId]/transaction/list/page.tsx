@@ -36,7 +36,7 @@ export default function PointTransactionPage() {
 
       showLoading("กำลังโหลดข้อมูล Transaction...");
       try {
-        const response = await fetch(`/api/${merchantId}/point/transaction`);
+        const response = await fetch(`/api/${merchantId}/transaction`);
         if (!response.ok) {
           throw new Error("Failed to fetch transactions");
         }

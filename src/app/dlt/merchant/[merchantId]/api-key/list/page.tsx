@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -8,9 +8,13 @@ import AddIcon from "@mui/icons-material/Add";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
+import { api } from "@/libs/api";
 
 interface ApiKey {
   id: string;
+  apiKey: string;
   name: string;
   secretKey: string;
   createdAt: string;
@@ -19,42 +23,35 @@ interface ApiKey {
   permissions: string[];
 }
 
-const mockApiKeys: ApiKey[] = [
-  {
-    id: "1",
-    name: "Production API Key",
-    secretKey: "sk_live_4eC39HqLyjWDarjtT1zdp7dc",
-    createdAt: "2024-01-15T10:30:00Z",
-    lastUsed: "2024-01-20T15:45:00Z",
-    status: "active",
-    permissions: ["read", "write", "delete"],
-  },
-  {
-    id: "2",
-    name: "Development API Key",
-    secretKey: "sk_test_51H2yLkKe3c4PmWr8dsaKL0m",
-    createdAt: "2024-01-10T08:00:00Z",
-    lastUsed: "2024-01-18T12:30:00Z",
-    status: "active",
-    permissions: ["read", "write"],
-  },
-  {
-    id: "3",
-    name: "Staging Environment",
-    secretKey: "sk_stag_7bXz9pQwR2sT5uY8vN1mK4jL",
-    createdAt: "2023-12-20T14:00:00Z",
-    lastUsed: null,
-    status: "revoked",
-    permissions: ["read"],
-  },
-];
-
 export default function ApiKeyListPage() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(mockApiKeys);
+  const merchantId = useMerchantId();
+  const { execute } = useApiWithLoading();
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+
+  // Fetch API keys on mount
+  useEffect(() => {
+    if (!merchantId) return;
+
+    const fetchApiKeys = async () => {
+      const data = await execute(
+        () => api(`/api/${merchantId}/api-key`, { method: "GET" }),
+        {
+          loadingText: "กำลังโหลด API Keys...",
+          showSuccessOnComplete: false,
+        }
+      );
+      if (data && Array.isArray(data)) {
+        setApiKeys(data);
+      }
+    };
+    fetchApiKeys();
+  }, [merchantId]);
+
+  console.log("apiKeys", apiKeys);
 
   const toggleVisibility = (id: string) => {
     const newVisible = new Set(visibleKeys);
@@ -76,7 +73,8 @@ export default function ApiKeyListPage() {
     }
   };
 
-  const maskSecretKey = (key: string) => {
+  const maskSecretKey = (key: string): string => {
+    if (!key || key.length < 11) return key;
     return (
       key.substring(0, 7) + "••••••••••••••••" + key.substring(key.length - 4)
     );
@@ -90,27 +88,52 @@ export default function ApiKeyListPage() {
     );
   };
 
-  const deleteKey = (id: string) => {
-    setApiKeys((prev) => prev.filter((key) => key.id !== id));
+  const deleteKey = async (id: string) => {
+    if (!merchantId) return;
+
+    try {
+      await execute(
+        () => api(`/api/${merchantId}/api-key/${id}`, { method: "DELETE" }),
+        {
+          loadingText: "กำลังลบ API Key...",
+          successText: "ลบ API Key สำเร็จ!",
+          errorText: "ไม่สามารถลบ API Key ได้",
+        }
+      );
+      setApiKeys((prev) => prev.filter((key) => key.id !== id));
+    } catch (error) {
+      console.error("Failed to delete API key:", error);
+    }
   };
 
-  const createNewKey = () => {
-    if (!newKeyName.trim()) return;
+  const createNewKey = async () => {
+    if (!newKeyName.trim() || !merchantId) return;
 
-    const newKey: ApiKey = {
-      id: Date.now().toString(),
-      name: newKeyName,
-      secretKey: `sk_live_${Math.random().toString(36).substring(2, 26)}`,
-      createdAt: new Date().toISOString(),
-      lastUsed: null,
-      status: "active",
-      permissions: ["read", "write"],
-    };
+    try {
+      const result = await execute(
+        () =>
+          api(`/api/${merchantId}/api-key`, {
+            method: "POST",
+            body: { name: newKeyName },
+          }),
+        {
+          loadingText: "กำลังสร้าง API Key...",
+          successText: "สร้าง API Key สำเร็จ!",
+          errorText: "ไม่สามารถสร้าง API Key ได้",
+        }
+      );
 
-    setApiKeys((prev) => [newKey, ...prev]);
-    setNewKeyName("");
-    setShowCreateModal(false);
-    setVisibleKeys((prev) => new Set(prev).add(newKey.id));
+      // Refresh the list after creating
+      const data = await api(`/api/${merchantId}/api-key`, { method: "GET" });
+      if (data && Array.isArray(data)) {
+        setApiKeys(data);
+      }
+
+      setNewKeyName("");
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error("Failed to create API key:", error);
+    }
   };
 
   const activeKeys = apiKeys.filter((k) => k.status === "active").length;
@@ -244,16 +267,6 @@ export default function ApiKeyListPage() {
                           <p className="text-sm font-semibold text-white">
                             {apiKey.name}
                           </p>
-                          <div className="flex gap-1 mt-1">
-                            {apiKey.permissions.map((perm) => (
-                              <span
-                                key={perm}
-                                className="px-1.5 py-0.5 text-[10px] font-medium bg-white/10 text-gray-400 rounded"
-                              >
-                                {perm}
-                              </span>
-                            ))}
-                          </div>
                         </div>
                       </div>
                     </td>
@@ -261,8 +274,8 @@ export default function ApiKeyListPage() {
                       <div className="flex items-center gap-2">
                         <code className="text-sm font-mono text-gray-300 bg-white/5 px-3 py-1.5 rounded-lg">
                           {visibleKeys.has(apiKey.id)
-                            ? apiKey.secretKey
-                            : maskSecretKey(apiKey.secretKey)}
+                            ? apiKey.apiKey
+                            : maskSecretKey(apiKey.apiKey)}
                         </code>
                         <button
                           onClick={() => toggleVisibility(apiKey.id)}

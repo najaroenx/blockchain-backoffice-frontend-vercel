@@ -10,6 +10,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircleOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useSellerDashboard } from "@/contexts/SellerDashboardContext";
+import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 
 interface MenuItemProps {
   icon: any;
@@ -120,6 +121,10 @@ const MenuItem = ({
 export const SellerSidebar = () => {
   const pathname = usePathname();
   const { isSidebarCollapsed } = useSellerDashboard();
+  const sellerId = useSellerId();
+
+  // Base path for seller routes
+  const basePath = `/dlt/seller/${sellerId}`;
 
   return (
     <aside
@@ -166,8 +171,8 @@ export const SellerSidebar = () => {
           <MenuItem
             icon={CampaignIcon}
             label="Marketing"
-            href="/dlt/seller"
-            isActive={pathname === "/dlt/seller" || pathname === "/dlt/seller/"}
+            href={basePath}
+            isActive={pathname === basePath || pathname === `${basePath}/`}
             isCollapsed={isSidebarCollapsed}
           />
         </nav>
@@ -185,10 +190,10 @@ export const SellerSidebar = () => {
             icon={PeopleIcon}
             label="Marketplace"
             hasSubmenu
-            isActive={pathname.startsWith("/dlt/seller/marketplace")}
+            isActive={pathname.startsWith(`${basePath}/marketplace`)}
             subItems={[
-              { label: "List", href: "/dlt/seller/marketplace/list" },
-              { label: "Create", href: "/dlt/seller/marketplace/create" },
+              { label: "List", href: `${basePath}/marketplace/list` },
+              { label: "Create", href: `${basePath}/marketplace/create` },
             ]}
             isCollapsed={isSidebarCollapsed}
           />
@@ -196,10 +201,10 @@ export const SellerSidebar = () => {
             icon={ReceiptIcon}
             label="Products"
             hasSubmenu
-            isActive={pathname.startsWith("/dlt/seller/products")}
+            isActive={pathname.startsWith(`${basePath}/products`)}
             subItems={[
-              { label: "List", href: "/dlt/seller/products/list" },
-              { label: "Create", href: "/dlt/seller/products/create" },
+              { label: "List", href: `${basePath}/products/list` },
+              { label: "Create", href: `${basePath}/products/create` },
             ]}
             isCollapsed={isSidebarCollapsed}
           />
@@ -207,8 +212,8 @@ export const SellerSidebar = () => {
             icon={ReceiptIcon}
             label="Transactions"
             hasSubmenu
-            isActive={pathname.startsWith("/dlt/seller/orders")}
-            subItems={[{ label: "List", href: "/dlt/seller/orders/list" }]}
+            isActive={pathname.startsWith(`${basePath}/orders`)}
+            subItems={[{ label: "List", href: `${basePath}/orders/list` }]}
             isCollapsed={isSidebarCollapsed}
           />
           <MenuItem

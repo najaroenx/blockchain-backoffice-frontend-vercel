@@ -49,7 +49,7 @@ export async function GET(req: Request, { params }: { params: any }) {
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
     }
-
+    console.log(response.transactions);
     return Response.json(response.transactions, {
       headers: {
         "X-Total-Count": response.counts.toString(),

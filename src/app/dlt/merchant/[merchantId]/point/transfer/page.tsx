@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { usePoints, useTransferPoint } from "@/app/dlt/hooks/usePoints";
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 
 export default function PointTransferPage() {
   const merchantId = useMerchantId();
-  const { showLoading, hideLoading } = useLoading();
+  const { execute } = useApiWithLoading();
 
   const [formData, setFormData] = useState({
     pointId: "",
@@ -24,11 +25,6 @@ export default function PointTransferPage() {
   });
 
   // Use Transfer hook
-  console.log("=>", {
-    merchantId: merchantId || "",
-    pointId: formData.pointId,
-    phone: formData.toUserId,
-  });
   const { transfer, isTransferring } = useTransferPoint({
     merchantId: merchantId || "",
     pointId: formData.pointId,
@@ -46,29 +42,29 @@ export default function PointTransferPage() {
       return;
     }
 
-    showLoading("กำลังโอน Points...");
+    await execute(
+      () =>
+        transfer({
+          transactionTypeId: "TRANSFER",
+          amount: parseInt(formData.amount, 10),
+          phone: formData.toUserId,
+        }),
+      {
+        loadingText: "กำลังโอน Points...",
+        successText: "โอน Point สำเร็จ",
+        errorText: "โอน Point ไม่สำเร็จ",
+        redirectOnSuccess: `/dlt/merchant/${merchantId}/point/list`,
+        redirectDelay: 2000,
+      }
+    );
 
-    try {
-      await transfer({
-        transactionTypeId: "TRANSFER",
-        amount: parseInt(formData.amount, 10),
-        phone: formData.toUserId,
-      });
-
-      alert("Transfer successful!");
-      // Reset form
-      setFormData({
-        ...formData,
-        toUserId: "",
-        amount: "",
-        note: "",
-      });
-    } catch (error) {
-      console.error("Error transferring points:", error);
-      alert("Transfer failed!");
-    } finally {
-      hideLoading();
-    }
+    // Reset form on success
+    setFormData({
+      ...formData,
+      toUserId: "",
+      amount: "",
+      note: "",
+    });
   };
 
   return (
