@@ -178,7 +178,10 @@ export default function MerchantPage({
               show: true,
               label: "รวม",
               color: "#9ca3af",
-              formatter: () => stats.couponCount.total.toLocaleString(),
+              formatter: () =>
+                stats.couponCount.total
+                  ? stats.couponCount.total.toLocaleString()
+                  : "-",
             },
           },
         },
@@ -261,7 +264,8 @@ export default function MerchantPage({
             color: "#f59e0b",
             fontSize: "24px",
             fontWeight: "bold",
-            formatter: () => stats.points.total.toLocaleString(),
+            formatter: () =>
+              stats.points.total ? stats.points.total.toLocaleString() : "-",
           },
         },
         track: { background: "rgba(255,255,255,0.1)" },
@@ -332,22 +336,38 @@ export default function MerchantPage({
               <div className="space-y-1">
                 <StatsItem
                   label="จำนวนคูปองที่เรามี"
-                  value={stats.couponCount.total.toLocaleString()}
+                  value={
+                    stats.couponCount.total
+                      ? stats.couponCount.total.toLocaleString()
+                      : "0"
+                  }
                   color="text-purple-400"
                 />
                 <StatsItem
                   label="ขายทั้งหมด"
-                  value={stats.couponCount.soldToEndUser.toLocaleString()}
+                  value={
+                    stats.couponCount.soldToEndUser
+                      ? stats.couponCount.soldToEndUser.toLocaleString()
+                      : "0"
+                  }
                   color="text-emerald-400"
                 />
                 <StatsItem
                   label="รอใช้งาน"
-                  value={stats.couponCount.pendingUse.toLocaleString()}
+                  value={
+                    stats.couponCount.pendingUse
+                      ? stats.couponCount.pendingUse.toLocaleString()
+                      : "0"
+                  }
                   color="text-amber-400"
                 />
                 <StatsItem
                   label="Redeem แล้ว"
-                  value={stats.couponCount.redeemed.toLocaleString()}
+                  value={
+                    stats.couponCount.redeemed
+                      ? stats.couponCount.redeemed.toLocaleString()
+                      : "0"
+                  }
                   color="text-pink-400"
                 />
               </div>
@@ -398,31 +418,41 @@ export default function MerchantPage({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-white/5 rounded-xl p-4 text-center">
                 <p className="text-2xl font-bold text-white">
-                  {stats.endUsers.total.toLocaleString()}
+                  {stats.endUsers.total
+                    ? stats.endUsers.total.toLocaleString()
+                    : "-"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">จำนวน Users</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4 text-center">
                 <p className="text-2xl font-bold text-blue-400">
-                  {stats.endUsers.buyers.toLocaleString()}
+                  {stats.endUsers.buyers
+                    ? stats.endUsers.buyers.toLocaleString()
+                    : "-"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">คนที่ซื้อ</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4 text-center">
                 <p className="text-2xl font-bold text-emerald-400">
-                  {stats.endUsers.couponsSold.toLocaleString()}
+                  {stats.endUsers.couponsSold
+                    ? stats.endUsers.couponsSold.toLocaleString()
+                    : "-"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">คูปองที่ขาย</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4 text-center">
                 <p className="text-2xl font-bold text-amber-400">
-                  {stats.endUsers.pendingUsers.toLocaleString()}
+                  {stats.endUsers.pendingUsers
+                    ? stats.endUsers.pendingUsers.toLocaleString()
+                    : "-"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">รอใช้งาน</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4 text-center col-span-2 md:col-span-2">
                 <p className="text-2xl font-bold text-pink-400">
-                  {stats.endUsers.redeemedUsers.toLocaleString()}
+                  {stats.endUsers.redeemedUsers
+                    ? stats.endUsers.redeemedUsers.toLocaleString()
+                    : "-"}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">Redeem แล้ว</p>
               </div>
@@ -467,13 +497,17 @@ export default function MerchantPage({
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="bg-white/5 rounded-xl p-3 text-center">
               <p className="text-lg font-bold text-emerald-400">
-                {stats.transactions.transferPoint.toLocaleString()}
+                {stats.transactions.transferPoint
+                  ? stats.transactions.transferPoint.toLocaleString()
+                  : "-"}
               </p>
               <p className="text-xs text-gray-400">โอน Point</p>
             </div>
             <div className="bg-white/5 rounded-xl p-3 text-center">
               <p className="text-lg font-bold text-pink-400">
-                {stats.transactions.redeemPoint.toLocaleString()}
+                {stats.transactions.redeemPoint
+                  ? stats.transactions.redeemPoint.toLocaleString()
+                  : "-"}
               </p>
               <p className="text-xs text-gray-400">Redeem Point</p>
             </div>
@@ -541,16 +575,22 @@ export default function MerchantPage({
           <div className="grid grid-cols-2 gap-2 mt-4">
             <div className="bg-white/5 rounded-lg p-2 text-center">
               <p className="text-sm font-bold text-cyan-400">
-                ฿{stats.thbToken.deposited.toLocaleString()}
+                ฿
+                {stats.thbToken.deposited
+                  ? stats.thbToken.deposited.toLocaleString()
+                  : "-"}
               </p>
               <p className="text-[10px] text-gray-500">Total Deposited</p>
             </div>
             <div className="bg-white/5 rounded-lg p-2 text-center">
               <p className="text-sm font-bold text-pink-400">
                 ฿
-                {(
-                  stats.thbToken.usedForPromotion + stats.thbToken.usedForRedeem
-                ).toLocaleString()}
+                {stats.thbToken.usedForPromotion && stats.thbToken.usedForRedeem
+                  ? (
+                      stats.thbToken.usedForPromotion +
+                      stats.thbToken.usedForRedeem
+                    ).toLocaleString()
+                  : "-"}
               </p>
               <p className="text-[10px] text-gray-500">Total Spent</p>
             </div>
