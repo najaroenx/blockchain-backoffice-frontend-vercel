@@ -12,9 +12,12 @@ import AdsClickOutlinedIcon from "@mui/icons-material/AdsClickOutlined";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import { Select, MenuItem, FormControl } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
 import { ApexOptions } from "apexcharts";
 import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import { api } from "@/libs/api";
+import DateRangeFilter from "./DateRangeFilter";
 
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -154,25 +157,22 @@ export default function MarketerDashboard({
 }) {
   const { execute, isExecuting } = useApiWithLoading();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [selectedVoucherType, setSelectedVoucherType] = useState<string>("all");
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
 
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!merchantId) return;
-
-      // Calculate date range for the last 30 days or default range
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      if (!merchantId || !startDate || !endDate) return;
 
       const result = await execute(
         () =>
           api(`/api/${merchantId}/dashboard/marketer`, {
             method: "GET",
             queryParams: {
-              startDate: startDate.toISOString(),
-              endDate: endDate.toISOString(),
-              // granularity: "daily",
+              startDate: startDate.startOf("day").toISOString(),
+              endDate: endDate.endOf("day").toISOString(),
             },
           }),
         {
@@ -188,7 +188,7 @@ export default function MarketerDashboard({
     };
 
     fetchDashboardData();
-  }, [merchantId]);
+  }, [merchantId, startDate, endDate]);
 
   // Default stats definition to ensure structure safety
   const defaultStats: DashboardData = {
@@ -352,16 +352,27 @@ export default function MarketerDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Store Overview Section */}
+      {/* Header with Title and Date Range Filter */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className="text-2xl font-bold text-white">Marketing Dashboard</h1>
+        <DateRangeFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
+      </div>
+
+      {/* Section 1: ข้อมูลภาพรวม */}
       <div>
         <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <span className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></span>
-          ข้อมูลภาพรวมร้านของตนเอง
+          1. ข้อมูลภาพรวม
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Coupon Count with Donut Chart */}
+          {/* a. จำนวนคูปอง */}
           <SectionCard
-            title="จำนวนคูปอง"
+            title="a. จำนวนคูปอง"
             icon={<ConfirmationNumberIcon className="w-5 h-5" />}
             iconColor="bg-purple-500/20 text-purple-400"
           >
@@ -382,7 +393,7 @@ export default function MarketerDashboard({
               </div>
               <div className="space-y-1">
                 <StatsItem
-                  label="จำนวนคูปองที่เรามี"
+                  label="i. จำนวนคูปองที่เรามี"
                   value={
                     stats.couponCount.total
                       ? stats.couponCount.total.toLocaleString()
@@ -391,7 +402,7 @@ export default function MarketerDashboard({
                   color="text-purple-400"
                 />
                 <StatsItem
-                  label="ขายทั้งหมด"
+                  label="ii. จำนวนคูปองที่ขายทั้งหมด"
                   value={
                     stats.couponCount.soldToEndUser
                       ? stats.couponCount.soldToEndUser.toLocaleString()
@@ -400,7 +411,7 @@ export default function MarketerDashboard({
                   color="text-emerald-400"
                 />
                 <StatsItem
-                  label="รอใช้งาน"
+                  label="iii. จำนวนคูปองที่ Marketer เข้ามาจอง"
                   value={
                     stats.couponCount.pendingUse
                       ? stats.couponCount.pendingUse.toLocaleString()
@@ -409,7 +420,7 @@ export default function MarketerDashboard({
                   color="text-amber-400"
                 />
                 <StatsItem
-                  label="Redeem แล้ว"
+                  label="iv. จำนวนคูปองที่ End User redeem แล้วจริง ๆ"
                   value={
                     stats.couponCount.redeemed
                       ? stats.couponCount.redeemed.toLocaleString()
@@ -421,31 +432,106 @@ export default function MarketerDashboard({
             </div>
           </SectionCard>
 
-          {/* Coupon Value with Bar Chart */}
+          {/* b. มูลค่าคูปอง */}
           <SectionCard
-            title="มูลค่าคูปอง (THB)"
+            title="b. มูลค่าคูปอง"
             icon={<AccountBalanceWalletIcon className="w-5 h-5" />}
             iconColor="bg-pink-500/20 text-pink-400"
           >
-            <div className="h-[200px]">
-              <Chart
-                options={couponValueBarOptions}
-                series={[
-                  {
-                    name: "มูลค่า",
-                    data: [
-                      stats.couponValue.total,
-                      stats.couponValue.sold,
-                      stats.couponValue.pendingUse,
-                      stats.couponValue.redeemed,
-                    ],
-                  },
-                ]}
-                type="bar"
-                height="100%"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="h-[200px]">
+                <Chart
+                  options={couponValueBarOptions}
+                  series={[
+                    {
+                      name: "มูลค่า",
+                      data: [
+                        stats.couponValue.total,
+                        stats.couponValue.sold,
+                        stats.couponValue.pendingUse,
+                        stats.couponValue.redeemed,
+                      ],
+                    },
+                  ]}
+                  type="bar"
+                  height="100%"
+                />
+              </div>
+              <div className="space-y-1">
+                <StatsItem
+                  label="i. มูลค่าคูปองที่เรามี"
+                  value={
+                    stats.couponValue.total
+                      ? `฿${stats.couponValue.total.toLocaleString()}`
+                      : "฿0"
+                  }
+                  color="text-purple-400"
+                />
+                <StatsItem
+                  label="ii. มูลค่าคูปองที่ขายทั้งหมด"
+                  value={
+                    stats.couponValue.sold
+                      ? `฿${stats.couponValue.sold.toLocaleString()}`
+                      : "฿0"
+                  }
+                  color="text-emerald-400"
+                />
+                <StatsItem
+                  label="iii. มูลค่าคูปองที่ Marketer เข้ามาจอง"
+                  value={
+                    stats.couponValue.pendingUse
+                      ? `฿${stats.couponValue.pendingUse.toLocaleString()}`
+                      : "฿0"
+                  }
+                  color="text-amber-400"
+                />
+                <StatsItem
+                  label="iv. มูลค่าคูปองที่ End User redeem แล้วจริง ๆ"
+                  value={
+                    stats.couponValue.redeemed
+                      ? `฿${stats.couponValue.redeemed.toLocaleString()}`
+                      : "฿0"
+                  }
+                  color="text-pink-400"
+                />
+              </div>
             </div>
           </SectionCard>
+        </div>
+      </div>
+
+      {/* Merchant Filter */}
+      <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-400 text-sm">Merchant:</span>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <Select
+              value={selectedVoucherType}
+              onChange={(e) => setSelectedVoucherType(e.target.value as string)}
+              sx={{
+                color: "white",
+                backgroundColor: "rgba(255,255,255,0.05)",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255,255,255,0.1)",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255,255,255,0.2)",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#a855f7",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                },
+              }}
+            >
+              <MenuItem value="all">ทั้งหมด</MenuItem>
+              <MenuItem value="discount">ร้านไก่ย่างป้านาง</MenuItem>
+              <MenuItem value="cashback">ร้านส้มตำป้านาง</MenuItem>
+              <MenuItem value="gift">ร้านปิ้งปิ้งป้านาง</MenuItem>
+              <MenuItem value="point">ร้านชาบูนางใน</MenuItem>
+            </Select>
+          </FormControl>
         </div>
       </div>
 

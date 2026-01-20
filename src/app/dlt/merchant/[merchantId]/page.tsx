@@ -15,6 +15,8 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import { ApexOptions } from "apexcharts";
 import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import { api } from "@/libs/api";
+import DateRangeFilter from "@/app/dlt/components/DateRangeFilter";
+import dayjs, { Dayjs } from "dayjs";
 
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -112,23 +114,21 @@ export default function MerchantPage({
 }) {
   const { execute, isExecuting } = useApiWithLoading();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
 
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
-      // Calculate date range for the last 30 days or default range
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      if (!startDate || !endDate) return;
 
       const result = await execute(
         () =>
           api(`/api/${params.merchantId}/dashboard/marketer`, {
             method: "GET",
             queryParams: {
-              startDate: startDate.toISOString(),
-              endDate: endDate.toISOString(),
-              // granularity: "daily",
+              startDate: startDate.startOf("day").toISOString(),
+              endDate: endDate.endOf("day").toISOString(),
             },
           }),
         {
@@ -144,7 +144,7 @@ export default function MerchantPage({
     };
 
     fetchDashboardData();
-  }, [params.merchantId]);
+  }, [params.merchantId, startDate, endDate]);
 
   // Default stats if data is loading or null
   // Default stats definition to ensure structure safety
@@ -314,101 +314,109 @@ export default function MerchantPage({
 
   return (
     <div className="space-y-6">
-      {/* Store Overview Section */}
-      <div>
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+      {/* Header with Title and Date Range Filter */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <span className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></span>
           ข้อมูลภาพรวมร้านของตนเอง
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Coupon Count with Donut Chart */}
-          <SectionCard
-            title="จำนวนคูปอง"
-            icon={<ConfirmationNumberIcon className="w-5 h-5" />}
-            iconColor="bg-purple-500/20 text-purple-400"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="h-[200px]">
-                <Chart
-                  options={couponDonutOptions}
-                  series={[
-                    stats.couponCount.total - stats.couponCount.soldToEndUser,
-                    stats.couponCount.soldToEndUser -
-                      stats.couponCount.pendingUse,
-                    stats.couponCount.pendingUse,
-                    stats.couponCount.redeemed,
-                  ]}
-                  type="donut"
-                  height="100%"
-                />
-              </div>
-              <div className="space-y-1">
-                <StatsItem
-                  label="จำนวนคูปองที่เรามี"
-                  value={
-                    stats.couponCount.total
-                      ? stats.couponCount.total.toLocaleString()
-                      : "0"
-                  }
-                  color="text-purple-400"
-                />
-                <StatsItem
-                  label="ขายทั้งหมด"
-                  value={
-                    stats.couponCount.soldToEndUser
-                      ? stats.couponCount.soldToEndUser.toLocaleString()
-                      : "0"
-                  }
-                  color="text-emerald-400"
-                />
-                <StatsItem
-                  label="รอใช้งาน"
-                  value={
-                    stats.couponCount.pendingUse
-                      ? stats.couponCount.pendingUse.toLocaleString()
-                      : "0"
-                  }
-                  color="text-amber-400"
-                />
-                <StatsItem
-                  label="Redeem แล้ว"
-                  value={
-                    stats.couponCount.redeemed
-                      ? stats.couponCount.redeemed.toLocaleString()
-                      : "0"
-                  }
-                  color="text-pink-400"
-                />
-              </div>
-            </div>
-          </SectionCard>
+        <DateRangeFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
+      </div>
 
-          {/* Coupon Value with Bar Chart */}
-          <SectionCard
-            title="มูลค่าคูปอง (THB)"
-            icon={<AccountBalanceWalletIcon className="w-5 h-5" />}
-            iconColor="bg-pink-500/20 text-pink-400"
-          >
+      {/* Store Overview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Coupon Count with Donut Chart */}
+        <SectionCard
+          title="จำนวนคูปอง"
+          icon={<ConfirmationNumberIcon className="w-5 h-5" />}
+          iconColor="bg-purple-500/20 text-purple-400"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="h-[200px]">
               <Chart
-                options={couponValueBarOptions}
+                options={couponDonutOptions}
                 series={[
-                  {
-                    name: "มูลค่า",
-                    data: [
-                      stats.couponValue.total,
-                      stats.couponValue.sold,
-                      stats.couponValue.pendingUse,
-                      stats.couponValue.redeemed,
-                    ],
-                  },
+                  stats.couponCount.total - stats.couponCount.soldToEndUser,
+                  stats.couponCount.soldToEndUser -
+                    stats.couponCount.pendingUse,
+                  stats.couponCount.pendingUse,
+                  stats.couponCount.redeemed,
                 ]}
-                type="bar"
+                type="donut"
                 height="100%"
               />
             </div>
-          </SectionCard>
-        </div>
+            <div className="space-y-1">
+              <StatsItem
+                label="จำนวนคูปองที่เรามี"
+                value={
+                  stats.couponCount.total
+                    ? stats.couponCount.total.toLocaleString()
+                    : "0"
+                }
+                color="text-purple-400"
+              />
+              <StatsItem
+                label="ขายทั้งหมด"
+                value={
+                  stats.couponCount.soldToEndUser
+                    ? stats.couponCount.soldToEndUser.toLocaleString()
+                    : "0"
+                }
+                color="text-emerald-400"
+              />
+              <StatsItem
+                label="รอใช้งาน"
+                value={
+                  stats.couponCount.pendingUse
+                    ? stats.couponCount.pendingUse.toLocaleString()
+                    : "0"
+                }
+                color="text-amber-400"
+              />
+              <StatsItem
+                label="Redeem แล้ว"
+                value={
+                  stats.couponCount.redeemed
+                    ? stats.couponCount.redeemed.toLocaleString()
+                    : "0"
+                }
+                color="text-pink-400"
+              />
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* Coupon Value with Bar Chart */}
+        <SectionCard
+          title="มูลค่าคูปอง (THB)"
+          icon={<AccountBalanceWalletIcon className="w-5 h-5" />}
+          iconColor="bg-pink-500/20 text-pink-400"
+        >
+          <div className="h-[200px]">
+            <Chart
+              options={couponValueBarOptions}
+              series={[
+                {
+                  name: "มูลค่า",
+                  data: [
+                    stats.couponValue.total,
+                    stats.couponValue.sold,
+                    stats.couponValue.pendingUse,
+                    stats.couponValue.redeemed,
+                  ],
+                },
+              ]}
+              type="bar"
+              height="100%"
+            />
+          </div>
+        </SectionCard>
       </div>
 
       {/* End User Section */}

@@ -8,9 +8,6 @@ export default function SellerDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">
-        Marketing Dashboard
-      </h1>
       {sellerId ? (
         <MarketerDashboard merchantId={sellerId} />
       ) : (
