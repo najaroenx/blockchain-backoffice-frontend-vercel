@@ -65,6 +65,48 @@ const SectionCard = ({
   </div>
 );
 
+interface StatCardProps {
+  title: string;
+  value: string;
+  trend: string;
+  isPositive: boolean;
+  icon: React.ReactNode;
+  iconColor: string;
+}
+
+const StatCard = ({
+  title,
+  value,
+  trend,
+  isPositive,
+  icon,
+  iconColor,
+}: StatCardProps) => (
+  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
+    <div className="flex items-center justify-between mb-4">
+      <div
+        className={`w-12 h-12 rounded-xl ${iconColor} flex items-center justify-center`}
+      >
+        {icon}
+      </div>
+      <div
+        className={`flex items-center gap-1 text-sm font-medium ${
+          isPositive ? "text-emerald-400" : "text-red-400"
+        }`}
+      >
+        {isPositive ? (
+          <TrendingUpIcon className="w-4 h-4" />
+        ) : (
+          <TrendingDownIcon className="w-4 h-4" />
+        )}
+        {trend}
+      </div>
+    </div>
+    <p className="text-gray-400 text-sm mb-1">{title}</p>
+    <h3 className="text-2xl font-bold text-white">{value}</h3>
+  </div>
+);
+
 interface DashboardData {
   dateRange: {
     startDate: string;
@@ -105,10 +147,10 @@ interface DashboardData {
   };
 }
 
-export default function MerchantPage({
-  params,
+export default function MarketerDashboard({
+  merchantId,
 }: {
-  params: { merchantId: string };
+  merchantId: string;
 }) {
   const { execute, isExecuting } = useApiWithLoading();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -116,6 +158,8 @@ export default function MerchantPage({
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!merchantId) return;
+
       // Calculate date range for the last 30 days or default range
       const endDate = new Date();
       const startDate = new Date();
@@ -123,7 +167,7 @@ export default function MerchantPage({
 
       const result = await execute(
         () =>
-          api(`/api/${params.merchantId}/dashboard/marketer`, {
+          api(`/api/${merchantId}/dashboard/marketer`, {
             method: "GET",
             queryParams: {
               startDate: startDate.toISOString(),
@@ -144,9 +188,8 @@ export default function MerchantPage({
     };
 
     fetchDashboardData();
-  }, [params.merchantId]);
+  }, [merchantId]);
 
-  // Default stats if data is loading or null
   // Default stats definition to ensure structure safety
   const defaultStats: DashboardData = {
     dateRange: { startDate: "", endDate: "" },
@@ -171,11 +214,6 @@ export default function MerchantPage({
   };
 
   // Safe merge: usage user data if available, otherwise fallback to defaults
-  // Note: Simple spread {...defaultStats, ...data} works well for shallow merging.
-  // if data has nested missing objects, we might still need deeper safety,
-  // but based on typical API responses, the high level object presence is the main issue.
-  // For extra safety on nested objects, we can spread them individually if needed,
-  // but let's start with a safe object initialization.
   const stats = data
     ? {
         ...defaultStats,
@@ -612,45 +650,3 @@ export default function MerchantPage({
     </div>
   );
 }
-
-interface StatCardProps {
-  title: string;
-  value: string;
-  trend: string;
-  isPositive: boolean;
-  icon: React.ReactNode;
-  iconColor: string;
-}
-
-const StatCard = ({
-  title,
-  value,
-  trend,
-  isPositive,
-  icon,
-  iconColor,
-}: StatCardProps) => (
-  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
-    <div className="flex items-center justify-between mb-4">
-      <div
-        className={`w-12 h-12 rounded-xl ${iconColor} flex items-center justify-center`}
-      >
-        {icon}
-      </div>
-      <div
-        className={`flex items-center gap-1 text-sm font-medium ${
-          isPositive ? "text-emerald-400" : "text-red-400"
-        }`}
-      >
-        {isPositive ? (
-          <TrendingUpIcon className="w-4 h-4" />
-        ) : (
-          <TrendingDownIcon className="w-4 h-4" />
-        )}
-        {trend}
-      </div>
-    </div>
-    <p className="text-gray-400 text-sm mb-1">{title}</p>
-    <h3 className="text-2xl font-bold text-white">{value}</h3>
-  </div>
-);
