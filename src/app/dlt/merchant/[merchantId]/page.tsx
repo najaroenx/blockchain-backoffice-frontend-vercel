@@ -133,7 +133,7 @@ export default function MerchantPage({
 
       if (result) {
         console.log("result", result);
-        setData(null);
+        setData(result);
       }
     };
 
