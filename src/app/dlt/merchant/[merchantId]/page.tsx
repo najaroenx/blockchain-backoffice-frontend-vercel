@@ -54,14 +54,14 @@ const SectionCard = ({
   iconColor: string;
   children: React.ReactNode;
 }) => (
-  <div className="rounded-2xl border border-white/5 p-6 shadow-xl hover:border-white/10 transition-all duration-300">
+  <div className="group rounded-2xl border border-white/5 p-6 shadow-xl hover:border-purple-500/30 hover:shadow-purple-500/5 transition-all duration-300 bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a]">
     <div className="flex items-center gap-3 mb-6">
       <div
-        className={`w-10 h-10 rounded-xl ${iconColor} flex items-center justify-center transform group-hover:scale-110 transition-transform`}
+        className={`w-10 h-10 rounded-xl ${iconColor} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
       >
         {icon}
       </div>
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-semibold text-white dlt-heading">{title}</h3>
     </div>
     {children}
   </div>
@@ -515,21 +515,21 @@ export default function MerchantPage({
             />
           </div>
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="bg-white/5 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-emerald-400">
+            <div className="group bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-300 cursor-pointer">
+              <p className="text-lg font-bold text-emerald-400 group-hover:scale-110 transition-transform">
                 {stats.transactions.transferPoint
                   ? stats.transactions.transferPoint.toLocaleString()
                   : "-"}
               </p>
-              <p className="text-xs text-gray-400">โอน Point</p>
+              <p className="text-xs text-gray-400 mt-1">โอน Point</p>
             </div>
-            <div className="bg-white/5 rounded-xl p-3 text-center">
-              <p className="text-lg font-bold text-pink-400">
+            <div className="group bg-white/5 rounded-xl p-4 text-center border border-white/5 hover:border-pink-500/30 hover:bg-pink-500/5 transition-all duration-300 cursor-pointer">
+              <p className="text-lg font-bold text-pink-400 group-hover:scale-110 transition-transform">
                 {stats.transactions.redeemPoint
                   ? stats.transactions.redeemPoint.toLocaleString()
                   : "-"}
               </p>
-              <p className="text-xs text-gray-400">Redeem Point</p>
+              <p className="text-xs text-gray-400 mt-1">Redeem Point</p>
             </div>
           </div>
         </SectionCard>
@@ -549,12 +549,12 @@ export default function MerchantPage({
             />
           </div>
           <div className="mt-4">
-            <p className="text-sm text-gray-400 mb-2">ประเภท Point</p>
+            <p className="text-sm text-gray-400 mb-3">ประเภท Point</p>
             <div className="flex flex-wrap gap-2">
               {stats.points.types.map((type, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full"
+                  className="px-4 py-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 text-xs font-medium rounded-full border border-amber-500/30 hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 cursor-default"
                 >
                   {type}
                 </span>
@@ -592,18 +592,18 @@ export default function MerchantPage({
               height="100%"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            <div className="bg-white/5 rounded-lg p-2 text-center">
-              <p className="text-sm font-bold text-cyan-400">
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="group bg-white/5 rounded-xl p-3 text-center border border-white/5 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all duration-300">
+              <p className="text-sm font-bold text-cyan-400 group-hover:scale-110 transition-transform">
                 ฿
                 {stats.thbToken.deposited
                   ? stats.thbToken.deposited.toLocaleString()
                   : "-"}
               </p>
-              <p className="text-[10px] text-gray-500">Total Deposited</p>
+              <p className="text-[10px] text-gray-500 mt-1">Total Deposited</p>
             </div>
-            <div className="bg-white/5 rounded-lg p-2 text-center">
-              <p className="text-sm font-bold text-pink-400">
+            <div className="group bg-white/5 rounded-xl p-3 text-center border border-white/5 hover:border-pink-500/30 hover:bg-pink-500/5 transition-all duration-300">
+              <p className="text-sm font-bold text-pink-400 group-hover:scale-110 transition-transform">
                 ฿
                 {stats.thbToken.usedForPromotion && stats.thbToken.usedForRedeem
                   ? (
@@ -612,7 +612,7 @@ export default function MerchantPage({
                     ).toLocaleString()
                   : "-"}
               </p>
-              <p className="text-[10px] text-gray-500">Total Spent</p>
+              <p className="text-[10px] text-gray-500 mt-1">Total Spent</p>
             </div>
           </div>
         </SectionCard>
@@ -638,27 +638,34 @@ const StatCard = ({
   icon,
   iconColor,
 }: StatCardProps) => (
-  <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
-    <div className="flex items-center justify-between mb-4">
-      <div
-        className={`w-12 h-12 rounded-xl ${iconColor} flex items-center justify-center`}
-      >
-        {icon}
-      </div>
-      <div
-        className={`flex items-center gap-1 text-sm font-medium ${
-          isPositive ? "text-emerald-400" : "text-red-400"
-        }`}
-      >
-        {isPositive ? (
-          <TrendingUpIcon className="w-4 h-4" />
-        ) : (
-          <TrendingDownIcon className="w-4 h-4" />
+  <div className="group relative bg-gradient-to-br from-[#1a1a2e] to-[#0f0f1a] rounded-2xl p-6 border border-white/5 hover:border-purple-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 overflow-hidden">
+    {/* Gradient overlay on hover */}
+    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+    <div className="relative z-10">
+      <div className="flex items-center justify-between mb-4">
+        <div
+          className={`w-12 h-12 rounded-xl ${iconColor} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
+        >
+          {icon}
+        </div>
+        {trend !== "-" && (
+          <div
+            className={`flex items-center gap-1 text-sm font-medium ${
+              isPositive ? "text-emerald-400" : "text-red-400"
+            }`}
+          >
+            {isPositive ? (
+              <TrendingUpIcon className="w-4 h-4" />
+            ) : (
+              <TrendingDownIcon className="w-4 h-4" />
+            )}
+            {trend}
+          </div>
         )}
-        {trend}
       </div>
+      <p className="text-gray-400 text-sm mb-1">{title}</p>
+      <h3 className="text-2xl font-bold text-white dlt-heading">{value}</h3>
     </div>
-    <p className="text-gray-400 text-sm mb-1">{title}</p>
-    <h3 className="text-2xl font-bold text-white">{value}</h3>
   </div>
 );

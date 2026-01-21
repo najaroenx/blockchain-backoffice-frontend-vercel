@@ -8,6 +8,7 @@ import {
   PointOfSaleOutlined,
   ReceiptLongOutlined,
   ApiSharp,
+  Code,
 } from "@mui/icons-material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircleOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -263,6 +264,14 @@ export const MerchantSidebar = () => {
             icon={AccountCircleIcon}
             label="Account"
             hasSubmenu
+            isCollapsed={isSidebarCollapsed}
+          />
+          <MenuItem
+            icon={Code}
+            label="Developer"
+            hasSubmenu
+            isActive={pathname.startsWith(`${basePath}/developer`)}
+            subItems={[{ label: "APIs", href: `${basePath}/developer/list` }]}
             isCollapsed={isSidebarCollapsed}
           />
           <MenuItem

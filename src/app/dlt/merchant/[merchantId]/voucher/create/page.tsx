@@ -787,6 +787,7 @@ export default function CampaignCreatePage() {
                     </button>
                     <button
                       type="button"
+                      disabled
                       onClick={() =>
                         setFormData({ ...formData, pointsType: "range" })
                       }
