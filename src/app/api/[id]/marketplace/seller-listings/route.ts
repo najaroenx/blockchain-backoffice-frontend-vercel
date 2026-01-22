@@ -15,12 +15,12 @@ const shouldProtectAdmin =
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const merchantId = params.id;
+    const { id: merchantId } = await params;
 
     // Validate merchantId
     if (!merchantId || !/^[a-zA-Z0-9_-]+$/.test(merchantId)) {
@@ -99,6 +99,99 @@ export async function GET(
         status: "error",
         message: "Failed to load seller listings",
         data: { total: 0, listings: [] },
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/[id]/marketplace/seller-listings
+ * Batch list products to the marketplace
+ * Real backend endpoint: POST /coupon/seller/batch-list/:merchantId
+ */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
+  try {
+    const { id: merchantId } = await params;
+
+    // Validate merchantId
+    if (!merchantId || !/^[a-zA-Z0-9_-]+$/.test(merchantId)) {
+      return handleError("Invalid merchant ID", 400);
+    }
+
+    const token = shouldProtectAdmin ? (await getSessionToken()) ?? "" : "";
+    if (shouldProtectAdmin && !token) {
+      return handleError("Unauthorized access", 401);
+    }
+
+    const body = await req.json();
+
+    // Validate required fields
+    if (!body.name) {
+      return handleError("Name is required", 400);
+    }
+
+    if (!body.items || !Array.isArray(body.items) || body.items.length === 0) {
+      return handleError("Items array is required and must not be empty", 400);
+    }
+
+    // Validate each item in the array
+    for (const item of body.items) {
+      if (!item.voucherId) {
+        return handleError("Each item must have a voucherId", 400);
+      }
+      if (typeof item.amount !== "number" || item.amount <= 0) {
+        return handleError("Each item must have a valid amount", 400);
+      }
+      if (typeof item.pricePerUnitTHB !== "number" || item.pricePerUnitTHB < 0) {
+        return handleError("Each item must have a valid pricePerUnitTHB", 400);
+      }
+    }
+
+    const backendUrl = `${BACKEND_URL}/coupon/seller/batch-list/${merchantId}`;
+    logger.info(`Forwarding backend request: POST ${backendUrl}`);
+
+    const response = await api(backendUrl, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: {
+        name: body.name,
+        description: body.description || "",
+        items: body.items,
+      },
+    });
+
+    logger.info(`Backend response: ${JSON.stringify(response)}`);
+
+    // Handle error response from backend
+    if (response.statusCode && response.statusCode >= 400) {
+      return handleError(
+        response.message || "Failed to batch list products",
+        response.statusCode
+      );
+    }
+
+    return Response.json(
+      {
+        status: "success",
+        message: "Products listed successfully",
+        data: response.data || response,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    logger.error(`Error occurred during batch listing: ${error}`);
+    return Response.json(
+      {
+        status: "error",
+        message: "Failed to list products to marketplace",
       },
       { status: 500 }
     );

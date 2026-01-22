@@ -353,7 +353,6 @@ interface ListBatchItem {
 interface ListBatchToMarketplacePayload {
   name: string;
   description: string;
-  sellerWalletAddress: string;
   items: ListBatchItem[];
 }
 
@@ -386,9 +385,12 @@ const listBatchFetcher = async (
 
 /**
  * Hook to list multiple products to marketplace in batch
+ * @param merchantId - The merchant ID to list products for
  */
-export function useMarketplaceSellerProduct() {
-  const url = "/api/seller/litst-batch-to-marketplace";
+export function useMarketplaceSellerProduct(merchantId?: string) {
+  const url = merchantId
+    ? `/api/seller/list-batch-to-marketplace?merchantId=${merchantId}`
+    : null;
 
   const { trigger, isMutating, error, data } = useSWRMutation(
     url,

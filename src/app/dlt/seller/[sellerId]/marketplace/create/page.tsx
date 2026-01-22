@@ -14,6 +14,7 @@ import { BrowseProductsModal } from "@/components/seller/BrowseProductsModal";
 import { useVoucher } from "../../hooks/useVoucher";
 import { useMarketplaceSellerProduct } from "@/app/dlt/hooks/useMarketplace";
 import { useLoading } from "@/app/dlt/contexts/merchantContext";
+import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 // Types
 interface Product {
   id: string;
@@ -61,10 +62,11 @@ export default function CreateOrderPage() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [voucherList, setVoucherList] = useState<IFetchVoucher | null>(null);
   const { showLoading, hideLoading } = useLoading();
+  const sellerId = useSellerId();
   //   Hooks
   const { vouchers, isLoading, isError } = useVoucher();
   const { listBatchToMarketplace, isListing, listError, listResult } =
-    useMarketplaceSellerProduct();
+    useMarketplaceSellerProduct(sellerId || undefined);
 
   // Filter products based on search
   const filteredProducts = voucherList?.vouchers.filter((product) =>
@@ -202,7 +204,6 @@ export default function CreateOrderPage() {
       const payload = {
         name: `Marketplace Batch - ${timestamp}`,
         description: `Batch listing with ${selectedProducts.length} products`,
-        sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c", //TODO: fix later and should be get from merchant
         items: selectedProducts.map((product) => ({
           voucherId: product.id,
           amount: product.quantity,
