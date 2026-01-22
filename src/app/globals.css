@@ -59,3 +59,20 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* DatePicker White Border Override for Dark Theme */
+.date-picker-dark .MuiOutlinedInput-notchedOutline {
+  border-color: white !important;
+}
+
+.date-picker-dark:hover .MuiOutlinedInput-notchedOutline {
+  border-color: white !important;
+}
+
+.date-picker-dark.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #a855f7 !important;
+}
+ 
+.calendarPicker fieldset.MuiOutlinedInput-notchedOutline {
+  border-color: rgb(255, 255, 255);
+}

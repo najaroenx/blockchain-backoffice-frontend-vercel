@@ -12,6 +12,7 @@ interface Point {
   name: string;
   symbol: string;
   initialSupply: number;
+  remaining: number;
   decimal: number;
   imageUrl?: string;
   startDate?: number;
@@ -79,6 +80,12 @@ export default function PointListPage() {
     0
   );
 
+  // Calculate total remaining
+  const totalRemaining = points.reduce(
+    (sum, p) => sum + (p.remaining || 0),
+    0
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -112,7 +119,7 @@ export default function PointListPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
           <p className="text-gray-400 text-sm mb-1">Total Point Tokens</p>
           <h3 className="text-2xl font-bold text-white">{points.length}</h3>
@@ -121,6 +128,12 @@ export default function PointListPage() {
           <p className="text-gray-400 text-sm mb-1">Total Supply</p>
           <h3 className="text-2xl font-bold text-white">
             {totalSupply.toLocaleString()}
+          </h3>
+        </div>
+        <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
+          <p className="text-gray-400 text-sm mb-1">Total Remaining</p>
+          <h3 className="text-2xl font-bold text-purple-400">
+            {totalRemaining.toLocaleString()}
           </h3>
         </div>
         <div className="bg-[#1a1a2e] rounded-2xl p-6 border border-white/5">
@@ -157,6 +170,9 @@ export default function PointListPage() {
                   Initial Supply
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
+                  Remaining
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
                   Decimal
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
@@ -173,7 +189,7 @@ export default function PointListPage() {
             <tbody className="divide-y divide-white/5">
               {points.length === 0 && !error ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <p className="text-gray-500">No point tokens found</p>
                     <Link
                       href={`/dlt/merchant/${merchantId}/point/create`}
@@ -216,6 +232,9 @@ export default function PointListPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-white">
                         {point.initialSupply?.toLocaleString() || 0}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-purple-400 font-medium">
+                        {point.remaining?.toLocaleString() || 0}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-400">
                         {point.decimal}

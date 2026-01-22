@@ -8,12 +8,13 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import { AssetType } from "@/components/point/constants";
 
 interface Transaction {
   id: string;
   type: "transfer" | "mint" | "burn" | "redeem";
-  fromUser: string;
-  toUser: string;
+  senderAddress: string; // wallet address
+  receiverAddress: string; // wallet address
   amount: number;
   pointSymbol: string;
   pointName: string;
@@ -42,19 +43,24 @@ export default function PointTransactionPage() {
         }
         const data = await response.json();
 
-        // Map API data to Transaction structure
-        const mappedTransactions: Transaction[] = data.map((t: any) => ({
-          id: t.id || t.txHash || `TX-${Date.now()}`,
-          type: t.type || "transfer",
-          fromUser: t.fromUser || t.from || "System",
-          toUser: t.toUser || t.to || "Unknown",
-          amount: t.amount || 0,
-          pointSymbol: t.pointSymbol || t.symbol || "PTS",
-          pointName: t.pointName || t.name || "Point",
-          status: t.status || "completed",
-          createdAt: t.createdAt || new Date().toISOString(),
-          txHash: t.txHash,
-        }));
+        // Map API data to Transaction structure and filter only point type
+        const mappedTransactions: Transaction[] = data
+          .filter((t: any) => {
+            // Only show transactions with typeAsset = "POINT"
+            return t.typeAsset === AssetType.POINT;
+          })
+          .map((t: any) => ({
+            id: t.id || t.txHash || `TX-${Date.now()}`,
+            type: t.type || "transfer",
+            senderAddress: t.senderAddress || t.from || "0x0000000000000000000000000000000000000000",
+            receiverAddress: t.receiverAddress || t.to || "0x0000000000000000000000000000000000000000",
+            amount: t.amount || 0,
+            pointSymbol: t.pointSymbol || t.symbol || "PTS",
+            pointName: t.pointName || t.name || "Point",
+            status: t.status || "completed",
+            createdAt: t.createdAt || new Date().toISOString(),
+            txHash: t.txHash,
+          }));
 
         setTransactions(mappedTransactions);
       } catch (error) {
@@ -64,8 +70,8 @@ export default function PointTransactionPage() {
           {
             id: "TX-001",
             type: "transfer",
-            fromUser: "0812345678",
-            toUser: "0898765432",
+            senderAddress: "0x1234567890abcdef1234567890abcdef12345678",
+            receiverAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
             amount: 500,
             pointSymbol: "PTS",
             pointName: "Loyalty Point",
@@ -75,8 +81,8 @@ export default function PointTransactionPage() {
           {
             id: "TX-002",
             type: "mint",
-            fromUser: "System",
-            toUser: "0812345678",
+            senderAddress: "0x0000000000000000000000000000000000000000",
+            receiverAddress: "0x1234567890abcdef1234567890abcdef12345678",
             amount: 1000,
             pointSymbol: "PTS",
             pointName: "Loyalty Point",
@@ -86,8 +92,8 @@ export default function PointTransactionPage() {
           {
             id: "TX-003",
             type: "redeem",
-            fromUser: "0898765432",
-            toUser: "Merchant",
+            senderAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
+            receiverAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c",
             amount: 200,
             pointSymbol: "PTS",
             pointName: "Loyalty Point",
@@ -105,8 +111,8 @@ export default function PointTransactionPage() {
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =
-      tx.fromUser.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.toUser.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.senderAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.receiverAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === "all" || tx.type === selectedType;
     return matchesSearch && matchesType;
@@ -335,13 +341,13 @@ export default function PointTransactionPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-white">
-                        {truncateAddress(tx.fromUser)}
+                      <p className="text-sm text-white font-mono" title={tx.senderAddress}>
+                        {truncateAddress(tx.senderAddress)}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-white">
-                        {truncateAddress(tx.toUser)}
+                      <p className="text-sm text-white font-mono" title={tx.receiverAddress}>
+                        {truncateAddress(tx.receiverAddress)}
                       </p>
                     </td>
                     <td className="px-6 py-4">

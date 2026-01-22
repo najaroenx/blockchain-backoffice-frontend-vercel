@@ -45,12 +45,18 @@ export default function DateRangeFilter({
     width: 150,
     "& .MuiOutlinedInput-root": {
       backgroundColor: "rgba(255,255,255,0.05)",
-      "& fieldset": { borderColor: "white !important" },
+      "& fieldset": {
+        borderColor: "white !important",
+        borderWidth: "1px !important",
+      },
       "& .MuiOutlinedInput-notchedOutline": {
         borderColor: "white !important",
+        borderWidth: "1px !important",
       },
-      "&:hover fieldset": { borderColor: "white !important" },
-      "&.Mui-focused fieldset": {
+      "&:hover .MuiOutlinedInput-notchedOutline": {
+        borderColor: "white !important",
+      },
+      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
         borderColor: "#a855f7 !important",
       },
     },
@@ -89,13 +95,16 @@ export default function DateRangeFilter({
           <DatePicker
             label="วันเริ่มต้น"
             value={startDate}
+            className="border-white"
             onChange={onStartDateChange}
             format="DD/MM/YYYY"
             slotProps={{
               textField: {
                 size: "small",
+                className: "date-picker-dark",
                 InputProps: {
                   style: { color: "white" },
+                  className: "date-picker-dark",
                 },
                 inputProps: {
                   style: { color: "white" },
@@ -112,23 +121,30 @@ export default function DateRangeFilter({
             disabled={!startDate}
             minDate={startDate || undefined}
             format="DD/MM/YYYY"
+            className="calendarPicker"
             slotProps={{
               textField: {
                 size: "small",
+                className: "date-picker-dark",
                 InputProps: {
-                  style: { color: "white" },
+                  style: { color: "white !important" },
+                  className: "date-picker-dark",
                 },
                 inputProps: {
-                  style: { color: "white" },
+                  style: { color: "white !important" },
                 },
                 sx: {
                   ...datePickerSx,
+                  "& .MuiPickersOutlinedInput-root": {
+                    borderColor: "white !important",
+                  },
                   "&.Mui-disabled": {
                     "& .MuiOutlinedInput-root": {
                       backgroundColor: "rgba(255,255,255,0.02)",
                     },
                     "& .MuiInputLabel-root": {
                       color: "rgba(255,255,255,0.3)",
+                      borderColor: "white !important",
                     },
                   },
                 },

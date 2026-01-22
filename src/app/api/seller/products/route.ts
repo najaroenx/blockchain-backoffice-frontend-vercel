@@ -11,7 +11,7 @@ const shouldProtectAdmin =
 /**
  * POST /api/seller/products
  * Create a new product (coupon) as interim seller
- * Real backend endpoint: /coupon/dev/interim-seller
+ * Real backend endpoint: /coupon/dev/interim-seller/{merchantId}
  */
 export async function POST(req: NextRequest) {
   logger.info(`Received request: ${req.method} ${req.url}`);
@@ -25,10 +25,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate request body
-    const { sellerWalletAddress, coupon } = body;
+    const { merchantId, coupon } = body;
 
-    if (!sellerWalletAddress) {
-      return handleError("Seller wallet address is required", 400);
+    if (!merchantId) {
+      return handleError("Merchant ID is required", 400);
     }
 
     if (!coupon) {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return handleError("Coupon name is required", 400);
     }
 
-    const backendUrl = `${BACKEND_URL}/coupon/dev/interim-seller`;
+    const backendUrl = `${BACKEND_URL}/coupon/dev/interim-seller/${merchantId}`;
 
     logger.info(`Forwarding backend request: POST ${backendUrl}`);
     logger.info(`Request body: ${JSON.stringify(body)}`);
@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
     const response = await api(backendUrl, {
       method: "POST",
       body: {
-        sellerWalletAddress,
         coupon: {
           name: coupon.name,
           description: coupon.description || "",
@@ -98,8 +97,9 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET /api/seller/products
+ * GET /api/seller/products?merchantId=xxx
  * Get seller's products
+ * Real backend endpoint: /coupon/dev/interim-seller/{merchantId}
  */
 export async function GET(req: NextRequest) {
   logger.info(`Received request: ${req.method} ${req.url}`);
@@ -112,16 +112,17 @@ export async function GET(req: NextRequest) {
 
     // Parse query parameters
     const { searchParams } = new URL(req.url);
-    const sellerAddress = searchParams.get("sellerAddress");
+    const merchantId = searchParams.get("merchantId");
 
-    const backendUrl = new URL(`${BACKEND_URL}/coupon/dev/interim-seller`);
-    if (sellerAddress) {
-      backendUrl.searchParams.set("sellerAddress", sellerAddress);
+    if (!merchantId) {
+      return handleError("Merchant ID is required", 400);
     }
 
-    logger.info(`Forwarding backend request: GET ${backendUrl.toString()}`);
+    const backendUrl = `${BACKEND_URL}/coupon/dev/interim-seller/${merchantId}`;
 
-    const response = await api(backendUrl.toString(), {
+    logger.info(`Forwarding backend request: GET ${backendUrl}`);
+
+    const response = await api(backendUrl, {
       method: "GET",
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

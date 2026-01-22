@@ -2,7 +2,7 @@ import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
 
-const BACKEND_URL = process.env.DLT_BACKEND || "http://localhost:4004";
+const BACKEND_URL = process.env.DLT_BACKEND || "http://localhost:4000";
 
 export interface RegisterSellerRequest {
   email: string;

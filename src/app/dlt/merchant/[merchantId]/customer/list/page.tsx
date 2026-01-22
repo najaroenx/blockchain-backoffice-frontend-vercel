@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -96,6 +96,7 @@ const TableRowSkeleton = () => (
 
 export default function CustomerListPage() {
   const params = useParams();
+  const router = useRouter();
   const merchantId = params.merchantId as string;
 
   const [page, setPage] = useState(1);
@@ -323,7 +324,12 @@ export default function CustomerListPage() {
                 filteredCustomers.map((customer) => (
                   <tr
                     key={customer.id}
-                    className="hover:bg-white/5 transition-colors group"
+                    onClick={() =>
+                      router.push(
+                        `/dlt/merchant/${merchantId}/customer/${customer.id}`
+                      )
+                    }
+                    className="hover:bg-white/5 transition-colors group cursor-pointer"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -370,7 +376,15 @@ export default function CustomerListPage() {
                         : "N/A"}
                     </td>
                     <td className="p-4 text-right">
-                      <button className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/dlt/merchant/${merchantId}/customer/${customer.id}`
+                          );
+                        }}
+                        className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                      >
                         <VisibilityOutlinedIcon className="w-5 h-5" />
                       </button>
                     </td>
