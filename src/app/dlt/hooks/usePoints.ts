@@ -49,7 +49,7 @@ interface UsePointResult {
 }
 
 // Fetcher for list
-const listFetcher = async (url: string) => {
+export const listFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error("Failed to fetch points");
@@ -60,7 +60,7 @@ const listFetcher = async (url: string) => {
 };
 
 // Fetcher for single point
-const pointFetcher = async (url: string) => {
+export const pointFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error("Failed to fetch point");
@@ -69,9 +69,9 @@ const pointFetcher = async (url: string) => {
 };
 
 // Transfer fetcher (POST)
-const transferFetcher = async (
+export const transferFetcher = async (
   url: string,
-  { arg }: { arg: TransferPointPayload }
+  { arg }: { arg: TransferPointPayload },
 ) => {
   const res = await fetch(url, {
     method: "POST",
@@ -96,7 +96,7 @@ export function usePoints({ merchantId }: UsePointsOptions): UsePointsResult {
     listFetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return {
@@ -118,7 +118,7 @@ export function usePoint({
     pointFetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return {
@@ -133,7 +133,7 @@ export function usePoint({
 export function useTransferPoint({ merchantId, pointId }: UsePointOptions) {
   const { trigger, isMutating, error, data } = useSWRMutation(
     merchantId && pointId ? `/api/${merchantId}/point/${pointId}` : null,
-    transferFetcher
+    transferFetcher,
   );
 
   return {

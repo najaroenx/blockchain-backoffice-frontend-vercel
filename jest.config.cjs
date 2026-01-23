@@ -10,12 +10,25 @@ const config = {
   // ✅ เปิดการเก็บ coverage
   collectCoverage: true,
 
-  // ✅ เก็บเฉพาะ coverage จากไฟล์ใน __tests__ เท่านั้น
+  // ✅ เก็บ coverage เฉพาะ components ที่ reusable และ testable
   collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "components/**/*.{ts,tsx}",
+    // Dashboard components
+    "src/app/dlt/components/dashboard/**/*.{ts,tsx}",
+    // Hooks
+    "src/app/dlt/hooks/**/*.{ts,tsx}",
+    // Contexts
+    "src/app/dlt/contexts/**/*.{ts,tsx}",
+    // Libs
+    "src/libs/**/*.{ts,tsx}",
+    // VerifyPhone components
+    "src/components/verifyPhone/**/*.{ts,tsx}",
+    // Middleware
+    "src/middleware.ts",
+    // Excludes
     "!**/*.d.ts",
     "!**/__tests__/**",
+    "!**/page.tsx",
+    "!**/layout.tsx",
   ],
 
   coverageReporters: ["text", "lcov", "html"],

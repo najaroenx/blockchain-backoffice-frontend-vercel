@@ -99,7 +99,7 @@ interface UseMarketplaceProductResult {
  * Transform SellerListing to MarketplaceProduct for UI display
  */
 export function transformListingToProduct(
-  listing: SellerListing
+  listing: SellerListing,
 ): MarketplaceProduct {
   const price = parseFloat(listing.pricePerUnit);
 
@@ -139,7 +139,7 @@ export function transformListingToProduct(
 // ==================== FETCHERS ====================
 
 // List fetcher
-const listFetcher = async (url: string) => {
+export const listFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
@@ -168,7 +168,7 @@ const listFetcher = async (url: string) => {
 };
 
 // Single product fetcher
-const productFetcher = async (url: string) => {
+export const productFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
@@ -184,6 +184,50 @@ const productFetcher = async (url: string) => {
   return json;
 };
 
+// Buy fetcher (POST)
+export const buyFetcher = async (
+  url: string,
+  { arg }: { arg: BuyFromSellerPayload },
+) => {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(arg),
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || "Failed to complete purchase");
+  }
+
+  return json;
+};
+
+// List batch fetcher (POST)
+export const listBatchFetcher = async (
+  url: string,
+  { arg }: { arg: ListBatchToMarketplacePayload },
+) => {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(arg),
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || "Failed to list products to marketplace");
+  }
+
+  return json;
+};
+
 // ==================== HOOKS ====================
 
 /**
@@ -191,7 +235,7 @@ const productFetcher = async (url: string) => {
  */
 export function useMarketplaceProducts(
   merchantId: string,
-  filters?: ProductFilters
+  filters?: ProductFilters,
 ): UseMarketplaceProductsResult {
   // Build query string from filters
   const queryParams = new URLSearchParams();
@@ -216,13 +260,13 @@ export function useMarketplaceProducts(
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
-    }
+    },
   );
 
   // Transform listings to products
   const listings: SellerListing[] = data?.listings || [];
   const products: MarketplaceProduct[] = listings.map(
-    transformListingToProduct
+    transformListingToProduct,
   );
 
   return {
@@ -241,7 +285,7 @@ export function useMarketplaceProducts(
  */
 export function useMarketplaceProduct(
   merchantId: string,
-  listingId: string
+  listingId: string,
 ): UseMarketplaceProductResult {
   const url = `/api/${merchantId}/marketplace/seller-listings/${listingId}`;
 
@@ -250,7 +294,7 @@ export function useMarketplaceProduct(
     productFetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   const listing: SellerListing | null = data || null;
@@ -301,28 +345,6 @@ export interface BuyFromSellerResult {
   data?: unknown;
 }
 
-// Buy fetcher (POST)
-const buyFetcher = async (
-  url: string,
-  { arg }: { arg: BuyFromSellerPayload }
-) => {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(arg),
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.message || "Failed to complete purchase");
-  }
-
-  return json;
-};
-
 /**
  * Hook to buy a product from seller
  */
@@ -331,7 +353,7 @@ export function useBuyFromSeller(merchantId: string) {
 
   const { trigger, isMutating, error, data } = useSWRMutation(
     merchantId ? url : null,
-    buyFetcher
+    buyFetcher,
   );
 
   return {
@@ -344,45 +366,23 @@ export function useBuyFromSeller(merchantId: string) {
 
 // ==================== LIST BATCH TO MARKETPLACE ====================
 
-interface ListBatchItem {
+export interface ListBatchItem {
   voucherId: string;
   amount: number;
   pricePerUnitTHB: number;
 }
 
-interface ListBatchToMarketplacePayload {
+export interface ListBatchToMarketplacePayload {
   name: string;
   description: string;
   sellerWalletAddress: string;
   items: ListBatchItem[];
 }
 
-interface ListBatchToMarketplaceResult {
+export interface ListBatchToMarketplaceResult {
   message: string;
   data?: unknown;
 }
-
-// List batch fetcher (POST)
-const listBatchFetcher = async (
-  url: string,
-  { arg }: { arg: ListBatchToMarketplacePayload }
-) => {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(arg),
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.message || "Failed to list products to marketplace");
-  }
-
-  return json;
-};
 
 /**
  * Hook to list multiple products to marketplace in batch
@@ -392,7 +392,7 @@ export function useMarketplaceSellerProduct() {
 
   const { trigger, isMutating, error, data } = useSWRMutation(
     url,
-    listBatchFetcher
+    listBatchFetcher,
   );
 
   return {

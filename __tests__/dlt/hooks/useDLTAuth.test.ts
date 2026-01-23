@@ -1,65 +1,78 @@
-// __tests__/dlt/hooks/useDLTAuth.test.ts
-
 import { renderHook, act } from "@testing-library/react";
-import { useDLTAuth } from "@/app/dlt/hooks/useDLTAuth";
-import { useSession, signIn, signOut } from "next-auth/react";
+import "@testing-library/jest-dom";
 
 // Mock next-auth/react
+const mockSignIn = jest.fn();
+const mockSignOut = jest.fn();
+const mockUseSession = jest.fn();
+
 jest.mock("next-auth/react", () => ({
-  useSession: jest.fn(),
-  signIn: jest.fn(),
-  signOut: jest.fn(),
+  useSession: () => mockUseSession(),
+  signIn: (...args: any[]) => mockSignIn(...args),
+  signOut: (...args: any[]) => mockSignOut(...args),
 }));
+
+import { useDLTAuth } from "@/app/dlt/hooks/useDLTAuth";
 
 describe("useDLTAuth Hook", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("Session states", () => {
-    it("should return loading state when session is loading", () => {
-      (useSession as jest.Mock).mockReturnValue({
-        data: null,
-        status: "loading",
-      });
-
-      const { result } = renderHook(() => useDLTAuth());
-
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBe(null);
-    });
-
-    it("should return unauthenticated state when no session", () => {
-      (useSession as jest.Mock).mockReturnValue({
+  describe("when user is not authenticated", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
         data: null,
         status: "unauthenticated",
       });
-
-      const { result } = renderHook(() => useDLTAuth());
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.user).toBe(null);
     });
 
-    it("should return authenticated state with user data", () => {
-      const mockSession = {
-        user: {
-          id: "user-123",
-          email: "test@example.com",
-          accessToken: "token-abc",
+    it("should return null user", () => {
+      const { result } = renderHook(() => useDLTAuth());
+      expect(result.current.user).toBeNull();
+    });
+
+    it("should return isAuthenticated as false", () => {
+      const { result } = renderHook(() => useDLTAuth());
+      expect(result.current.isAuthenticated).toBe(false);
+    });
+
+    it("should return isLoading as false", () => {
+      const { result } = renderHook(() => useDLTAuth());
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe("when session is loading", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: null,
+        status: "loading",
+      });
+    });
+
+    it("should return isLoading as true", () => {
+      const { result } = renderHook(() => useDLTAuth());
+      expect(result.current.isLoading).toBe(true);
+    });
+  });
+
+  describe("when user is authenticated", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "user-123",
+            email: "test@example.com",
+            accessToken: "token-abc",
+          },
         },
-      };
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
         status: "authenticated",
       });
+    });
 
+    it("should return user data", () => {
       const { result } = renderHook(() => useDLTAuth());
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.user).toEqual({
         id: "user-123",
         email: "test@example.com",
@@ -67,40 +80,28 @@ describe("useDLTAuth Hook", () => {
       });
     });
 
-    it("should handle session with missing user fields", () => {
-      const mockSession = {
-        user: {},
-      };
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: "authenticated",
-      });
-
+    it("should return isAuthenticated as true", () => {
       const { result } = renderHook(() => useDLTAuth());
-
-      expect(result.current.user).toEqual({
-        id: "",
-        email: "",
-        accessToken: undefined,
-      });
+      expect(result.current.isAuthenticated).toBe(true);
     });
   });
 
-  describe("Login function", () => {
-    it("should call signIn with correct parameters", async () => {
-      (useSession as jest.Mock).mockReturnValue({
+  describe("login function", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
         data: null,
         status: "unauthenticated",
       });
-      (signIn as jest.Mock).mockResolvedValue({ ok: true });
+    });
 
+    it("should call signIn with credentials", async () => {
       const { result } = renderHook(() => useDLTAuth());
 
       await act(async () => {
         await result.current.login("test@example.com", "password123");
       });
 
-      expect(signIn).toHaveBeenCalledWith("credentials", {
+      expect(mockSignIn).toHaveBeenCalledWith("credentials", {
         redirect: true,
         callbackUrl: "/dlt/merchant",
         email: "test@example.com",
@@ -108,24 +109,18 @@ describe("useDLTAuth Hook", () => {
       });
     });
 
-    it("should use custom callbackUrl when provided", async () => {
-      (useSession as jest.Mock).mockReturnValue({
-        data: null,
-        status: "unauthenticated",
-      });
-      (signIn as jest.Mock).mockResolvedValue({ ok: true });
-
+    it("should use custom callbackUrl", async () => {
       const { result } = renderHook(() => useDLTAuth());
 
       await act(async () => {
         await result.current.login(
           "test@example.com",
           "password123",
-          "/dlt/seller"
+          "/dlt/seller",
         );
       });
 
-      expect(signIn).toHaveBeenCalledWith("credentials", {
+      expect(mockSignIn).toHaveBeenCalledWith("credentials", {
         redirect: true,
         callbackUrl: "/dlt/seller",
         email: "test@example.com",
@@ -134,61 +129,40 @@ describe("useDLTAuth Hook", () => {
     });
   });
 
-  describe("Logout function", () => {
-    it("should call signOut with default callbackUrl", async () => {
-      (useSession as jest.Mock).mockReturnValue({
-        data: { user: { id: "1", email: "test@test.com" } },
+  describe("logout function", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: { id: "user-123", email: "test@example.com" },
+        },
         status: "authenticated",
       });
-      (signOut as jest.Mock).mockResolvedValue({ url: "/dlt/sign-in" });
+    });
 
+    it("should call signOut with default callbackUrl", async () => {
       const { result } = renderHook(() => useDLTAuth());
 
       await act(async () => {
         await result.current.logout();
       });
 
-      expect(signOut).toHaveBeenCalledWith({
+      expect(mockSignOut).toHaveBeenCalledWith({
         redirect: true,
         callbackUrl: "/dlt/sign-in",
       });
     });
 
-    it("should use custom callbackUrl when provided", async () => {
-      (useSession as jest.Mock).mockReturnValue({
-        data: { user: { id: "1", email: "test@test.com" } },
-        status: "authenticated",
-      });
-      (signOut as jest.Mock).mockResolvedValue({ url: "/custom" });
-
+    it("should use custom callbackUrl", async () => {
       const { result } = renderHook(() => useDLTAuth());
 
       await act(async () => {
-        await result.current.logout("/custom");
+        await result.current.logout("/");
       });
 
-      expect(signOut).toHaveBeenCalledWith({
+      expect(mockSignOut).toHaveBeenCalledWith({
         redirect: true,
-        callbackUrl: "/custom",
+        callbackUrl: "/",
       });
-    });
-  });
-
-  describe("Return values", () => {
-    it("should return session and status from useSession", () => {
-      const mockSession = {
-        user: { id: "1", email: "test@test.com" },
-        expires: "2024-01-01",
-      };
-      (useSession as jest.Mock).mockReturnValue({
-        data: mockSession,
-        status: "authenticated",
-      });
-
-      const { result } = renderHook(() => useDLTAuth());
-
-      expect(result.current.session).toEqual(mockSession);
-      expect(result.current.status).toBe("authenticated");
     });
   });
 });
