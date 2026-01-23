@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 import logger from "@/libs/logger";
 import { mockApiKeys } from "@/data/mockAdmin";
 
-const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4004";
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 const shouldProtectAdmin =
   (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 

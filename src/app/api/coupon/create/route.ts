@@ -121,12 +121,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Forward to backend (no auth required)
-    const response = await fetch(`${BACKEND_URL}/coupon/dev/interim-seller`, {
+    const response = await fetch(`${BACKEND_URL}/coupon/dev/interim-seller/${merchantId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        coupon: body.coupon,
+        price: body.price,
+      }),
     });
 
     if (!response.ok) {

@@ -7,19 +7,19 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import InventoryIcon from "@mui/icons-material/Inventory2Outlined";
 import Link from "next/link";
+import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 
 export default function ProductCreatePage() {
   const router = useRouter();
+  const sellerId = useSellerId();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
 
   const [formData, setFormData] = useState({
-    sellerWalletAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c",
     productType: "voucher",
     name: "",
     description: "",
     status: "upcoming",
-    merchantId: null as string | null,
     valueType: "cash",
     value: 0,
     pointId: null as string | null,
@@ -68,13 +68,19 @@ export default function ProductCreatePage() {
     setIsSubmitting(true);
 
     try {
+      if (!sellerId) {
+        alert("Merchant ID is required. Please select a seller first.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
-        sellerWalletAddress: formData.sellerWalletAddress,
+        merchantId: sellerId,
         coupon: {
           name: formData.name,
           description: formData.description,
           status: formData.status,
-          merchantId: formData.merchantId,
+          merchantId: sellerId,
           valueType: formData.valueType,
           value: formData.value,
           pointId: formData.pointId,
