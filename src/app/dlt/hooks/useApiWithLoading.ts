@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   useLoading,
   useLoadingSuccess,
@@ -27,6 +28,7 @@ const DEFAULT_OPTIONS: UseApiOptions = {
 };
 
 export function useApiWithLoading() {
+  const router = useRouter();
   const [isExecuting, setIsExecuting] = useState(false);
   const { showLoading, hideLoading } = useLoading();
   const { showLoadingSuccess } = useLoadingSuccess();
@@ -35,7 +37,7 @@ export function useApiWithLoading() {
   const execute = useCallback(
     async <T>(
       asyncFn: () => Promise<T>,
-      options?: UseApiOptions
+      options?: UseApiOptions,
     ): Promise<T | null> => {
       const opts = { ...DEFAULT_OPTIONS, ...options };
 
@@ -54,7 +56,7 @@ export function useApiWithLoading() {
         // Handle redirect on success
         if (opts.redirectOnSuccess) {
           setTimeout(() => {
-            window.location.href = opts.redirectOnSuccess!;
+            router.push(opts.redirectOnSuccess!);
           }, opts.redirectDelay);
         }
 
@@ -73,7 +75,7 @@ export function useApiWithLoading() {
         setIsExecuting(false);
       }
     },
-    [showLoading, hideLoading, showLoadingSuccess, showLoadingError]
+    [showLoading, hideLoading, showLoadingSuccess, showLoadingError, router],
   );
 
   return {

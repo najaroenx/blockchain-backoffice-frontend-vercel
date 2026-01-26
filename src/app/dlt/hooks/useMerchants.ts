@@ -43,7 +43,7 @@ interface UseMerchantResult {
 }
 
 // Fetcher for list
-const listFetcher = async (url: string) => {
+export const listFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error("Failed to fetch merchants");
@@ -54,7 +54,7 @@ const listFetcher = async (url: string) => {
 };
 
 // Fetcher for single merchant
-const merchantFetcher = async (url: string) => {
+export const merchantFetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error("Failed to fetch merchant");
@@ -63,9 +63,9 @@ const merchantFetcher = async (url: string) => {
 };
 
 // Create fetcher (POST)
-const createFetcher = async (
+export const createFetcher = async (
   url: string,
-  { arg }: { arg: CreateMerchantPayload }
+  { arg }: { arg: CreateMerchantPayload },
 ) => {
   const res = await fetch(url, {
     method: "POST",
@@ -90,7 +90,7 @@ export function useMerchants(): UseMerchantsResult {
     listFetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return {
@@ -109,7 +109,7 @@ export function useMerchant(merchantId: string): UseMerchantResult {
     merchantFetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return {
@@ -124,7 +124,7 @@ export function useMerchant(merchantId: string): UseMerchantResult {
 export function useCreateMerchant() {
   const { trigger, isMutating, error, data } = useSWRMutation(
     `/api/merchant`,
-    createFetcher
+    createFetcher,
   );
 
   return {

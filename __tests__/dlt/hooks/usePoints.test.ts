@@ -1,11 +1,5 @@
-// __tests__/dlt/hooks/usePoints.test.ts
-
-import { renderHook, waitFor } from "@testing-library/react";
-import {
-  usePoints,
-  usePoint,
-  useTransferPoint,
-} from "@/app/dlt/hooks/usePoints";
+import { renderHook } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 // Mock SWR
 jest.mock("swr", () => ({
@@ -20,12 +14,112 @@ jest.mock("swr/mutation", () => ({
 
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
+import {
+  usePoints,
+  usePoint,
+  useTransferPoint,
+  listFetcher,
+  pointFetcher,
+  transferFetcher,
+} from "@/app/dlt/hooks/usePoints";
+
+// Mock fetch global
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 describe("usePoints Hooks", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  describe("Fetchers", () => {
+    describe("listFetcher", () => {
+      it("should return data and total count", async () => {
+        const mockData = [{ id: 1, name: "Point A" }];
+        mockFetch.mockResolvedValue({
+          ok: true,
+          headers: {
+            get: jest.fn().mockReturnValue("5"),
+          },
+          json: async () => mockData,
+        });
+
+        const result = await listFetcher("/api/point");
+        expect(result).toEqual({ data: mockData, total: 5 });
+      });
+
+      it("should throw error when response is not ok", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+        });
+
+        await expect(listFetcher("/api/point")).rejects.toThrow(
+          "Failed to fetch points",
+        );
+      });
+    });
+
+    describe("pointFetcher", () => {
+      it("should return point data", async () => {
+        const mockData = { id: 1, name: "Point A" };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockData,
+        });
+
+        const result = await pointFetcher("/api/point/1");
+        expect(result).toEqual(mockData);
+      });
+
+      it("should throw error when response is not ok", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+        });
+
+        await expect(pointFetcher("/api/point/1")).rejects.toThrow(
+          "Failed to fetch point",
+        );
+      });
+    });
+
+    describe("transferFetcher", () => {
+      it("should return transfer result", async () => {
+        const mockData = { success: true, tx: "0x123" };
+        const arg = { amount: 100, receiver: "User A" };
+
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockData,
+        });
+
+        const result = await transferFetcher("/api/point/transfer", {
+          arg,
+        } as any);
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "/api/point/transfer",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify(arg),
+          }),
+        );
+        expect(result).toEqual(mockData);
+      });
+
+      it("should throw error when transfer fails", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          json: async () => ({ message: "Insufficient balance" }),
+        });
+
+        await expect(
+          transferFetcher("/api/point/transfer", { arg: {} } as any),
+        ).rejects.toThrow("Insufficient balance");
+      });
+    });
+  });
+
+  // Keep existing Hook tests
   describe("usePoints", () => {
     it("should return empty points array when loading", () => {
       (useSWR as jest.Mock).mockReturnValue({
@@ -36,7 +130,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoints({ merchantId: "merchant-123" })
+        usePoints({ merchantId: "merchant-123" }),
       );
 
       expect(result.current.points).toEqual([]);
@@ -58,7 +152,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoints({ merchantId: "merchant-123" })
+        usePoints({ merchantId: "merchant-123" }),
       );
 
       expect(result.current.points).toEqual(mockPoints);
@@ -76,7 +170,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoints({ merchantId: "merchant-123" })
+        usePoints({ merchantId: "merchant-123" }),
       );
 
       expect(result.current.isError).toBe(true);
@@ -96,7 +190,7 @@ describe("usePoints Hooks", () => {
       expect(useSWR).toHaveBeenCalledWith(
         null,
         expect.any(Function),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -113,7 +207,7 @@ describe("usePoints Hooks", () => {
       expect(useSWR).toHaveBeenCalledWith(
         "/api/merchant-123/point",
         expect.any(Function),
-        expect.objectContaining({ revalidateOnFocus: false })
+        expect.objectContaining({ revalidateOnFocus: false }),
       );
     });
 
@@ -127,7 +221,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoints({ merchantId: "merchant-123" })
+        usePoints({ merchantId: "merchant-123" }),
       );
 
       expect(result.current.mutate).toBe(mockMutate);
@@ -144,7 +238,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoint({ merchantId: "merchant-123", pointId: "point-1", phone: "" })
+        usePoint({ merchantId: "merchant-123", pointId: "point-1", phone: "" }),
       );
 
       expect(result.current.point).toBe(null);
@@ -166,7 +260,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        usePoint({ merchantId: "merchant-123", pointId: "point-1", phone: "" })
+        usePoint({ merchantId: "merchant-123", pointId: "point-1", phone: "" }),
       );
 
       expect(result.current.point).toEqual(mockPoint);
@@ -183,21 +277,21 @@ describe("usePoints Hooks", () => {
       });
 
       renderHook(() =>
-        usePoint({ merchantId: "", pointId: "point-1", phone: "" })
+        usePoint({ merchantId: "", pointId: "point-1", phone: "" }),
       );
       expect(useSWR).toHaveBeenCalledWith(
         null,
         expect.any(Function),
-        expect.any(Object)
+        expect.any(Object),
       );
 
       renderHook(() =>
-        usePoint({ merchantId: "merchant-123", pointId: "", phone: "" })
+        usePoint({ merchantId: "merchant-123", pointId: "", phone: "" }),
       );
       expect(useSWR).toHaveBeenCalledWith(
         null,
         expect.any(Function),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -217,7 +311,7 @@ describe("usePoints Hooks", () => {
           merchantId: "merchant-123",
           pointId: "point-1",
           phone: "",
-        })
+        }),
       );
 
       expect(result.current.transfer).toBe(mockTrigger);
@@ -239,7 +333,7 @@ describe("usePoints Hooks", () => {
           merchantId: "merchant-123",
           pointId: "point-1",
           phone: "",
-        })
+        }),
       );
 
       expect(result.current.isTransferring).toBe(true);
@@ -259,7 +353,7 @@ describe("usePoints Hooks", () => {
           merchantId: "merchant-123",
           pointId: "point-1",
           phone: "",
-        })
+        }),
       );
 
       expect(result.current.transferError).toBe(mockError);
@@ -279,7 +373,7 @@ describe("usePoints Hooks", () => {
           merchantId: "merchant-123",
           pointId: "point-1",
           phone: "",
-        })
+        }),
       );
 
       expect(result.current.transferResult).toEqual(mockResult);

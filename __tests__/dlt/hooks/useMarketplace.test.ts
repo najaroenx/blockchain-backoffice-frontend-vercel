@@ -1,13 +1,16 @@
-// __tests__/dlt/hooks/useMarketplace.test.ts
-
 import { renderHook } from "@testing-library/react";
 import {
   useMarketplaceProducts,
   useMarketplaceProduct,
   useMarketplaceCategories,
   useBuyFromSeller,
+  useMarketplaceSellerProduct,
   transformListingToProduct,
   SellerListing,
+  listFetcher,
+  productFetcher,
+  buyFetcher,
+  listBatchFetcher,
 } from "@/app/dlt/hooks/useMarketplace";
 
 // Mock SWR
@@ -24,9 +27,170 @@ jest.mock("swr/mutation", () => ({
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 
+// Mock fetch global
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
 describe("useMarketplace Hooks", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe("Fetchers", () => {
+    describe("listFetcher", () => {
+      it("should return listings and total from data wrapper", async () => {
+        const mockResponse = {
+          data: {
+            listings: [{ listingId: "1" }],
+            total: 5,
+          },
+        };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await listFetcher("/api/products");
+        expect(result).toEqual({ listings: [{ listingId: "1" }], total: 5 });
+      });
+
+      it("should return listings and total from headers fallback", async () => {
+        const mockData = [{ listingId: "1" }];
+        mockFetch.mockResolvedValue({
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue("10") },
+          json: async () => mockData,
+        });
+
+        const result = await listFetcher("/api/products");
+        expect(result).toEqual({ listings: mockData, total: 10 });
+      });
+
+      it("should return empty array on fallback if json is not array", async () => {
+        mockFetch.mockResolvedValue({
+          ok: true,
+          headers: { get: jest.fn().mockReturnValue(null) },
+          json: async () => ({ some: "object" }),
+        });
+
+        const result = await listFetcher("/api/products");
+        expect(result).toEqual({ listings: [], total: 0 });
+      });
+
+      it("should throw error when response is not ok", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          json: async () => ({ message: "Error" }),
+        });
+        await expect(listFetcher("/api/products")).rejects.toThrow("Error");
+      });
+    });
+
+    describe("productFetcher", () => {
+      it("should return unrapped data", async () => {
+        const mockResponse = { data: { id: "1" } };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockResponse,
+        });
+
+        const result = await productFetcher("/api/product/1");
+        expect(result).toEqual({ id: "1" });
+      });
+
+      it("should return raw json if no data wrapper", async () => {
+        const mockResponse = { id: "1" };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockResponse,
+        });
+        const result = await productFetcher("/api/product/1");
+        expect(result).toEqual({ id: "1" });
+      });
+
+      it("should throw error", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          json: async () => ({ message: "Failed" }),
+        });
+        await expect(productFetcher("/api/product/1")).rejects.toThrow(
+          "Failed",
+        );
+      });
+    });
+
+    describe("buyFetcher", () => {
+      it("should return json on success", async () => {
+        const mockRes = { status: "ok" };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockRes,
+        });
+        const arg = { listingId: "1", amount: 1 };
+        const result = await buyFetcher("/api/buy", { arg });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "/api/buy",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify(arg),
+          }),
+        );
+        expect(result).toEqual(mockRes);
+      });
+
+      it("should throw on error", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          json: async () => ({ message: "Out of stock" }),
+        });
+        await expect(
+          buyFetcher("/api/buy", { arg: { listingId: "1", amount: 1 } }),
+        ).rejects.toThrow("Out of stock");
+      });
+    });
+
+    describe("listBatchFetcher", () => {
+      it("should return json on success", async () => {
+        const mockRes = { message: "Listed" };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => mockRes,
+        });
+        const arg = {
+          name: "Batch",
+          description: "Desc",
+          sellerWalletAddress: "0x",
+          items: [],
+        };
+        const result = await listBatchFetcher("/api/batch", { arg });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          "/api/batch",
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify(arg),
+          }),
+        );
+        expect(result).toEqual(mockRes);
+      });
+
+      it("should throw on error", async () => {
+        mockFetch.mockResolvedValue({
+          ok: false,
+          json: async () => ({ message: "Invalid data" }),
+        });
+        const arg = {
+          name: "Batch",
+          description: "Desc",
+          sellerWalletAddress: "0x",
+          items: [],
+        };
+        await expect(listBatchFetcher("/api/batch", { arg })).rejects.toThrow(
+          "Invalid data",
+        );
+      });
+    });
   });
 
   describe("transformListingToProduct", () => {
@@ -95,13 +259,13 @@ describe("useMarketplace Hooks", () => {
       });
 
       expect(transformListingToProduct(createListing("cash")).category).toBe(
-        "cash"
+        "cash",
       );
       expect(
-        transformListingToProduct(createListing("aispoint")).category
+        transformListingToProduct(createListing("aispoint")).category,
       ).toBe("aispoint");
       expect(transformListingToProduct(createListing("other")).category).toBe(
-        "all"
+        "all",
       );
     });
 
@@ -146,7 +310,7 @@ describe("useMarketplace Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        useMarketplaceProducts("merchant-123")
+        useMarketplaceProducts("merchant-123"),
       );
 
       expect(result.current.products).toEqual([]);
@@ -191,7 +355,7 @@ describe("useMarketplace Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        useMarketplaceProducts("merchant-123")
+        useMarketplaceProducts("merchant-123"),
       );
 
       expect(result.current.products.length).toBe(1);
@@ -213,15 +377,15 @@ describe("useMarketplace Hooks", () => {
           category: "cash",
           page: 1,
           limit: 10,
-        })
+        }),
       );
 
       expect(useSWR).toHaveBeenCalledWith(
         expect.stringContaining(
-          "/api/merchant-123/marketplace/seller-listings"
+          "/api/merchant-123/marketplace/seller-listings",
         ),
         expect.any(Function),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -236,7 +400,7 @@ describe("useMarketplace Hooks", () => {
       });
 
       const { result } = renderHook(() =>
-        useMarketplaceProduct("merchant-123", "listing-1")
+        useMarketplaceProduct("merchant-123", "listing-1"),
       );
 
       expect(result.current.product).toBe(null);
@@ -248,7 +412,7 @@ describe("useMarketplace Hooks", () => {
   describe("useMarketplaceCategories", () => {
     it("should return static categories", () => {
       const { result } = renderHook(() =>
-        useMarketplaceCategories("merchant-123")
+        useMarketplaceCategories("merchant-123"),
       );
 
       expect(result.current.categories).toHaveLength(3);
@@ -300,6 +464,24 @@ describe("useMarketplace Hooks", () => {
       renderHook(() => useBuyFromSeller(""));
 
       expect(useSWRMutation).toHaveBeenCalledWith(null, expect.any(Function));
+    });
+  });
+
+  describe("useMarketplaceSellerProduct", () => {
+    it("should return listing function and states", () => {
+      const mockTrigger = jest.fn();
+      (useSWRMutation as jest.Mock).mockReturnValue({
+        trigger: mockTrigger,
+        isMutating: false,
+        error: undefined,
+        data: undefined,
+      });
+
+      const { result } = renderHook(() => useMarketplaceSellerProduct());
+
+      expect(result.current.listBatchToMarketplace).toBe(mockTrigger);
+      expect(result.current.isListing).toBe(false);
+      expect(result.current.listError).toBeUndefined();
     });
   });
 });
