@@ -636,7 +636,7 @@ export default function DashboardNewPage({
               />
             </div>
             <div className="flex items-end justify-between">
-              <h3 className="text-2xl font-bold text-white">0 "ยัง mock"</h3>
+              <h3 className="text-2xl font-bold text-white">0 ยัง mock</h3>
               {/* <span className="text-sm text-rose-400">-16.2%</span> */}
             </div>
           </div>
