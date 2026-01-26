@@ -18,7 +18,7 @@ export const api = async (url: string, options: RequestOptions) => {
   if (fetchOptions.queryParams) {
     const separator = url.includes("?") ? "&" : "?";
     const queryString = new URLSearchParams(
-      fetchOptions.queryParams as any
+      fetchOptions.queryParams as any,
     ).toString();
     const finalUrl = `${url}${separator}${queryString}`;
 
@@ -32,13 +32,33 @@ export const api = async (url: string, options: RequestOptions) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      // Try to parse error response, but handle empty body
+      const text = await response.text();
+      let errorData: any = {};
+      if (text) {
+        try {
+          errorData = JSON.parse(text);
+        } catch {
+          errorData = { message: text };
+        }
+      }
       const message =
         errorData.message || errorData.data?.message || "Request failed";
       return { statusCode: response.status, message };
     }
 
-    const jsonData = await response.json();
+    // Handle empty response body
+    const text = await response.text();
+    if (!text) {
+      return {};
+    }
+
+    let jsonData;
+    try {
+      jsonData = JSON.parse(text);
+    } catch {
+      return { statusCode: 500, message: "Invalid JSON response from server" };
+    }
 
     // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
     if (unwrapData && jsonData.data !== undefined) {
@@ -58,13 +78,33 @@ export const api = async (url: string, options: RequestOptions) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    // Try to parse error response, but handle empty body
+    const text = await response.text();
+    let errorData: any = {};
+    if (text) {
+      try {
+        errorData = JSON.parse(text);
+      } catch {
+        errorData = { message: text };
+      }
+    }
     const message =
       errorData.message || errorData.data?.message || "Request failed";
     return { statusCode: response.status, message };
   }
 
-  const jsonData = await response.json();
+  // Handle empty response body
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+
+  let jsonData;
+  try {
+    jsonData = JSON.parse(text);
+  } catch {
+    return { statusCode: 500, message: "Invalid JSON response from server" };
+  }
 
   // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
   if (unwrapData && jsonData.data !== undefined) {

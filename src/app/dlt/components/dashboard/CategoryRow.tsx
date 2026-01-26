@@ -2,16 +2,16 @@
 
 export interface ICategoryRow {
   name: string;
-  value: string;
-  count: string;
+  value?: string | number;
+  count?: string;
   bgColor: string;
   textColor: string;
 }
 
 const CategoryRow = ({
   name,
-  value,
-  count,
+  value = "0",
+  count = "",
   bgColor,
   textColor,
 }: ICategoryRow) => (
@@ -21,7 +21,7 @@ const CategoryRow = ({
     <span className={`text-sm font-semibold ${textColor}`}>{name}</span>
     <div className="flex items-center gap-2">
       <span className="text-sm font-semibold text-gray-100">{value}</span>
-      <span className="text-xs text-gray-400">{count}</span>
+      {/* <span className="text-xs text-gray-400">{count}</span> */}
     </div>
   </div>
 );

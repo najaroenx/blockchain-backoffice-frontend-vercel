@@ -6,13 +6,12 @@ import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import PeopleIcon from "@mui/icons-material/People";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import InventoryIcon from "@mui/icons-material/Inventory";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { ApexOptions } from "apexcharts";
-
+import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
+import { api } from "@/libs/api";
+import { UserDashboardData } from "@/app/api/[id]/user-dashboard/route";
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -73,113 +72,33 @@ const StatCard = ({
   </div>
 );
 
-// Metric Card with trend and sparkline - matching the design
-const MetricCard = ({
-  icon,
-  iconBgColor,
-  value,
-  label,
-  trend,
-  isPositive,
-  sparklineData,
-  sparklineColor,
-}: {
-  icon: React.ReactNode;
-  iconBgColor: string;
-  value: string;
-  label: string;
-  trend: string;
-  isPositive: boolean;
-  sparklineData: number[];
-  sparklineColor: string;
-}) => {
-  // Generate sparkline path
-  const maxVal = Math.max(...sparklineData);
-  const minVal = Math.min(...sparklineData);
-  const range = maxVal - minVal || 1;
-  const width = 100;
-  const height = 30;
-  const points = sparklineData
-    .map((val, i) => {
-      const x = (i / (sparklineData.length - 1)) * width;
-      const y = height - ((val - minVal) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-      <div className="flex items-start justify-between mb-4">
-        <div
-          className={`w-10 h-10 rounded-xl ${iconBgColor} flex items-center justify-center`}
-        >
-          {icon}
-        </div>
-        <div className="flex items-center gap-1 text-xs font-medium">
-          {isPositive ? (
-            <TrendingUpIcon className="w-3 h-3 text-emerald-500" />
-          ) : (
-            <TrendingDownIcon className="w-3 h-3 text-red-500" />
-          )}
-          <span className={isPositive ? "text-emerald-600" : "text-red-600"}>
-            {trend}
-          </span>
-          <span className="text-gray-400 ml-1">สัปดาห์นี้</span>
-        </div>
-      </div>
-      <div className="mb-3">
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-      </div>
-      <svg
-        width="100%"
-        height="30"
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id={`gradient-${label.replace(/\s/g, "")}`}
-            x1="0%"
-            y1="0%"
-            x2="0%"
-            y2="100%"
-          >
-            <stop offset="0%" stopColor={sparklineColor} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={sparklineColor} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon
-          points={`0,${height} ${points} ${width},${height}`}
-          fill={`url(#gradient-${label.replace(/\s/g, "")})`}
-        />
-        <polyline
-          points={points}
-          fill="none"
-          stroke={sparklineColor}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
-  );
-};
+// ... (existing imports, but remove duplicate React dynamic if needed)
 
 export default function UserMerchantDashboard() {
   const searchParams = useSearchParams();
-  const merchantId = searchParams.get("merchantId") || "";
+  const merchantRef = searchParams.get("merchantRef") || "";
   const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<UserDashboardData | null>(null);
 
-  // Simulate data loading
   useEffect(() => {
-    setIsLoading(true);
-    const loadData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setIsLoading(false);
+    if (!merchantRef) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const result = await api(`/api/${merchantRef}/user-dashboard`, {
+          method: "GET",
+        });
+        setData(result.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    loadData();
-  }, [merchantId]);
+
+    fetchData();
+  }, [merchantRef]);
 
   // ========================================
   // 1. ข้อมูลภาพรวมร้านของตนเอง
@@ -187,36 +106,8 @@ export default function UserMerchantDashboard() {
   const storeOverview = {
     // a. จำนวนคูปอง
     coupon: {
-      pendingUse: 456, // i. จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
-      redeemed: 434, // ii. จำนวนคูปองที่ End User redeem แล้วจริงๆ
-    },
-  };
-
-  // Metrics for stat cards
-  const metrics = {
-    revenue: {
-      value: "฿315,244",
-      trend: "12%",
-      isPositive: true,
-      data: [30, 45, 35, 50, 40, 60, 55, 70, 65, 80],
-    },
-    customers: {
-      value: "153,432",
-      trend: "5%",
-      isPositive: false,
-      data: [80, 75, 85, 70, 65, 60, 55, 50, 45, 40],
-    },
-    transactions: {
-      value: "75,275",
-      trend: "11%",
-      isPositive: true,
-      data: [20, 25, 30, 35, 40, 38, 45, 50, 55, 60],
-    },
-    products: {
-      value: "6,26,532",
-      trend: "6.5%",
-      isPositive: false,
-      data: [50, 55, 60, 58, 62, 55, 50, 48, 45, 42],
+      pendingUse: data?.myMerchantSummary?.coupon?.pendingUse || 0, // i. จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
+      redeemed: data?.myMerchantSummary?.coupon?.redeemed || 0, // ii. จำนวนคูปองที่ End User redeem แล้วจริงๆ
     },
   };
 
@@ -225,11 +116,11 @@ export default function UserMerchantDashboard() {
   // ========================================
   const endUserData = {
     // a. คน
-    totalUsers: 4521, // i. จำนวน End User ที่เรามี
-    purchasedUsers: 2340, // ii. จำนวน End User ที่ซื้อ (คนที่ซื้อ)
-    totalCouponsSold: 890, // iii. จำนวนคูปองที่ขายทั้งหมด (เอาไปให้ End User ใช้)
-    usersPendingUse: 456, // iv. จำนวน End User ที่ซื้อแต่ยังไม่ใช้
-    usersRedeemed: 434, // v. จำนวน End User ที่ redeem แล้วจริงๆ
+    totalUsers: data?.myMerchantSummary?.endUser?.total || 0, // i. จำนวน End User ที่เรามี
+    purchasedUsers: data?.myMerchantSummary?.endUser?.buyers || 0, // ii. จำนวน End User ที่ซื้อ (คนที่ซื้อ)
+    totalCouponsSold: data?.myMerchantSummary?.endUser?.couponsSold || 0, // iii. จำนวนคูปองที่ขายทั้งหมด (เอาไปให้ End User ใช้)
+    usersPendingUse: data?.myMerchantSummary?.endUser?.pendingUsers || 0, // iv. จำนวน End User ที่ซื้อแต่ยังไม่ใช้
+    usersRedeemed: data?.myMerchantSummary?.endUser?.redeemedUsers || 0, // v. จำนวน End User ที่ redeem แล้วจริงๆ
   };
 
   // ========================================
@@ -375,17 +266,6 @@ export default function UserMerchantDashboard() {
     },
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
-          <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -396,11 +276,11 @@ export default function UserMerchantDashboard() {
           </span>
           <span className="text-gray-700">ร้านค้า</span>
         </h1>
-        {merchantId && (
+        {merchantRef && (
           <p className="text-gray-500 mt-1">
             Merchant Ref:{" "}
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-mono font-medium">
-              {merchantId}
+              {merchantRef}
             </span>
           </p>
         )}
@@ -464,50 +344,6 @@ export default function UserMerchantDashboard() {
               </div>
             </div>
           </SectionCard>
-
-          {/* Right: Metric Cards Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <MetricCard
-              icon={<AttachMoneyIcon className="w-5 h-5 text-purple-600" />}
-              iconBgColor="bg-purple-100"
-              value={metrics.revenue.value}
-              label="Total Revenue"
-              trend={metrics.revenue.trend}
-              isPositive={metrics.revenue.isPositive}
-              sparklineData={metrics.revenue.data}
-              sparklineColor="#9333ea"
-            />
-            <MetricCard
-              icon={<PeopleIcon className="w-5 h-5 text-emerald-600" />}
-              iconBgColor="bg-emerald-100"
-              value={metrics.customers.value}
-              label="Total Customers"
-              trend={metrics.customers.trend}
-              isPositive={metrics.customers.isPositive}
-              sparklineData={metrics.customers.data}
-              sparklineColor="#059669"
-            />
-            <MetricCard
-              icon={<ShoppingCartIcon className="w-5 h-5 text-cyan-600" />}
-              iconBgColor="bg-cyan-100"
-              value={metrics.transactions.value}
-              label="Total Transactions"
-              trend={metrics.transactions.trend}
-              isPositive={metrics.transactions.isPositive}
-              sparklineData={metrics.transactions.data}
-              sparklineColor="#0891b2"
-            />
-            <MetricCard
-              icon={<InventoryIcon className="w-5 h-5 text-pink-600" />}
-              iconBgColor="bg-pink-100"
-              value={metrics.products.value}
-              label="Total Products"
-              trend={metrics.products.trend}
-              isPositive={metrics.products.isPositive}
-              sparklineData={metrics.products.data}
-              sparklineColor="#ec4899"
-            />
-          </div>
         </div>
       </div>
 
