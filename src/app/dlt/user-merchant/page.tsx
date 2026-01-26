@@ -6,10 +6,7 @@ import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import PeopleIcon from "@mui/icons-material/People";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import { ApexOptions } from "apexcharts";
-import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import { api } from "@/libs/api";
 import { UserDashboardData } from "@/app/api/[id]/user-dashboard/route";
 // Dynamic import for ApexCharts (no SSR)
