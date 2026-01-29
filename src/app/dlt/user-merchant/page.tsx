@@ -8,7 +8,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { ApexOptions } from "apexcharts";
 import { api } from "@/libs/api";
-import { UserDashboardData } from "@/app/api/[id]/user-dashboard/route";
+import { MerchantRefDashboardResponse } from "@/app/api/[id]/user-dashboard/route";
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -75,7 +75,7 @@ export default function UserMerchantDashboard() {
   const searchParams = useSearchParams();
   const merchantRef = searchParams.get("merchantRef") || "";
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<UserDashboardData | null>(null);
+  const [data, setData] = useState<MerchantRefDashboardResponse | null>(null);
 
   useEffect(() => {
     if (!merchantRef) return;
@@ -103,7 +103,8 @@ export default function UserMerchantDashboard() {
   const storeOverview = {
     // a. จำนวนคูปอง
     coupon: {
-      pendingUse: data?.myMerchantSummary?.coupon?.pendingUse || 0, // i. จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
+      total: data?.myMerchantSummary?.coupon?.total || 0, // จำนวนคูปองที่ขายให้ End User
+      unredeemed: data?.myMerchantSummary?.coupon?.unredeemed || 0, // i. จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
       redeemed: data?.myMerchantSummary?.coupon?.redeemed || 0, // ii. จำนวนคูปองที่ End User redeem แล้วจริงๆ
     },
   };
@@ -114,10 +115,8 @@ export default function UserMerchantDashboard() {
   const endUserData = {
     // a. คน
     totalUsers: data?.myMerchantSummary?.endUser?.total || 0, // i. จำนวน End User ที่เรามี
-    purchasedUsers: data?.myMerchantSummary?.endUser?.buyers || 0, // ii. จำนวน End User ที่ซื้อ (คนที่ซื้อ)
-    totalCouponsSold: data?.myMerchantSummary?.endUser?.couponsSold || 0, // iii. จำนวนคูปองที่ขายทั้งหมด (เอาไปให้ End User ใช้)
-    usersPendingUse: data?.myMerchantSummary?.endUser?.pendingUsers || 0, // iv. จำนวน End User ที่ซื้อแต่ยังไม่ใช้
-    usersRedeemed: data?.myMerchantSummary?.endUser?.redeemedUsers || 0, // v. จำนวน End User ที่ redeem แล้วจริงๆ
+    unredeemedUsers: data?.myMerchantSummary?.endUser?.unredeemedUsers || 0, // ii. จำนวน End User ที่ซื้อแต่ยังไม่ใช้
+    redeemedUsers: data?.myMerchantSummary?.endUser?.redeemedUsers || 0, // iii. จำนวน End User ที่ redeem แล้วจริงๆ
   };
 
   // ========================================
@@ -186,7 +185,7 @@ export default function UserMerchantDashboard() {
               color: "#6b7280",
               formatter: () =>
                 (
-                  storeOverview.coupon.pendingUse +
+                  storeOverview.coupon.unredeemed +
                   storeOverview.coupon.redeemed
                 ).toLocaleString(),
             },
@@ -238,8 +237,6 @@ export default function UserMerchantDashboard() {
     xaxis: {
       categories: [
         "จำนวน End User ทั้งหมด",
-        "จำนวน End User ที่ซื้อ",
-        "จำนวนคูปองที่ขายทั้งหมด",
         "ซื้อแต่ยังไม่ใช้",
         "Redeem แล้วจริงๆ",
       ],
@@ -305,7 +302,7 @@ export default function UserMerchantDashboard() {
                 <Chart
                   options={couponDonutOptions}
                   series={[
-                    storeOverview.coupon.pendingUse,
+                    storeOverview.coupon.unredeemed,
                     storeOverview.coupon.redeemed,
                   ]}
                   type="donut"
@@ -317,7 +314,7 @@ export default function UserMerchantDashboard() {
               <div className="space-y-2">
                 <StatsItem
                   label="จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้"
-                  value={storeOverview.coupon.pendingUse.toLocaleString()}
+                  value={storeOverview.coupon.unredeemed.toLocaleString()}
                   color="text-purple-600"
                 />
                 <StatsItem
@@ -332,7 +329,7 @@ export default function UserMerchantDashboard() {
                     </p>
                     <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       {(
-                        storeOverview.coupon.pendingUse +
+                        storeOverview.coupon.unredeemed +
                         storeOverview.coupon.redeemed
                       ).toLocaleString()}
                     </span>
@@ -360,30 +357,20 @@ export default function UserMerchantDashboard() {
         >
           <div className="space-y-6">
             {/* Stats Cards Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <StatCard
                 value={endUserData.totalUsers.toLocaleString()}
-                label="i. จำนวน End User ที่เรามี"
+                label="i. จำนวน End User ทั้งหมด"
                 color="text-blue-400"
               />
               <StatCard
-                value={endUserData.purchasedUsers.toLocaleString()}
-                label="ii. จำนวน End User ที่ซื้อ"
-                color="text-purple-400"
-              />
-              <StatCard
-                value={endUserData.totalCouponsSold.toLocaleString()}
-                label="iii. คูปองที่ขายทั้งหมด"
-                color="text-emerald-400"
-              />
-              <StatCard
-                value={endUserData.usersPendingUse.toLocaleString()}
-                label="iv. ซื้อแต่ยังไม่ใช้"
+                value={endUserData.unredeemedUsers.toLocaleString()}
+                label="ii. ซื้อแต่ยังไม่ใช้"
                 color="text-amber-400"
               />
               <StatCard
-                value={endUserData.usersRedeemed.toLocaleString()}
-                label="v. Redeem แล้วจริงๆ"
+                value={endUserData.redeemedUsers.toLocaleString()}
+                label="iii. Redeem แล้วจริงๆ"
                 color="text-pink-400"
               />
             </div>
@@ -397,10 +384,8 @@ export default function UserMerchantDashboard() {
                     name: "จำนวน",
                     data: [
                       endUserData.totalUsers,
-                      endUserData.purchasedUsers,
-                      endUserData.totalCouponsSold,
-                      endUserData.usersPendingUse,
-                      endUserData.usersRedeemed,
+                      endUserData.unredeemedUsers,
+                      endUserData.redeemedUsers,
                     ],
                   },
                 ]}

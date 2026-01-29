@@ -15,7 +15,7 @@ import {
   StatCard,
   MiniStatCard,
 } from "../../components/dashboard";
-import { SellerDashboardData } from "@/app/api/seller/address/[walletAddress]/route";
+import { SellerDashboardResponse } from "@/app/api/seller/address/[walletAddress]/route";
 
 // Dynamic import for Chart.js Bar (no SSR)
 const SalesBarChartDark = dynamic(
@@ -74,7 +74,7 @@ export default function DashboardNewPage({
   params: { sellerId: string };
 }) {
   const { execute } = useApiWithLoading();
-  const [data, setData] = useState<SellerDashboardData | null>(null);
+  const [data, setData] = useState<SellerDashboardResponse | null>(null);
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>("all");
@@ -134,9 +134,9 @@ export default function DashboardNewPage({
       );
       console.log("result:", result);
       if (result && result.dashboard && result.dashboard.data) {
-        // Map new API response to SellerDashboardData structure
+        // Map new API response to SellerDashboardResponse structure
         const apiData = result.dashboard.data;
-        const mappedData: SellerDashboardData = {
+        const mappedData: SellerDashboardResponse = {
           dateRange: apiData.dateRange || { startDate: "", endDate: "" },
           overallSummary: {
             couponCount: apiData.overallSummary?.couponCount || {
@@ -150,6 +150,7 @@ export default function DashboardNewPage({
             },
             couponValue: apiData.overallSummary?.couponValue || {
               sold: 0,
+              unsold: 0,
               unreserved: 0,
               reserved: 0,
               unredeemed: 0,
@@ -164,7 +165,7 @@ export default function DashboardNewPage({
     fetchDashboardData();
   }, [params.sellerId, startDate, endDate]);
 
-  const defaultStats: SellerDashboardData = {
+  const defaultStats: SellerDashboardResponse = {
     dateRange: { startDate: "", endDate: "" },
     overallSummary: {
       couponCount: {
@@ -178,6 +179,7 @@ export default function DashboardNewPage({
       },
       couponValue: {
         sold: 0,
+        unsold: 0,
         unreserved: 0,
         reserved: 0,
         unredeemed: 0,
@@ -199,6 +201,7 @@ export default function DashboardNewPage({
         },
         couponValue: {
           sold: 100,
+          unsold: 50,
           unreserved: 20,
           reserved: 20,
           unredeemed: 10,
@@ -219,6 +222,7 @@ export default function DashboardNewPage({
         },
         couponValue: {
           sold: 1000,
+          unsold: 900,
           unreserved: 200,
           reserved: 200,
           unredeemed: 100,
