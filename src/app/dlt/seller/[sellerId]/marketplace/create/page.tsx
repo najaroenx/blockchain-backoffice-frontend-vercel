@@ -219,7 +219,7 @@ export default function CreateOrderPage() {
       // Handle error
     } finally {
       hideLoading();
-      router.push("/dlt/seller/marketplace/list");
+      router.push(`/dlt/seller/${sellerId}/marketplace/list`);
     }
   };
 

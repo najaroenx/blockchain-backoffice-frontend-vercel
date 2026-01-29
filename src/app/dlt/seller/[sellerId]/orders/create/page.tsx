@@ -16,6 +16,7 @@ import { ModalCustom } from "@/components/ui/ModalCustom";
 import { Spinner } from "@/components/ui/Spinner";
 import { useMarketplaceSellerProduct } from "@/app/dlt/hooks/useMarketplace";
 import { useLoading } from "@/app/dlt/contexts/merchantContext";
+import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 
 // Types
 interface Product {
@@ -57,6 +58,7 @@ interface OrderStep {
 
 export default function CreateOrderPage() {
   const router = useRouter();
+  const sellerId = useSellerId();
   const [currentStep, setCurrentStep] = useState(1);
   const [searchProduct, setSearchProduct] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<IVoucher[]>([]);
@@ -883,7 +885,7 @@ export default function CreateOrderPage() {
         title="ระบบกำลังดำเนินการ"
         confirmText="ยืนยัน"
         // cancelText="Keep Editing"
-        onConfirm={() => router.push("/dlt/seller/orders/list")}
+        onConfirm={() => router.push(`/dlt/seller/${sellerId}/orders/list`)}
         // onCancel={() => setShowDiscardModal(false)}
       >
         <div className="flex flex-col items-center justify-center gap-2 my-10">

@@ -8,6 +8,7 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import AddIcon from "@mui/icons-material/Add";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import Link from "next/link";
+import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 
 interface MarketplaceListing {
   id: string;
@@ -68,6 +69,7 @@ const mockListings: MarketplaceListing[] = [
 ];
 
 export default function MarketplaceListPage() {
+  const sellerId = useSellerId();
   const [listings, setListings] = useState<MarketplaceListing[]>(mockListings);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
@@ -131,7 +133,7 @@ export default function MarketplaceListPage() {
             Export
           </button>
           <Link
-            href="/dlt/seller/marketplace/create"
+            href={`/dlt/seller/${sellerId}/marketplace/create`}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-purple-500/25"
           >
             <AddIcon className="w-5 h-5" />

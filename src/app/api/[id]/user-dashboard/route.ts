@@ -4,41 +4,41 @@ import logger from "@/libs/logger";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
-export interface UserDashboardDateRange {
+// ============================================
+// MerchantRef Dashboard Types
+// ============================================
+
+export interface DateRangeInfo {
   startDate: string;
   endDate: string;
 }
 
-export interface UserDashboardCouponSummary {
-  soldToEndUser: number;
-  pendingUse: number;
-  redeemed: number;
+export interface MerchantRefCouponSummary {
+  total: number; // จำนวนคูปองที่ขายให้ End User
+  unredeemed: number; // จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
+  redeemed: number; // จำนวนคูปองที่ End User redeem แล้วจริง ๆ
 }
 
-export interface UserDashboardEndUserSummary {
-  total: number;
-  buyers: number;
-  couponsSold: number;
-  pendingUsers: number;
-  redeemedUsers: number;
+export interface MerchantRefEndUserSummary {
+  total: number; // จำนวน End User ทั้งหมด
+  unredeemedUsers: number; // จำนวน End User ที่ซื้อแต่ยังไม่ใช้
+  redeemedUsers: number; // จำนวน End User ที่ redeem แล้ว
 }
 
-export interface UserDashboardMyMerchantSummary {
-  coupon: UserDashboardCouponSummary;
-  endUser: UserDashboardEndUserSummary;
+export interface MerchantRefMerchantSummary {
+  coupon: MerchantRefCouponSummary;
+  endUser: MerchantRefEndUserSummary;
 }
 
-export interface UserDashboardData {
-  dateRange: UserDashboardDateRange;
+export interface MerchantRefDashboardResponse {
+  dateRange: DateRangeInfo;
   merchantRef: string;
-  myMerchantSummary: UserDashboardMyMerchantSummary;
+  myMerchantSummary: MerchantRefMerchantSummary;
 }
 
-export interface UserDashboardResponse {
-  status: string;
-  message: string;
-  data: UserDashboardData;
-}
+// ============================================
+// GET Handler
+// ============================================
 
 export async function GET(
   req: Request,
@@ -72,10 +72,11 @@ export async function GET(
       return handleError(response.message, response.statusCode);
     }
 
+    // Return backend response directly (already matches MerchantRefDashboardResponse)
     return Response.json(
       {
         message: "success",
-        data: response,
+        data: response as MerchantRefDashboardResponse,
       },
       { status: 200 },
     );
