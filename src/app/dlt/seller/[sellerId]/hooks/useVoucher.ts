@@ -13,6 +13,8 @@ const fetcher = (url: string) =>
 export function useVoucher() {
   const sellerId = useSellerId();
 
+  console.log("[useVoucher] sellerId:", sellerId);
+
   /**
    * Calls /api/seller?merchantId=xxx to get voucher data
    * - data: contains voucher data
@@ -27,6 +29,9 @@ export function useVoucher() {
       revalidateOnReconnect: true,
     }
   );
+
+  console.log("[useVoucher] data:", data);
+  console.log("[useVoucher] error:", error);
 
   return {
     vouchers: data?.data,

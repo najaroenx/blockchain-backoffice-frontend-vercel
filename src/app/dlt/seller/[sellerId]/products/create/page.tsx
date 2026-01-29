@@ -105,7 +105,7 @@ export default function ProductCreatePage() {
 
       if (result.status === "success") {
         alert("Product created successfully!");
-        router.push("/dlt/seller/products/list");
+        router.push(`/dlt/seller/${sellerId}/products/list`);
       } else {
         alert(result.message || "Failed to create product");
       }
@@ -122,7 +122,7 @@ export default function ProductCreatePage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
-          href="/dlt/seller/products/list"
+          href={`/dlt/seller/${sellerId}/products/list`}
           className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <ArrowBackIcon />
@@ -522,7 +522,7 @@ export default function ProductCreatePage() {
                   )}
                 </button>
                 <Link
-                  href="/dlt/seller/products/list"
+                  href={`/dlt/seller/${sellerId}/products/list`}
                   className="block w-full py-3 text-center rounded-xl font-medium bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all"
                 >
                   Cancel

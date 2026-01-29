@@ -11,7 +11,7 @@ const shouldProtectAdmin =
   (process.env.ADMIN_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 // ============================================
-// Dashboard Types
+// Marketer Dashboard Types
 // ============================================
 
 interface DateRangeInfo {
@@ -43,70 +43,19 @@ interface MarketerDashboardResponse {
   couponValue: CouponStats;
   couponValueByCurrency: CouponStatsWithCurrency[];
   endUsers: {
-    total: number;
-    pendingUsers: number;
-    redeemedUsers: number;
+    total: number; // จำนวน End User ทั้งหมด
+    unredeemedUsers: number; // จำนวน End User ที่ซื้อแต่ยังไม่ใช้
+    redeemedUsers: number; // จำนวน End User ที่ redeem แล้วจริง ๆ
   };
   transactions: {
-    transferPoint: number;
-    purchaseCoupon: number;
+    transferPoint: number; // จำนวน ครั้งที่ transfer Point ระหว่าง End User
+    purchaseCoupon: number; // จำนวน ครั้งที่ End User ใช้ Point ซื้อคูปอง
   };
   points: PointInfo[];
   thbToken: {
-    deposited: number;
-    balance: number;
-    bought: number;
-  };
-}
-
-// Map backend response to MarketerDashboardResponse interface
-function mapToMarketerDashboard(data: any): MarketerDashboardResponse {
-  return {
-    dateRange: {
-      startDate: data.dateRange?.startDate || "",
-      endDate: data.dateRange?.endDate || "",
-    },
-    couponCount: {
-      total: data.couponCount?.owned || data.couponCount?.total || 0,
-      unsold: data.couponCount?.unsold || 0,
-      sold: data.couponCount?.sold || 0,
-      pendingUse: data.couponCount?.pending || data.couponCount?.pendingUse || 0,
-      redeemed: data.couponCount?.redeemed || 0,
-    },
-    couponValue: {
-      total: data.couponValueTHB?.owned || data.couponValue?.total || 0,
-      unsold: data.couponValueTHB?.unsold || data.couponValue?.unsold || 0,
-      sold: data.couponValueTHB?.sold || data.couponValue?.sold || 0,
-      pendingUse: data.couponValueTHB?.pending || data.couponValue?.pendingUse || 0,
-      redeemed: data.couponValueTHB?.redeemed || data.couponValue?.redeemed || 0,
-    },
-    couponValueByCurrency: (data.couponValueByCurrency || []).map((item: any) => ({
-      currency: item.currency || item.symbol || "",
-      total: item.total || 0,
-      unsold: item.unsold || 0,
-      sold: item.sold || 0,
-      pendingUse: item.pending || item.pendingUse || 0,
-      redeemed: item.redeemed || 0,
-    })),
-    endUsers: {
-      total: data.endUsers?.total || 0,
-      pendingUsers: data.endUsers?.pending || data.endUsers?.pendingUsers || 0,
-      redeemedUsers: data.endUsers?.redeemed || data.endUsers?.redeemedUsers || 0,
-    },
-    transactions: {
-      transferPoint: data.transactions?.transferPoint?.count || data.transactions?.transferPoint || 0,
-      purchaseCoupon: data.transactions?.redeemPoint?.count || data.transactions?.purchaseCoupon || 0,
-    },
-    points: (data.points?.byType || data.points || []).map((item: any) => ({
-      symbol: item.type || item.symbol || "",
-      total: item.initialSupply || item.total || 0,
-      balance: item.remaining || item.balance || 0,
-    })),
-    thbToken: {
-      deposited: data.thbToken?.summary?.deposited || data.thbToken?.deposited || 0,
-      balance: data.thbToken?.balance || 0,
-      bought: data.thbToken?.summary?.spent || data.thbToken?.bought || 0,
-    },
+    deposited: number; // THB Token ที่เติมเข้าไป
+    balance: number; // THB Token คงเหลือ
+    bought: number; // THB Token ที่ใช้ซื้อคูปองจาก Seller
   };
 }
 
@@ -117,7 +66,7 @@ function getEmptyDashboard(): MarketerDashboardResponse {
     couponCount: { total: 0, unsold: 0, sold: 0, pendingUse: 0, redeemed: 0 },
     couponValue: { total: 0, unsold: 0, sold: 0, pendingUse: 0, redeemed: 0 },
     couponValueByCurrency: [],
-    endUsers: { total: 0, pendingUsers: 0, redeemedUsers: 0 },
+    endUsers: { total: 0, unredeemedUsers: 0, redeemedUsers: 0 },
     transactions: { transferPoint: 0, purchaseCoupon: 0 },
     points: [],
     thbToken: { deposited: 0, balance: 0, bought: 0 },
@@ -147,7 +96,7 @@ const mockMarketerDashboard: MarketerDashboardResponse = {
   couponValueByCurrency: [],
   endUsers: {
     total: 1,
-    pendingUsers: 3,
+    unredeemedUsers: 3,
     redeemedUsers: 1,
   },
   transactions: {
@@ -209,8 +158,8 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
       return handleError(response.message, response.statusCode);
     }
 
-    // Map response to match interface
-    return Response.json(mapToMarketerDashboard(response));
+    // Return backend response directly (already matches MarketerDashboardResponse)
+    return Response.json(response as MarketerDashboardResponse);
   } catch (error) {
     logger.error(`Error occurred: ${error}`);
     return Response.json({ error: "failed to load data" }, { status: 500 });
