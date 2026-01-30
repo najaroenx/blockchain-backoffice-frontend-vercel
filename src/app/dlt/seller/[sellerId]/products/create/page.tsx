@@ -1,19 +1,40 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import InventoryIcon from "@mui/icons-material/Inventory2Outlined";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import Link from "next/link";
 import { useSellerId } from "@/app/dlt/contexts/sellerContext";
+import { MerchantRefStoreResponse } from "@/app/api/merchant-ref-store/route";
 
 export default function ProductCreatePage() {
   const router = useRouter();
   const sellerId = useSellerId();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [merchantRefStores, setMerchantRefStores] = useState<MerchantRefStoreResponse[]>([]);
+  const [isLoadingStores, setIsLoadingStores] = useState(true);
+
+  // Fetch merchant ref stores
+  useEffect(() => {
+    const fetchMerchantRefStores = async () => {
+      setIsLoadingStores(true);
+      try {
+        const response = await fetch("/api/merchant-ref-store");
+        const result = await response.json();
+        setMerchantRefStores(result.data || []);
+      } catch (error) {
+        console.error("Failed to fetch merchant ref stores:", error);
+      } finally {
+        setIsLoadingStores(false);
+      }
+    };
+    fetchMerchantRefStores();
+  }, []);
 
   const [formData, setFormData] = useState({
     productType: "voucher",
@@ -210,14 +231,31 @@ export default function ProductCreatePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">
                   Merchant Reference
                 </label>
-                <input
-                  type="text"
-                  name="merchantRef"
-                  value={formData.merchantRef}
-                  onChange={handleInputChange}
-                  placeholder="e.g., SKU-12345"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <StorefrontIcon className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <select
+                    name="merchantRef"
+                    value={formData.merchantRef}
+                    onChange={handleInputChange}
+                    disabled={isLoadingStores}
+                    className="w-full appearance-none pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" className="bg-[#1a1a2e]">
+                      {isLoadingStores ? "กำลังโหลด..." : "เลือกร้านค้า "}
+                    </option>
+                    {merchantRefStores.map((store) => (
+                      <option key={store.id} value={store.merchantRef} className="bg-[#1a1a2e]">
+                        {store.name} ({store.merchantRef})
+                      </option>
+                    ))}
+                  </select>
+                  <KeyboardArrowDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  เลือกร้านค้าที่คูปองนี้สามารถใช้งานได้
+                </p>
               </div>
             </div>
 

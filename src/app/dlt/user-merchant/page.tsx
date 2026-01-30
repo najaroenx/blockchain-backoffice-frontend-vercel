@@ -1,14 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import PeopleIcon from "@mui/icons-material/People";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import { ApexOptions } from "apexcharts";
 import { api } from "@/libs/api";
 import { MerchantRefDashboardResponse } from "@/app/api/[id]/user-dashboard/route";
+import { MerchantRefStoreResponse } from "@/app/api/merchant-ref-store/route";
 // Dynamic import for ApexCharts (no SSR)
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -73,17 +75,51 @@ const StatCard = ({
 
 export default function UserMerchantDashboard() {
   const searchParams = useSearchParams();
-  const merchantRef = searchParams.get("merchantRef") || "";
+  const router = useRouter();
+  const merchantRefFromUrl = searchParams.get("merchantRef") || "";
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<MerchantRefDashboardResponse | null>(null);
+  const [merchantRefStores, setMerchantRefStores] = useState<MerchantRefStoreResponse[]>([]);
+  const [selectedMerchantRef, setSelectedMerchantRef] = useState<string>(merchantRefFromUrl);
+  const [isLoadingStores, setIsLoadingStores] = useState(true);
 
+  // Fetch merchant ref stores list
   useEffect(() => {
-    if (!merchantRef) return;
+    const fetchMerchantRefStores = async () => {
+      setIsLoadingStores(true);
+      try {
+        const result = await api("/api/merchant-ref-store", {
+          method: "GET",
+        });
+        setMerchantRefStores(result.data || []);
+        // If no merchant ref selected and we have stores, select the first one
+        if (!selectedMerchantRef && result.data?.length > 0) {
+          setSelectedMerchantRef(result.data[0].merchantRef);
+        }
+      } catch (error) {
+        console.error("Failed to fetch merchant ref stores:", error);
+      } finally {
+        setIsLoadingStores(false);
+      }
+    };
+    fetchMerchantRefStores();
+  }, []);
+
+  // Update URL when selectedMerchantRef changes
+  useEffect(() => {
+    if (selectedMerchantRef && selectedMerchantRef !== merchantRefFromUrl) {
+      router.push(`/dlt/user-merchant?merchantRef=${selectedMerchantRef}`);
+    }
+  }, [selectedMerchantRef]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    if (!selectedMerchantRef) return;
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const result = await api(`/api/${merchantRef}/user-dashboard`, {
+        const result = await api(`/api/${selectedMerchantRef}/user-dashboard`, {
           method: "GET",
         });
         setData(result.data);
@@ -95,7 +131,7 @@ export default function UserMerchantDashboard() {
     };
 
     fetchData();
-  }, [merchantRef]);
+  }, [selectedMerchantRef]);
 
   // ========================================
   // 1. ข้อมูลภาพรวมร้านของตนเอง
@@ -268,16 +304,43 @@ export default function UserMerchantDashboard() {
           <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Dashboard
           </span>
-          <span className="text-gray-700">ร้านค้า</span>
+          <span className="text-gray-700"> ร้านค้า</span>
         </h1>
-        {merchantRef && (
-          <p className="text-gray-500 mt-1">
-            Merchant Ref:{" "}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent font-mono font-medium">
-              {merchantRef}
-            </span>
-          </p>
-        )}
+        
+        {/* Merchant Ref Dropdown */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-600 mb-2">
+            เลือกร้านค้า (Merchant Ref)
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <StorefrontIcon className="h-5 w-5 text-purple-500" />
+            </div>
+            <select
+              value={selectedMerchantRef}
+              onChange={(e) => setSelectedMerchantRef(e.target.value)}
+              disabled={isLoadingStores}
+              className="block w-full max-w-md pl-10 pr-10 py-3 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 rounded-xl bg-white shadow-sm appearance-none cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {isLoadingStores ? (
+                <option value="">กำลังโหลด...</option>
+              ) : merchantRefStores.length === 0 ? (
+                <option value="">ไม่พบร้านค้า</option>
+              ) : (
+                merchantRefStores.map((store) => (
+                  <option key={store.id} value={store.merchantRef}>
+                    {store.name} ({store.merchantRef})
+                  </option>
+                ))
+              )}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ========================================
