@@ -1,17 +1,29 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 interface OtpInputProps {
   value: string;
   onChange: (value: string) => void;
   length?: number;
+  autoFocus?: boolean;
 }
 
-const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, length = 6 }) => {
+const OtpInput: React.FC<OtpInputProps> = ({
+  value,
+  onChange,
+  length = 6,
+  autoFocus = false,
+}) => {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (autoFocus && inputs.current[0]) {
+      inputs.current[0].focus();
+    }
+  }, [autoFocus]);
 
   const processInput = (
     e: React.ChangeEvent<HTMLInputElement>,
-    idx: number
+    idx: number,
   ) => {
     const val = e.target.value;
     if (/[^0-9]/.test(val)) return; // Allow only numbers
@@ -36,7 +48,7 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, length = 6 }) => {
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    idx: number
+    idx: number,
   ) => {
     if (e.key === "Backspace") {
       if (!value[idx] && idx > 0) {

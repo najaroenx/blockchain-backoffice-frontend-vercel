@@ -19,9 +19,7 @@ const PinPhoneNumber = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { setPhoneNumber, setToken} =
-    useVerifyPhone();
-
+  const { setPhoneNumber, setToken } = useVerifyPhone();
 
   const handlePhoneNumberChange = (value: string) => {
     if (value === "" || value.startsWith("0")) {
@@ -116,6 +114,7 @@ const PinPhoneNumber = ({
               value={phoneNumber}
               onChange={handlePhoneNumberChange}
               length={10}
+              autoFocus={true}
             />
             {/* Green checkmark when phone number is complete */}
             {phoneNumber.length === 10 && phoneNumber.startsWith("0") && (

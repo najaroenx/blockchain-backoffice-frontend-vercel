@@ -293,7 +293,12 @@ const PinOTP = ({
 
         {/* OTP Input (Custom) */}
         <div className="mt-8 w-full px-4">
-          <InputOTP value={verifyOtp} onChange={setVerifyOtp} length={6} />
+          <InputOTP
+            value={verifyOtp}
+            onChange={setVerifyOtp}
+            length={6}
+            autoFocus={true}
+          />
         </div>
 
         {/* Error Feedback */}
