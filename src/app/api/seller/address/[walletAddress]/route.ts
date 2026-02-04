@@ -14,22 +14,23 @@ export interface DateRangeInfo {
 }
 
 export interface SellerCouponCount {
-  total: number;
-  unsold: number;
-  sold: number;
-  unreserved: number;
-  reserved: number;
-  unredeemed: number;
-  redeemed: number;
+  total?: number;
+  unsold?: number;
+  sold?: number;
+  unreserved?: number;
+  reserved?: number;
+  unredeemed?: number;
+  redeemed?: number;
 }
 
 export interface SellerCouponValue {
-  sold: number;
-  unsold: number;
-  unreserved: number;
-  reserved: number;
-  unredeemed: number;
-  redeemed: number;
+  sold?: number;
+  unsold?: number;
+  unreserved?: number;
+  reserved?: number;
+  unredeemed?: number;
+  redeemed?: number;
+  total?: number;
 }
 
 export interface SellerCouponValueWithCurrency extends SellerCouponValue {
@@ -89,7 +90,6 @@ export async function GET(
     if (response.statusCode) {
       return handleError(response.message, response.statusCode);
     }
-
     // Return backend response directly (already matches SellerDashboardResponse)
     return Response.json(
       {
@@ -100,6 +100,9 @@ export async function GET(
     );
   } catch (error) {
     logger.error(`Error fetching seller dashboard: ${error}`);
-    return Response.json({ error: "failed to load seller dashboard data" }, { status: 500 });
+    return Response.json(
+      { error: "failed to load seller dashboard data" },
+      { status: 500 },
+    );
   }
 }
