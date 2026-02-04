@@ -295,7 +295,7 @@ export default function ProductCreatePage() {
                 {/* Value */}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Value (THB) *
+                    Value *
                   </label>
                   <input
                     type="number"
@@ -306,6 +306,13 @@ export default function ProductCreatePage() {
                     required
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.valueType === "cash"
+                      ? "มูลค่าเงินสดของคูปอง (บาท)"
+                      : formData.valueType === "percentage"
+                      ? "เปอร์เซ็นต์ส่วนลด (%)"
+                      : "จำนวน Point/สินค้าที่ได้รับ"}
+                  </p>
                 </div>
 
                 {/* Points Cost */}

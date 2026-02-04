@@ -27,7 +27,8 @@ export interface IVoucher {
   id: string; // voucherId
   name: string;
   description: string;
-  value: number;
+  value: number; // มูลค่าหน้าคูปอง (Face Value)
+  pricePerUnit: number; // ราคาขายที่ seller กำหนด
   valueType: string;
   imageUrl: string;
   totalIssued: number;
@@ -77,10 +78,20 @@ export default function CreateOrderPage() {
   const handleAddProductFromSearch = (product: IVoucher) => {
     const exists = selectedProducts.some((p) => p.id === product.id);
     if (!exists) {
-      setSelectedProducts((prev) => [...prev, { ...product, quantity: 1 }]);
+      setSelectedProducts((prev) => [...prev, { ...product, quantity: 1, pricePerUnit: product.value }]);
     }
     setSearchProduct("");
     setShowSearchDropdown(false);
+  };
+
+  // Handle price change
+  const handlePriceChange = (productId: string, newPrice: number) => {
+    if (newPrice < 0) return;
+    setSelectedProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId ? { ...p, pricePerUnit: newPrice } : p
+      )
+    );
   };
 
   // Customer form state
@@ -167,7 +178,7 @@ export default function CreateOrderPage() {
 
   // Calculate total
   const total = selectedProducts.reduce(
-    (sum, product) => sum + product.value * product.quantity,
+    (sum, product) => sum + (product.pricePerUnit || product.value) * product.quantity,
     0
   );
 
@@ -207,7 +218,7 @@ export default function CreateOrderPage() {
         items: selectedProducts.map((product) => ({
           voucherId: product.id,
           amount: product.quantity,
-          pricePerUnitTHB: product.value,
+          pricePerUnitTHB: product.pricePerUnit || product.value,
         })),
       };
 
@@ -233,6 +244,7 @@ export default function CreateOrderPage() {
       vouchers?.vouchers.forEach((voucher: any) => {
         voucher.quantity =
           voucher.stats.availableForSale - voucher.stats.listedCodes;
+        voucher.pricePerUnit = voucher.value; // default price = face value
       });
     }
     console.log("vouchers", vouchers);
@@ -379,7 +391,10 @@ export default function CreateOrderPage() {
                       Product
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Price
+                      Face Value
+                    </th>
+                    <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Selling Price (THB)
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Quantity
@@ -391,7 +406,7 @@ export default function CreateOrderPage() {
                   {selectedProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={5}
                         className="text-center py-12 text-gray-500"
                       >
                         No product selected!
@@ -420,7 +435,22 @@ export default function CreateOrderPage() {
                           </div>
                         </td>
                         <td className="text-right py-4 px-4 text-gray-400">
-                          {product.value.toFixed(2)}
+                          {product.value.toFixed(2)} ฿
+                        </td>
+                        <td className="text-right py-4 px-4">
+                          <input
+                            type="number"
+                            value={product.pricePerUnit || product.value}
+                            onChange={(e) =>
+                              handlePriceChange(
+                                product.id,
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            min="0"
+                            step="0.01"
+                            className="w-24 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-right focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                          />
                         </td>
                         <td className="text-right py-4 px-4">
                           <div className="flex items-center justify-end gap-2">
