@@ -28,7 +28,7 @@ export interface IVoucher {
   name: string;
   description: string;
   value: number; // มูลค่าหน้าคูปอง (Face Value)
-  pricePerUnit: number; // ราคาขายที่ seller กำหนด
+  pricePerUnit?: number; // ราคาขายที่ seller กำหนด (optional)
   valueType: string;
   imageUrl: string;
   totalIssued: number;
@@ -71,14 +71,17 @@ export default function CreateOrderPage() {
 
   // Filter products based on search
   const filteredProducts = voucherList?.vouchers.filter((product) =>
-    product.name.toLowerCase().includes(searchProduct.toLowerCase())
+    product.name.toLowerCase().includes(searchProduct.toLowerCase()),
   );
 
   // Add product from search
   const handleAddProductFromSearch = (product: IVoucher) => {
     const exists = selectedProducts.some((p) => p.id === product.id);
     if (!exists) {
-      setSelectedProducts((prev) => [...prev, { ...product, quantity: 1, pricePerUnit: product.value }]);
+      setSelectedProducts((prev) => [
+        ...prev,
+        { ...product, quantity: 1, pricePerUnit: product.value },
+      ]);
     }
     setSearchProduct("");
     setShowSearchDropdown(false);
@@ -89,8 +92,8 @@ export default function CreateOrderPage() {
     if (newPrice < 0) return;
     setSelectedProducts((prev) =>
       prev.map((p) =>
-        p.id === productId ? { ...p, pricePerUnit: newPrice } : p
-      )
+        p.id === productId ? { ...p, pricePerUnit: newPrice } : p,
+      ),
     );
   };
 
@@ -178,8 +181,9 @@ export default function CreateOrderPage() {
 
   // Calculate total
   const total = selectedProducts.reduce(
-    (sum, product) => sum + (product.pricePerUnit || product.value) * product.quantity,
-    0
+    (sum, product) =>
+      sum + (product.pricePerUnit || product.value) * product.quantity,
+    0,
   );
 
   // Handle quantity change
@@ -187,8 +191,8 @@ export default function CreateOrderPage() {
     if (newQuantity < 1) return;
     setSelectedProducts((prev) =>
       prev.map((p) =>
-        p.id === productId ? { ...p, quantity: newQuantity } : p
-      )
+        p.id === productId ? { ...p, quantity: newQuantity } : p,
+      ),
     );
   };
 
@@ -270,8 +274,8 @@ export default function CreateOrderPage() {
                     step.isActive
                       ? "bg-purple-500/20 border border-purple-500/30"
                       : step.isCompleted
-                      ? "bg-emerald-500/20 border border-emerald-500/30"
-                      : "hover:bg-white/5"
+                        ? "bg-emerald-500/20 border border-emerald-500/30"
+                        : "hover:bg-white/5"
                   }`}
                   onClick={() => scrollToSection(step.id)}
                 >
@@ -280,8 +284,8 @@ export default function CreateOrderPage() {
                       step.isActive
                         ? "bg-purple-500/20 text-purple-400"
                         : step.isCompleted
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-white/10 text-gray-500"
+                          ? "bg-emerald-500/20 text-emerald-400"
+                          : "bg-white/10 text-gray-500"
                     }`}
                   >
                     {step.icon}
@@ -292,8 +296,8 @@ export default function CreateOrderPage() {
                         step.isActive
                           ? "text-purple-300"
                           : step.isCompleted
-                          ? "text-emerald-300"
-                          : "text-gray-300"
+                            ? "text-emerald-300"
+                            : "text-gray-300"
                       }`}
                     >
                       {step.title}
@@ -444,7 +448,7 @@ export default function CreateOrderPage() {
                             onChange={(e) =>
                               handlePriceChange(
                                 product.id,
-                                parseFloat(e.target.value) || 0
+                                parseFloat(e.target.value) || 0,
                               )
                             }
                             min="0"
@@ -458,7 +462,7 @@ export default function CreateOrderPage() {
                               onClick={() => {
                                 handleQuantityChange(
                                   product.id,
-                                  product.quantity - 1
+                                  product.quantity - 1,
                                 );
                               }}
                               className="w-8 h-8 rounded-lg border border-white/10 text-gray-500 hover:bg-white/10"
@@ -477,7 +481,7 @@ export default function CreateOrderPage() {
                                 ) {
                                   handleQuantityChange(
                                     product.id,
-                                    product.quantity + 1
+                                    product.quantity + 1,
                                   );
                                 }
                               }}
