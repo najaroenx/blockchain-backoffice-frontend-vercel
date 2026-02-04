@@ -42,7 +42,7 @@ export default function MerchantPage() {
           loadingText: "กำลังโหลดข้อมูล Merchant...",
           showSuccessOnComplete: false,
           redirectDelay: 5000,
-        }
+        },
       );
       if (data) {
         setMerchants(data);
@@ -50,16 +50,6 @@ export default function MerchantPage() {
     };
     fetchMerchants();
   }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + heroSlides.length) % heroSlides.length
-    );
-  };
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white">
@@ -172,6 +162,7 @@ export default function MerchantPage() {
             </Link>
 
             {merchants &&
+              merchants.length > 0 &&
               merchants.map((merchant: any) => (
                 <div
                   key={merchant.id}

@@ -50,9 +50,9 @@ export default function SalesBarChartDark({
           bottomLeft: 0,
           bottomRight: 0,
         },
-        maxBarThickness: 60,
-        barPercentage: 0.6,
-        categoryPercentage: 0.8,
+        maxBarThickness: 50,
+        barPercentage: 0.7,
+        categoryPercentage: 0.9,
         borderSkipped: false,
       },
     ],
@@ -61,6 +61,12 @@ export default function SalesBarChartDark({
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+      },
+    },
     plugins: {
       legend: { display: false },
     },
@@ -68,14 +74,25 @@ export default function SalesBarChartDark({
       x: {
         grid: { display: false },
         border: { display: false },
-        ticks: { color: "#6b7280", font: { size: 11 } },
+        ticks: {
+          color: "#6b7280",
+          font: { size: 10 },
+          maxRotation: 45,
+          minRotation: 0,
+        },
+        offset: true,
       },
       y: {
         display: false,
         grid: { display: false },
+        beginAtZero: true,
       },
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return (
+    <div className="w-full h-full min-h-[200px]">
+      <Bar data={data} options={options} />
+    </div>
+  );
 }

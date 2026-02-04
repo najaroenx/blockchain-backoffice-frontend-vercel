@@ -121,39 +121,47 @@ interface DashboardData {
   };
   couponCount: {
     total: number;
-    purchased: number;
-    soldToEndUser: number;
-    pendingUse: number;
+    unsold: number;
+    sold: number;
+    unredeemed: number;
     redeemed: number;
   };
   couponValue: {
     total: number;
+    unsold: number;
     sold: number;
-    pendingUse: number;
+    unredeemed: number;
     redeemed: number;
   };
+  couponValueByCurrency: {
+    currency: string;
+    total: number;
+    unsold: number;
+    sold: number;
+    unredeemed: number;
+    redeemed: number;
+  }[];
   endUsers: {
     total: number;
-    buyers: number;
-    couponsSold: number;
-    pendingUsers: number;
+    unredeemedUsers: number;
     redeemedUsers: number;
   };
   transactions: {
     transferPoint: number;
-    redeemPoint: number;
+    purchaseCoupon: number;
   };
   points: Ipoints[];
   thbToken: {
     deposited: number;
-    usedForPromotion: number;
-    usedForRedeem: number;
+    balance: number;
+    bought: number;
   };
 }
 
 interface Ipoints {
+  symbol: string;
   total: number;
-  types: string;
+  balance: number;
 }
 export default function DashboardNewPage({
   params,
@@ -186,7 +194,7 @@ export default function DashboardNewPage({
       );
 
       if (result) {
-        console.log("result", result);
+        console.log("result>>>>", result);
         setData(result);
       }
     };
@@ -199,23 +207,43 @@ export default function DashboardNewPage({
   const defaultStats: DashboardData = {
     dateRange: { startDate: "", endDate: "" },
     couponCount: {
-      total: 0,
-      purchased: 0,
-      soldToEndUser: 0,
-      pendingUse: 0,
+      total: 78,
+      unsold: 27,
+      sold: 51,
+      unredeemed: 6,
       redeemed: 0,
     },
-    couponValue: { total: 0, sold: 0, pendingUse: 0, redeemed: 0 },
+    couponValue: {
+      total: 11800,
+      unsold: 3500,
+      sold: 8300,
+      unredeemed: 600,
+      redeemed: 0,
+    },
+    couponValueByCurrency: [
+      {
+        currency: "AB",
+        total: 37809,
+        unsold: 0,
+        sold: 37809,
+        unredeemed: 948,
+        redeemed: 0,
+      },
+    ],
     endUsers: {
-      total: 0,
-      buyers: 0,
-      couponsSold: 0,
-      pendingUsers: 0,
+      total: 2,
+      unredeemedUsers: 2,
       redeemedUsers: 0,
     },
-    transactions: { transferPoint: 0, redeemPoint: 0 },
-    points: [{ total: 0, types: "a" }],
-    thbToken: { deposited: 0, usedForPromotion: 0, usedForRedeem: 0 },
+    transactions: { transferPoint: 1000, purchaseCoupon: 0 },
+    points: [
+      {
+        symbol: "AB",
+        total: 100000,
+        balance: 99948,
+      },
+    ],
+    thbToken: { deposited: 11800, balance: 0, bought: 11800 },
   };
 
   // Line Chart Options (Dark Theme)
@@ -238,7 +266,7 @@ export default function DashboardNewPage({
   // Donut Chart Options (Dark Theme)
   const donutChartOptions: ApexOptions = {
     chart: { type: "donut", background: "transparent" },
-    labels: data ? data.points.map((v) => v.types) : ["A"],
+    labels: data ? data.points.map((v) => v.symbol) : ["A"],
     colors: ["#6366f1", "#60a5fa", "#f472b6", "#bef264", "#a5b4fc"],
     legend: {
       position: "bottom",
@@ -330,7 +358,7 @@ export default function DashboardNewPage({
       }
     : defaultStats;
 
-  console.log("stats", stats);
+  console.log("stats>", stats);
   return (
     <div className={`min-h-screen p-1 ${montserrat.className}`}>
       <div className="max-w-10xl mx-auto space-y-6">
@@ -354,7 +382,6 @@ export default function DashboardNewPage({
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">📊</span>
                     <p className="text-lg text-white font-semibold">
                       จำนวนคูปอง ทั้งหมด
                     </p>
@@ -385,15 +412,11 @@ export default function DashboardNewPage({
             {/* Order Import Section (Purple Gradient) */}
             <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-5 rounded-t-3xl -mt-4 flex-1">
               <p className="text-lg text-white font-semibold">
-                จำนวนคูปองที่เรามี
-              </p>
-              <p className="text-xs text-purple-200 flex items-center gap-1 mt-1">
-                📅 {startDate?.toISOString().split("T")[0]} -{" "}
-                {endDate?.toISOString().split("T")[0]}
+                คูปองที่ยังไม่ได้ตั้งขาย
               </p>
               <h4 className="text-4xl font-bold text-white mt-4">
-                {stats.couponCount.total
-                  ? stats.couponCount.total.toLocaleString()
+                {stats.couponCount.unsold
+                  ? stats.couponCount.unsold.toLocaleString()
                   : "0"}
               </h4>
 
@@ -422,7 +445,9 @@ export default function DashboardNewPage({
                 <span className="text-lg">↗</span>
               </button>
 
-              <p className="text-lg text-white font-bold">ขายทั้งหมด</p>
+              <p className="text-lg text-white font-bold">
+                จำนวนคูปองที่ขายทั้งหมด
+              </p>
 
               {/* Line Chart */}
               <div className="h-14 mt-3">
@@ -440,16 +465,10 @@ export default function DashboardNewPage({
               </div>
 
               <h3 className="text-4xl font-bold text-white mt-3">
-                {stats.couponCount.soldToEndUser
-                  ? stats.couponCount.soldToEndUser.toLocaleString()
+                {stats.couponCount.sold
+                  ? stats.couponCount.sold.toLocaleString()
                   : "0"}
               </h3>
-              {/* <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-pink-100">Last Week</span>
-                <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-2 py-0.5 rounded">
-                  -45%
-                </span>
-              </div> */}
             </div>
 
             {/* Store Product Section (Dark) */}
@@ -457,42 +476,19 @@ export default function DashboardNewPage({
               <div className="bg-gray-800/80 backdrop-blur-sm p-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-emerald-400 flex items-center gap-1 font-medium">
-                    📁 รอใช้งาน
+                    จำนวนคูปองที่ End User ซื้อแต่ยังไม่ใช้
                   </p>
                   <p className="text-4xl font-bold text-white mt-1">
-                    {stats.couponCount.pendingUse
-                      ? stats.couponCount.pendingUse.toLocaleString()
+                    {stats.couponCount.unredeemed
+                      ? stats.couponCount.unredeemed.toLocaleString()
                       : "0"}
                   </p>
                 </div>
-                {/* Circular Progress */}
-                {/* <div className="w-16 h-16">
-                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#374151"
-                      strokeWidth="3"
-                    />
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="3"
-                      strokeDasharray="62, 88"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div> */}
               </div>
               <div className="bg-gray-800/80 backdrop-blur-sm p-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-emerald-400 flex items-center gap-1 font-medium">
-                    📁 Redeem แล้ว
+                    จำนวนคูปองที่ End User redeem แล้วจริง ๆ
                   </p>
                   <p className="text-4xl font-bold text-white mt-1">
                     {stats.couponCount.redeemed
@@ -500,29 +496,6 @@ export default function DashboardNewPage({
                       : "0"}
                   </p>
                 </div>
-                {/* Circular Progress */}
-                {/* <div className="w-16 h-16">
-                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#374151"
-                      strokeWidth="3"
-                    />
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="14"
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="3"
-                      strokeDasharray="62, 88"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div> */}
               </div>
             </div>
           </div>
@@ -536,19 +509,26 @@ export default function DashboardNewPage({
               <SalesBarChartDark
                 label="THB Token"
                 values={[
-                  stats.couponValue.total || 100,
-                  stats.couponValue.sold || 20,
-                  stats.couponValue.pendingUse || 10,
-                  stats.couponValue.redeemed || 5,
+                  stats.couponValue.total,
+                  stats.couponValue.unsold,
+                  stats.couponValue.sold,
+                  stats.couponValue.unredeemed,
+                  stats.couponValue.redeemed,
                 ]}
-                labels={["มูลค่าทั้งหมด", "ขายแล้ว", "รอใช้", "Redeem แล้ว"]}
+                labels={[
+                  "มูลค่าคูปองทั้งหมด",
+                  "มูลค่าคูปองที่ยังไม่ได้ตั้งขาย",
+                  "มูลค่าคูปองที่ขายทั้งหมด THB",
+                  "มูลค่าคูปองที่ End User ซื้อแต่ยังไม่ใช้ THB",
+                  "มูลค่าคูปองที่ End User redeem แล้วจริง ๆ THB",
+                ]}
               />
             </div>
           </div>
         </div>
 
         {/* Row 2: Top Products, Sales by Country, Customer */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 border border-gray-700/50 flex flex-col h-full">
             <p className="text-lg font-semibold text-white mb-4">
               Transactions
@@ -557,8 +537,8 @@ export default function DashboardNewPage({
               <Chart
                 options={donutChartOptionsTransaction}
                 series={[
-                  stats.transactions.transferPoint || 100,
-                  stats.transactions.redeemPoint || 10,
+                  stats.transactions.transferPoint,
+                  stats.transactions.purchaseCoupon,
                 ]}
                 type="donut"
                 height="100%"
@@ -573,7 +553,7 @@ export default function DashboardNewPage({
             </p>
             <div className="grid grid-cols-3 gap-3 auto-rows-[200px]">
               <StatCard
-                title="จำนวน Users"
+                title="จำนวน End User ที่ซื้อทั้งหมด"
                 value={
                   stats.endUsers.total
                     ? stats.endUsers.total.toLocaleString()
@@ -582,65 +562,23 @@ export default function DashboardNewPage({
                 icon="/images/icons/man.png"
               />
               <StatCard
-                title="คนที่ซื้อ"
+                title="จำนวน End User ซื้อแต่ยังไม่ใช้"
                 value={
-                  stats.endUsers.buyers
-                    ? stats.endUsers.buyers.toLocaleString()
+                  stats.endUsers.unredeemedUsers
+                    ? stats.endUsers.unredeemedUsers.toLocaleString()
                     : "0"
                 }
                 icon="/images/icons/buy-and-sell.png"
               />
               <StatCard
-                title="คูปองที่ขาย"
-                value={
-                  stats.endUsers.couponsSold
-                    ? stats.endUsers.couponsSold.toLocaleString()
-                    : "0"
-                }
-                icon="/images/icons/coupon.png"
-              />
-              <StatCard
-                title="รอใช้งาน"
-                value={
-                  stats.endUsers.pendingUsers
-                    ? stats.endUsers.pendingUsers.toLocaleString()
-                    : "0"
-                }
-                icon="/images/icons/queue2.png"
-              />
-              <StatCard
-                title="Redeem แล้ว"
+                title="จำนวน End User redeem แล้วจริง ๆ"
                 value={
                   stats.endUsers.redeemedUsers
                     ? stats.endUsers.redeemedUsers.toLocaleString()
                     : "0"
                 }
-                icon="/images/icons/redeem-points.png"
+                icon="/images/icons/coupon.png"
               />
-            </div>
-          </div>
-
-          {/* Customer */}
-          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 border border-gray-700/50">
-            <p className="text-lg font-semibold text-white mb-4">Last Redeem</p>
-            <div className="space-y-2">
-              <CustomerRow
-                name="098xxx0421"
-                initial="D"
-                color="bg-purple-500"
-              />
-              <CustomerRow
-                name="088xxx1394"
-                initial="AD"
-                color="bg-amber-500"
-              />
-              <CustomerRow name="084xxx5453" initial="AD" color="bg-pink-500" />
-              <CustomerRow
-                name="095xxx1233"
-                initial="AD"
-                color="bg-emerald-500"
-              />
-              <CustomerRow name="081xxx1987" initial="AD" color="bg-blue-500" />
             </div>
           </div>
         </div>
@@ -663,38 +601,22 @@ export default function DashboardNewPage({
           {/* Product Category */}
           <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 border border-gray-700/50">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-lg font-semibold text-white">
-                Our of merchants
-              </p>
+              <p className="text-lg font-semibold text-white">Transactions</p>
             </div>
             <div className="space-y-3">
               <CategoryRow
-                name="ร้านป้าส้ม"
-                value="$5,000"
-                count="5641"
+                name="ซื้อคูปองด้วย Point"
+                value={stats.transactions.purchaseCoupon.toLocaleString()}
+                count=""
                 bgColor="bg-amber-500/20"
                 textColor="text-amber-400"
               />
               <CategoryRow
-                name="กาแฟ Number9"
-                value="$5,000"
-                count="10K"
+                name="โอน Point"
+                value={stats.transactions.transferPoint.toLocaleString()}
+                count=""
                 bgColor="bg-gray-700/50"
                 textColor="text-gray-300"
-              />
-              <CategoryRow
-                name="Garden by the bay"
-                value="$5,000"
-                count="6897"
-                bgColor="bg-indigo-500/20"
-                textColor="text-indigo-400"
-              />
-              <CategoryRow
-                name="บานี้เบอเกอร์"
-                value="$5,000"
-                count="4548"
-                bgColor="bg-blue-500/20"
-                textColor="text-blue-400"
               />
             </div>
           </div>
@@ -705,20 +627,18 @@ export default function DashboardNewPage({
               THB Token History
             </p>
             {/*  */}
-            <div className="h-[150px] w-[200px]">
+            <div className="h-[200px] w-full">
               <SalesBarChartDark
                 label="THB Token"
                 values={[
-                  stats.thbToken.deposited || 100,
-                  stats.thbToken.usedForPromotion +
-                    stats.thbToken.usedForRedeem || 1000,
+                  stats.thbToken.deposited || 0,
+                  stats.thbToken.balance || 0,
+                  stats.thbToken.bought || 0,
                 ]}
                 labels={[
-                  `Total Deposited ${stats.thbToken.deposited || 100}`,
-                  `Total spent ${
-                    stats.thbToken.usedForPromotion +
-                      stats.thbToken.usedForRedeem || 1000
-                  }`,
+                  `THB Token ที่เติมเข้าไปทั้งหมด`,
+                  `THB Token ที่เหลือ Balance`,
+                  `THB Token ที่ใช้จองคูปอง จาก Promotion Seller`,
                 ]}
               />
             </div>

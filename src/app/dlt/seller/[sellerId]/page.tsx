@@ -7,15 +7,18 @@ import { useApiWithLoading } from "@/app/dlt/hooks/useApiWithLoading";
 import { api } from "@/libs/api";
 import DateRangeFilter from "@/app/dlt/components/DateRangeFilter";
 import dayjs, { Dayjs } from "dayjs";
-import DefaultCardDashboard from "../../components/DefaultCardDashboard";
-import PrimaryCardDashboard from "../../components/PrimaryCardDashboard";
+// import DefaultCardDashboard from "../../components/DefaultCardDashboard";
+// import PrimaryCardDashboard from "../../components/PrimaryCardDashboard";
 import {
   ActivityRow,
   CategoryRow,
   StatCard,
   MiniStatCard,
 } from "../../components/dashboard";
-import { SellerDashboardResponse } from "@/app/api/seller/address/[walletAddress]/route";
+import {
+  SellerDashboardResponse,
+  SellerMerchantBreakdown,
+} from "@/app/api/seller/address/[walletAddress]/route";
 
 // Dynamic import for Chart.js Bar (no SSR)
 const SalesBarChartDark = dynamic(
@@ -78,26 +81,8 @@ export default function DashboardNewPage({
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>("all");
-  const [selectedMerchantInfo, setSelectedMerchantInfo] = useState<{
-    merchantName: string;
-    merchantId: string;
-    couponCount: {
-      total: number;
-      unsold: number;
-      sold: number;
-      unreserved: number;
-      reserved: number;
-      unredeemed: number;
-      redeemed: number;
-    };
-    couponValue: {
-      sold: number;
-      unreserved: number;
-      reserved: number;
-      unredeemed: number;
-      redeemed: number;
-    };
-  } | null>(null);
+  const [selectedMerchantInfo, setSelectedMerchantInfo] =
+    useState<SellerMerchantBreakdown | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -116,7 +101,7 @@ export default function DashboardNewPage({
 
           // 2. Fetch Dashboard data using walletAddress
           const dashboard = await api(
-            `/api/seller/address/${merchant.wallet.walletAddress}`,
+            `/api/seller/address/${params.sellerId}`,
             {
               method: "GET",
               queryParams: {
@@ -132,10 +117,10 @@ export default function DashboardNewPage({
           showSuccessOnComplete: false,
         },
       );
-      console.log("result:", result);
-      if (result && result.dashboard && result.dashboard.data) {
+      console.log("result>>>>:", result);
+      if (result && result.dashboard) {
         // Map new API response to SellerDashboardResponse structure
-        const apiData = result.dashboard.data;
+        const apiData = result.dashboard;
         const mappedData: SellerDashboardResponse = {
           dateRange: apiData.dateRange || { startDate: "", endDate: "" },
           overallSummary: {
@@ -191,42 +176,28 @@ export default function DashboardNewPage({
         merchantName: "Merchant 1",
         merchantId: "merchantId",
         couponCount: {
-          total: 10,
-          unsold: 5,
-          sold: 5,
-          unreserved: 2,
-          reserved: 2,
-          unredeemed: 1,
-          redeemed: 1,
+          total: 78,
+          unredeemed: 78,
+          redeemed: 0,
         },
         couponValue: {
-          sold: 100,
-          unsold: 50,
-          unreserved: 20,
-          reserved: 20,
-          unredeemed: 10,
-          redeemed: 10,
+          total: 78,
+          unredeemed: 78,
+          redeemed: 0,
         },
       },
       {
         merchantName: "Merchant 2",
         merchantId: "merchantId 2",
         couponCount: {
-          total: 100,
-          unsold: 90,
-          sold: 100,
-          unreserved: 4,
-          reserved: 4,
-          unredeemed: 3,
-          redeemed: 1,
+          total: 78,
+          unredeemed: 78,
+          redeemed: 0,
         },
         couponValue: {
-          sold: 1000,
-          unsold: 900,
-          unreserved: 200,
-          reserved: 200,
-          unredeemed: 100,
-          redeemed: 100,
+          total: 78,
+          unredeemed: 78,
+          redeemed: 0,
         },
       },
     ],
@@ -270,7 +241,6 @@ export default function DashboardNewPage({
   const stats = data || defaultStats;
 
   console.log("stats", stats);
-  console.log("selectedMerchantInfo", selectedMerchantInfo);
   return (
     <div className={`min-h-screen p-4 ${montserrat.className}`}>
       <div className="max-w-10xl mx-auto space-y-6">
@@ -287,7 +257,7 @@ export default function DashboardNewPage({
 
         {/* ============== Coupon Stats============== */}
         <p className="text-2xl font-bold text-white mb-1">จำนวนคูปอง</p>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* 4 Stat Cards */}
           <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Followers Card */}
@@ -543,7 +513,7 @@ export default function DashboardNewPage({
           </div>
 
           {/* Visitors Donut Chart */}
-          <div className="lg:col-span-1 bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
+          {/* <div className="lg:col-span-1 bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
             <p className="text-lg font-semibold text-white mb-2">จำนวนคูปอง</p>
             <div className="h-[200px]">
               <Chart
@@ -592,18 +562,18 @@ export default function DashboardNewPage({
                   theme: { mode: "dark" },
                 }}
                 series={[
-                  stats?.overallSummary?.couponCount?.total,
-                  stats?.overallSummary?.couponCount?.unsold,
-                  stats?.overallSummary?.couponCount?.unreserved,
-                  stats?.overallSummary?.couponCount?.reserved,
-                  stats?.overallSummary?.couponCount?.unredeemed,
-                  stats?.overallSummary?.couponCount?.redeemed,
+                  stats?.overallSummary?.couponCount?.total || 0,
+                  stats?.overallSummary?.couponCount?.unsold || 0,
+                  stats?.overallSummary?.couponCount?.unreserved || 0,
+                  stats?.overallSummary?.couponCount?.reserved || 0,
+                  stats?.overallSummary?.couponCount?.unredeemed || 0,
+                  stats?.overallSummary?.couponCount?.redeemed || 0,
                 ]}
                 type="donut"
                 height="100%"
               />
             </div>
-          </div>
+          </div> */}
         </div>
         {/* Our of value coupons */}
         <p className="text-2xl font-bold text-white mb-1">มูลค่าคูปอง</p>
@@ -640,7 +610,10 @@ export default function DashboardNewPage({
               />
             </div>
             <div className="flex items-end justify-between">
-              <h3 className="text-2xl font-bold text-white">0 ยัง mock</h3>
+              <h3 className="text-2xl font-bold text-white">
+                {" "}
+                {stats?.overallSummary?.couponValue?.sold}
+              </h3>
               {/* <span className="text-sm text-rose-400">-16.2%</span> */}
             </div>
           </div>
@@ -844,53 +817,25 @@ export default function DashboardNewPage({
             <p className="text-lg font-semibold text-white mb-2">จำนวนคูปอง</p>
             <div className="space-y-3">
               <CategoryRow
-                name="จำนวน คูปองที่เรามี"
-                value={selectedMerchantInfo?.couponCount?.total || "0"}
+                name="จำนวน คูปองทั้งหมด คูปองที่ขายทั้งหมดแล้ว Marketer เข้ามาจอง"
+                value={selectedMerchantInfo?.couponCount?.total}
                 count="5641"
                 bgColor="bg-amber-500/20"
                 textColor="text-amber-400"
               />
               <CategoryRow
-                name="จำนวน คูปองที่ยังไม่ขาย"
-                value={selectedMerchantInfo?.couponCount?.unsold || "0"}
+                name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
+                value={selectedMerchantInfo?.couponCount?.unredeemed}
                 count="10K"
                 bgColor="bg-gray-700/50"
                 textColor="text-gray-300"
               />
               <CategoryRow
-                name="จำนวน คูปองที่ขายทั้งหมด"
-                value={selectedMerchantInfo?.couponCount?.sold || "0"}
+                name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User redeem แล้วจริง"
+                value={selectedMerchantInfo?.couponCount?.redeemed}
                 count="6897"
                 bgColor="bg-indigo-500/20"
                 textColor="text-indigo-400"
-              />
-              <CategoryRow
-                name="จำนวน คูปองที่ขายทั้งหมดแล้ว Marketer ยังไม่เข้ามาจอง"
-                value={selectedMerchantInfo?.couponCount?.unreserved || "0"}
-                count="4548"
-                bgColor="bg-blue-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="จำนวน คูปองที่ขายทั้งหมดแล้ว Marketer เข้ามาจอง"
-                value={selectedMerchantInfo?.couponCount?.reserved || "0"}
-                count="4548"
-                bgColor="bg-green-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
-                value={selectedMerchantInfo?.couponCount?.unredeemed || "0"}
-                count="4548"
-                bgColor="bg-red-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User redeem แล้ว"
-                value={selectedMerchantInfo?.couponCount?.redeemed || "0"}
-                count="4548"
-                bgColor="bg-pink-500/20"
-                textColor="text-blue-400"
               />
             </div>
           </div>
@@ -900,53 +845,25 @@ export default function DashboardNewPage({
             <p className="text-lg font-semibold text-white mb-2">มูลค่าคูปอง</p>
             <div className="space-y-3">
               <CategoryRow
-                name="มูลค่า คูปองที่เรามี"
-                value="0"
+                name="มูลค่า คูปองที่ขายทั้งหมด"
+                value={selectedMerchantInfo?.couponValue?.total}
                 count="5641"
                 bgColor="bg-amber-500/20"
                 textColor="text-amber-400"
               />
               <CategoryRow
-                name="มูลค่า คูปองที่ยังไม่ขาย"
-                value="0"
+                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
+                value={selectedMerchantInfo?.couponValue?.unredeemed}
                 count="10K"
                 bgColor="bg-gray-700/50"
                 textColor="text-gray-300"
               />
               <CategoryRow
-                name="มูลค่า คูปองที่ขายทั้งหมด"
-                value={selectedMerchantInfo?.couponValue?.sold || "0"}
+                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User redeem แล้วจริง"
+                value={selectedMerchantInfo?.couponValue?.redeemed}
                 count="6897"
                 bgColor="bg-indigo-500/20"
                 textColor="text-indigo-400"
-              />
-              <CategoryRow
-                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว Marketer ยังไม่เข้ามาจอง"
-                value={selectedMerchantInfo?.couponValue?.unreserved || "0"}
-                count="4548"
-                bgColor="bg-blue-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว Marketer เข้ามาจอง"
-                value={selectedMerchantInfo?.couponValue?.reserved || "0"}
-                count="4548"
-                bgColor="bg-cyan-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
-                value={selectedMerchantInfo?.couponValue?.unredeemed || "0"}
-                count="4548"
-                bgColor="bg-yellow-500/20"
-                textColor="text-blue-400"
-              />
-              <CategoryRow
-                name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User redeem แล้ว"
-                value={selectedMerchantInfo?.couponValue?.redeemed || "0"}
-                count="4548"
-                bgColor="bg-green-500/20"
-                textColor="text-blue-400"
               />
             </div>
           </div>
