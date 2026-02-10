@@ -328,6 +328,43 @@ export default function DashboardNewPage({
       },
     },
   };
+
+  // Donut Chart Options (Dark Theme)
+  const donutChartCouponValueByCurrencyOptions: ApexOptions = {
+    chart: { type: "donut", background: "transparent" },
+    labels: data ? data.points.map((v) => v.symbol) : ["A"],
+    colors: ["#6366f1", "#60a5fa", "#f472b6", "#bef264", "#a5b4fc"],
+    legend: {
+      position: "bottom",
+      fontSize: "11px",
+      markers: { size: 5 },
+      itemMargin: { horizontal: 8 },
+      labels: { colors: "#9ca3af" },
+    },
+    dataLabels: { enabled: false },
+    plotOptions: {
+      pie: {
+        donut: { size: "55%" },
+      },
+    },
+    stroke: { show: false },
+    theme: { mode: "dark" },
+    fill: {
+      type: ["pattern", "solid", "solid", "solid", "solid"],
+      pattern: {
+        style: [
+          "verticalLines",
+          "horizontalLines",
+          "horizontalLines",
+          "horizontalLines",
+          "horizontalLines",
+        ],
+        width: 4,
+        height: 4,
+        strokeWidth: 2,
+      },
+    },
+  };
   // Donut Chart Options (Dark Theme)
   const donutChartOptionsTransaction: ApexOptions = {
     chart: { type: "donut", background: "transparent" },
@@ -410,11 +447,11 @@ export default function DashboardNewPage({
               </select>
             </div>
             <DateRangeFilter
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-          />
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+            />
           </div>
         </div>
 
@@ -546,11 +583,11 @@ export default function DashboardNewPage({
           </div>
 
           {/* Sales Chart - Using Chart.js with patterns */}
-          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 col-span-1 lg:col-span-2 border border-gray-700/50">
+          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 col-span-1 lg:col-span-2 border border-gray-700/50 overflow-hidden">
             <p className="text-lg font-semibold text-white mb-3">
               มูลค่าคูปอง (THB)
             </p>
-            <div className="h-[180px]">
+            <div className="h-[280px]">
               <SalesBarChartDark
                 label="THB Token"
                 values={[
@@ -642,7 +679,6 @@ export default function DashboardNewPage({
               />
             </div>
           </div>
-
           {/* Product Category */}
           <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 border border-gray-700/50">
             <div className="flex items-center justify-between mb-2">
@@ -665,7 +701,6 @@ export default function DashboardNewPage({
               />
             </div>
           </div>
-
           {/* Overview */}
           <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 lg:col-span-1 border border-gray-700/50">
             <p className="text-lg font-semibold text-white mb-4">
@@ -687,6 +722,40 @@ export default function DashboardNewPage({
                 ]}
               />
             </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 shadow-lg shadow-black/20 col-span-1 lg:col-span-2 border border-gray-700/50 overflow-hidden">
+            <p className="text-lg font-semibold text-white mb-3">
+              มูลค่าคูปอง (Point)
+            </p>
+            {stats.couponValueByCurrency &&
+            stats.couponValueByCurrency.length > 0
+              ? stats.couponValueByCurrency.map((value, index) => (
+                  <div className="h-[280px]" key={index}>
+                    <p className="text-sm font-semibold text-white">
+                      {value.currency}
+                    </p>
+                    <SalesBarChartDark
+                      label={value.currency}
+                      values={[
+                        value.total,
+                        value.unsold,
+                        value.sold,
+                        value.unredeemed,
+                        value.redeemed,
+                      ]}
+                      labels={[
+                        "มูลค่าคูปองทั้งหมด",
+                        "มูลค่าคูปองที่ยังไม่ได้ตั้งขาย",
+                        "มูลค่าคูปองที่ขายทั้งหมด Point",
+                        "มูลค่าคูปองที่ End User ซื้อแต่ยังไม่ใช้ Point",
+                        "มูลค่าคูปองที่ End User redeem แล้วจริง ๆ Point",
+                      ]}
+                    />
+                  </div>
+                ))
+              : null}
           </div>
         </div>
       </div>

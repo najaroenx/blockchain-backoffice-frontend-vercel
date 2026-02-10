@@ -79,6 +79,13 @@ export default function SalesBarChartDark({
           font: { size: 10 },
           maxRotation: 45,
           minRotation: 0,
+          callback: function (_: unknown, index: number): string {
+            const lbl = labels[index] ?? "";
+            if (lbl.length > 20) {
+              return lbl.substring(0, 20) + "...";
+            }
+            return lbl;
+          },
         },
         offset: true,
       },
