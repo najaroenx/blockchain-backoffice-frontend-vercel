@@ -25,19 +25,21 @@ export async function GET(
   req: Request,
   { params }: { params: { walletAddress: string } },
 ) {
-  const { walletAddress: merchantId } = params;
+  const { walletAddress: sellerMerchantId } = params;
+  const url = new URL(req.url);
+  const marketerMerchantId = url.searchParams.get("marketerMerchantId") || "";
   logger.info(
-    `Received request: ${req.method} ${req.url} for merchantId: ${merchantId}`,
+    `Received request: ${req.method} ${req.url} for sellerMerchantId: ${sellerMerchantId}, marketerMerchantId: ${marketerMerchantId}`,
   );
 
   try {
-    if (!merchantId) {
-      return handleError("merchantId is required", 400);
+    if (!sellerMerchantId) {
+      return handleError("sellerMerchantId is required", 400);
     }
 
-    const backendUrl = `${BACKEND_URL}/dashboard/seller/${merchantId}/coupons`;
+    const backendUrl = `${BACKEND_URL}/dashboard/seller/${sellerMerchantId}/coupons${marketerMerchantId ? `?marketerMerchantId=${marketerMerchantId}` : ""}`;
     logger.info(
-      `Fetching seller coupons for merchantId: ${merchantId} from ${backendUrl}`,
+      `Fetching seller coupons for sellerMerchantId: ${sellerMerchantId} from ${backendUrl}`,
     );
 
     const response = await api(backendUrl, {
