@@ -241,8 +241,10 @@ export default function CreateOrderPage() {
   useEffect(() => {
     if (vouchers && vouchers.vouchers.length > 0) {
       vouchers?.vouchers.forEach((voucher: any) => {
-        voucher.quantity =
-          voucher.stats.availableForSale - voucher.stats.listedCodes;
+        voucher.quantity = Math.max(
+          0,
+          voucher.stats.availableForSale 
+        );
       });
     }
     console.log("vouchers", vouchers);
@@ -452,8 +454,7 @@ export default function CreateOrderPage() {
                               onClick={() => {
                                 if (
                                   product.quantity <
-                                  product.stats.availableForSale -
-                                    product.stats.listedCodes
+                                  product.stats.availableForSale 
                                 ) {
                                   handleQuantityChange(
                                     product.id,
