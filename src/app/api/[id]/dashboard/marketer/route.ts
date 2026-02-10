@@ -123,6 +123,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
   // Get query params
   const startDate = req.nextUrl.searchParams.get("startDate") ?? "";
   const endDate = req.nextUrl.searchParams.get("endDate") ?? "";
+  const couponIds = req.nextUrl.searchParams.get("couponIds") ?? "";
 
   try {
     const merchantId = params.id;
@@ -150,6 +151,7 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
         queryParams: {
           startDate,
           endDate,
+          ...(couponIds ? { couponIds } : {}),
         },
       }
     );

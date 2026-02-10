@@ -172,6 +172,32 @@ export default function DashboardNewPage({
   const [data, setData] = useState<DashboardData | null>(null);
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+  const [couponList, setCouponList] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [selectedCouponId, setSelectedCouponId] = useState<string>("all");
+
+  // Fetch coupon list on mount
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await api(
+          `/api/${params.merchantId}/dashboard/marketer/coupons`,
+          { method: "GET" },
+        );
+        if (res?.coupons) {
+          setCouponList(res.coupons);
+        } else if (res?.data?.coupons) {
+          setCouponList(res.data.coupons);
+        }
+      } catch (error) {
+        console.error("Error fetching marketer coupons:", error);
+      }
+    };
+    if (params.merchantId) {
+      fetchCoupons();
+    }
+  }, [params.merchantId]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -185,6 +211,9 @@ export default function DashboardNewPage({
             queryParams: {
               startDate: startDate.startOf("day").toISOString(),
               endDate: endDate.endOf("day").toISOString(),
+              ...(selectedCouponId !== "all"
+                ? { couponIds: selectedCouponId }
+                : {}),
             },
           }),
         {
@@ -200,7 +229,7 @@ export default function DashboardNewPage({
     };
 
     fetchDashboardData();
-  }, [params.merchantId, startDate, endDate]);
+  }, [params.merchantId, startDate, endDate, selectedCouponId]);
 
   // Default stats if data is loading or null
   // Default stats definition to ensure structure safety
@@ -365,12 +394,28 @@ export default function DashboardNewPage({
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <DateRangeFilter
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <select
+                className="bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500 appearance-none pr-8"
+                value={selectedCouponId}
+                onChange={(e) => setSelectedCouponId(e.target.value)}
+              >
+                <option value="all">All Coupons</option>
+                {couponList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <DateRangeFilter
             startDate={startDate}
             endDate={endDate}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
           />
+          </div>
         </div>
 
         {/* Row 1: Stats Cards */}

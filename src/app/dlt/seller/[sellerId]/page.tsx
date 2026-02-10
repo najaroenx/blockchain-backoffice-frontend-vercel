@@ -83,6 +83,71 @@ export default function DashboardNewPage({
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>("all");
   const [selectedMerchantInfo, setSelectedMerchantInfo] =
     useState<SellerMerchantBreakdown | null>(null);
+  const [couponList, setCouponList] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [selectedCouponId, setSelectedCouponId] = useState<string>("all");
+  const [merchantBreakdown, setMerchantBreakdown] = useState<
+    SellerMerchantBreakdown[]
+  >([]);
+
+  // Fetch coupon list on mount
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await api(
+          `/api/seller/address/${params.sellerId}/coupons`,
+          { method: "GET" },
+        );
+        if (res?.coupons) {
+          setCouponList(res.coupons);
+        }
+      } catch (error) {
+        console.error("Error fetching coupons:", error);
+      }
+    };
+    fetchCoupons();
+  }, [params.sellerId]);
+
+  // Fetch merchants breakdown (with optional coupon filter)
+  useEffect(() => {
+    const fetchMerchants = async () => {
+      try {
+        const queryParams: Record<string, string> = {};
+        if (selectedCouponId !== "all") {
+          queryParams.couponIds = selectedCouponId;
+        }
+        const res = await api(
+          `/api/seller/address/${params.sellerId}/merchants`,
+          { method: "GET", queryParams },
+        );
+        if (res?.merchants) {
+          setMerchantBreakdown(res.merchants);
+          // Keep merchant selection if still exists in new results
+          if (selectedMerchantId !== "all") {
+            const stillExists = res.merchants.find(
+              (m: SellerMerchantBreakdown) =>
+                m.merchantId === selectedMerchantId,
+            );
+            if (stillExists) {
+              setSelectedMerchantInfo(stillExists);
+            } else {
+              setSelectedMerchantId("all");
+              setSelectedMerchantInfo(null);
+            }
+          }
+        } else {
+          setMerchantBreakdown([]);
+          setSelectedMerchantId("all");
+          setSelectedMerchantInfo(null);
+        }
+      } catch (error) {
+        console.error("Error fetching merchants:", error);
+        setMerchantBreakdown([]);
+      }
+    };
+    fetchMerchants();
+  }, [params.sellerId, selectedCouponId]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -239,6 +304,47 @@ export default function DashboardNewPage({
   };
 
   const stats = data || defaultStats;
+
+  // Compute display info for By Merchant section
+  const displayMerchantInfo: SellerMerchantBreakdown | null =
+    selectedMerchantId === "all"
+      ? merchantBreakdown.length > 0
+        ? merchantBreakdown.reduce(
+            (acc, m) => ({
+              merchantId: "all",
+              merchantName: "All",
+              couponCount: {
+                total:
+                  (acc.couponCount?.total || 0) +
+                  (m.couponCount?.total || 0),
+                unredeemed:
+                  (acc.couponCount?.unredeemed || 0) +
+                  (m.couponCount?.unredeemed || 0),
+                redeemed:
+                  (acc.couponCount?.redeemed || 0) +
+                  (m.couponCount?.redeemed || 0),
+              },
+              couponValue: {
+                total:
+                  (acc.couponValue?.total || 0) +
+                  (m.couponValue?.total || 0),
+                unredeemed:
+                  (acc.couponValue?.unredeemed || 0) +
+                  (m.couponValue?.unredeemed || 0),
+                redeemed:
+                  (acc.couponValue?.redeemed || 0) +
+                  (m.couponValue?.redeemed || 0),
+              },
+            }),
+            {
+              merchantId: "all",
+              merchantName: "All",
+              couponCount: { total: 0, unredeemed: 0, redeemed: 0 },
+              couponValue: { total: 0, unredeemed: 0, redeemed: 0 },
+            } as SellerMerchantBreakdown,
+          )
+        : null
+      : selectedMerchantInfo;
 
   console.log("stats", stats);
   return (
@@ -783,19 +889,34 @@ export default function DashboardNewPage({
             value={selectedMerchantId}
             onChange={(e) => {
               setSelectedMerchantId(e.target.value);
-              const find = stats?.merchants?.find(
+              setSelectedCouponId("all");
+              const find = merchantBreakdown.find(
                 (m) => m.merchantId === e.target.value,
               );
               setSelectedMerchantInfo(find ? find : null);
             }}
           >
             <option value="all">Check All</option>
-            {stats?.merchants?.map((m) => (
+            {merchantBreakdown.map((m) => (
               <option key={m.merchantId} value={m.merchantId}>
                 {m.merchantName}
               </option>
             ))}
           </select>
+          {selectedMerchantId !== "all" && (
+            <select
+              className="bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500"
+              value={selectedCouponId}
+              onChange={(e) => setSelectedCouponId(e.target.value)}
+            >
+              <option value="all">All Coupons</option>
+              {couponList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <p>Merchant: {selectedMerchantId}</p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -818,21 +939,21 @@ export default function DashboardNewPage({
             <div className="space-y-3">
               <CategoryRow
                 name="จำนวน คูปองทั้งหมด คูปองที่ขายทั้งหมดแล้ว Marketer เข้ามาจอง"
-                value={selectedMerchantInfo?.couponCount?.total}
+                value={displayMerchantInfo?.couponCount?.total}
                 count="5641"
                 bgColor="bg-amber-500/20"
                 textColor="text-amber-400"
               />
               <CategoryRow
                 name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
-                value={selectedMerchantInfo?.couponCount?.unredeemed}
+                value={displayMerchantInfo?.couponCount?.unredeemed}
                 count="10K"
                 bgColor="bg-gray-700/50"
                 textColor="text-gray-300"
               />
               <CategoryRow
                 name="จำนวน คูปองที่ขายทั้งหมดแล้ว End User redeem แล้วจริง"
-                value={selectedMerchantInfo?.couponCount?.redeemed}
+                value={displayMerchantInfo?.couponCount?.redeemed}
                 count="6897"
                 bgColor="bg-indigo-500/20"
                 textColor="text-indigo-400"
@@ -846,21 +967,21 @@ export default function DashboardNewPage({
             <div className="space-y-3">
               <CategoryRow
                 name="มูลค่า คูปองที่ขายทั้งหมด"
-                value={selectedMerchantInfo?.couponValue?.total}
+                value={displayMerchantInfo?.couponValue?.total}
                 count="5641"
                 bgColor="bg-amber-500/20"
                 textColor="text-amber-400"
               />
               <CategoryRow
                 name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User ยังไม่ redeem"
-                value={selectedMerchantInfo?.couponValue?.unredeemed}
+                value={displayMerchantInfo?.couponValue?.unredeemed}
                 count="10K"
                 bgColor="bg-gray-700/50"
                 textColor="text-gray-300"
               />
               <CategoryRow
                 name="มูลค่า คูปองที่ขายทั้งหมดแล้ว End User redeem แล้วจริง"
-                value={selectedMerchantInfo?.couponValue?.redeemed}
+                value={displayMerchantInfo?.couponValue?.redeemed}
                 count="6897"
                 bgColor="bg-indigo-500/20"
                 textColor="text-indigo-400"

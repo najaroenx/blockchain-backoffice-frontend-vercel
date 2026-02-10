@@ -160,6 +160,32 @@ export default function MarketerDashboard({
   const [selectedVoucherType, setSelectedVoucherType] = useState<string>("all");
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+  const [couponList, setCouponList] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [selectedCouponId, setSelectedCouponId] = useState<string>("all");
+
+  // Fetch coupon list on mount
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const res = await api(
+          `/api/${merchantId}/dashboard/marketer/coupons`,
+          { method: "GET" },
+        );
+        if (res?.coupons) {
+          setCouponList(res.coupons);
+        } else if (res?.data?.coupons) {
+          setCouponList(res.data.coupons);
+        }
+      } catch (error) {
+        console.error("Error fetching marketer coupons:", error);
+      }
+    };
+    if (merchantId) {
+      fetchCoupons();
+    }
+  }, [merchantId]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -173,6 +199,9 @@ export default function MarketerDashboard({
             queryParams: {
               startDate: startDate.startOf("day").toISOString(),
               endDate: endDate.endOf("day").toISOString(),
+              ...(selectedCouponId !== "all"
+                ? { couponIds: selectedCouponId }
+                : {}),
             },
           }),
         {
@@ -188,7 +217,7 @@ export default function MarketerDashboard({
     };
 
     fetchDashboardData();
-  }, [merchantId, startDate, endDate]);
+  }, [merchantId, startDate, endDate, selectedCouponId]);
 
   // Default stats definition to ensure structure safety
   const defaultStats: DashboardData = {
@@ -502,36 +531,73 @@ export default function MarketerDashboard({
 
       {/* Merchant Filter */}
       <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-400 text-sm">Merchant:</span>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <Select
-              value={selectedVoucherType}
-              onChange={(e) => setSelectedVoucherType(e.target.value as string)}
-              sx={{
-                color: "white",
-                backgroundColor: "rgba(255,255,255,0.05)",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255,255,255,0.1)",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255,255,255,0.2)",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#a855f7",
-                },
-                "& .MuiSvgIcon-root": {
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Merchant:</span>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Select
+                value={selectedVoucherType}
+                onChange={(e) => {
+                  setSelectedVoucherType(e.target.value as string);
+                  setSelectedCouponId("all");
+                }}
+                sx={{
                   color: "white",
-                },
-              }}
-            >
-              <MenuItem value="all">ทั้งหมด</MenuItem>
-              <MenuItem value="discount">ร้านไก่ย่างป้านาง</MenuItem>
-              <MenuItem value="cashback">ร้านส้มตำป้านาง</MenuItem>
-              <MenuItem value="gift">ร้านปิ้งปิ้งป้านาง</MenuItem>
-              <MenuItem value="point">ร้านชาบูนางใน</MenuItem>
-            </Select>
-          </FormControl>
+                  backgroundColor: "rgba(255,255,255,0.05)",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.2)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#a855f7",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                }}
+              >
+                <MenuItem value="all">ทั้งหมด</MenuItem>
+                <MenuItem value="discount">ร้านไก่ย่างป้านาง</MenuItem>
+                <MenuItem value="cashback">ร้านส้มตำป้านาง</MenuItem>
+                <MenuItem value="gift">ร้านปิ้งปิ้งป้านาง</MenuItem>
+                <MenuItem value="point">ร้านชาบูนางใน</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Coupon:</span>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Select
+                value={selectedCouponId}
+                onChange={(e) => setSelectedCouponId(e.target.value as string)}
+                sx={{
+                  color: "white",
+                  backgroundColor: "rgba(255,255,255,0.05)",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.1)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "rgba(255,255,255,0.2)",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#a855f7",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                }}
+              >
+                <MenuItem value="all">All Coupons</MenuItem>
+                {couponList.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
         </div>
       </div>
 
