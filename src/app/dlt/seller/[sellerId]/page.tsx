@@ -461,46 +461,7 @@ export default function DashboardNewPage({
             </div>
 
             {/* Unreserved Card */}
-            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
-              <div className="flex items-center justify-between mb-4 gap-2">
-                <div className="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center">
-                  <svg
-                    className="w-10 h-10 text-rose-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                    />
-                  </svg>
-                </div>
-                <span className="text-base font-semibold text-white">
-                  จำนวน คูปองที่ขายทั้งหมดแล้ว Marketer ยังไม่เข้ามาจอง
-                </span>
-              </div>
-              <div className="flex items-end justify-between">
-                <div>
-                  <h3 className="text-3xl font-bold text-white">
-                    {stats?.overallSummary?.couponCount?.unreserved}
-                  </h3>
-                  {/* <p className="text-sm text-emerald-400 flex items-center gap-1 mt-1">
-                    <span>↗</span> +0.892 Increased
-                  </p> */}
-                </div>
-                <div className="w-20 h-10">
-                  <Chart
-                    options={{ ...lineChartOptions, colors: ["#f43f5e"] }}
-                    series={[{ data: [8, 5, 9, 6, 11, 8, 10] }]}
-                    type="line"
-                    height="100%"
-                  />
-                </div>
-              </div>
-            </div>
+           
 
             {/* Reserved Card */}
             <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
