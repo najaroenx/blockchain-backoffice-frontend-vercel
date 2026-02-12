@@ -105,7 +105,10 @@ export default function DashboardNewPage({
       try {
         const res = await api(
           `/api/seller/address/${params.sellerId}/coupons`,
-          { method: "GET", queryParams: { marketerMerchantId: selectedMerchantId } },
+          {
+            method: "GET",
+            queryParams: { marketerMerchantId: selectedMerchantId },
+          },
         );
         if (res?.coupons) {
           setCouponList(res.coupons);
@@ -325,8 +328,7 @@ export default function DashboardNewPage({
               merchantName: "All",
               couponCount: {
                 total:
-                  (acc.couponCount?.total || 0) +
-                  (m.couponCount?.total || 0),
+                  (acc.couponCount?.total || 0) + (m.couponCount?.total || 0),
                 unredeemed:
                   (acc.couponCount?.unredeemed || 0) +
                   (m.couponCount?.unredeemed || 0),
@@ -336,8 +338,7 @@ export default function DashboardNewPage({
               },
               couponValue: {
                 total:
-                  (acc.couponValue?.total || 0) +
-                  (m.couponValue?.total || 0),
+                  (acc.couponValue?.total || 0) + (m.couponValue?.total || 0),
                 unredeemed:
                   (acc.couponValue?.unredeemed || 0) +
                   (m.couponValue?.unredeemed || 0),
@@ -419,8 +420,10 @@ export default function DashboardNewPage({
             </div>
 
             {/* Unsold Card */}
-            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
-              <div className="flex items-center justify-between mb-4">
+
+            {/* Unreserved Card */}
+            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 hidden md:block">
+              <div className="flex items-center justify-between mb-4 gap-2">
                 <div className="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center">
                   <svg
                     className="w-10 h-10 text-rose-400"
@@ -437,13 +440,13 @@ export default function DashboardNewPage({
                   </svg>
                 </div>
                 <span className="text-base font-semibold text-white">
-                  จำนวน คูปองที่ยังไม่ขาย
+                  จำนวน คูปองที่ขายทั้งหมดแล้ว Marketer ยังไม่เข้ามาจอง
                 </span>
               </div>
               <div className="flex items-end justify-between">
                 <div>
                   <h3 className="text-3xl font-bold text-white">
-                    {stats?.overallSummary?.couponCount?.unsold}
+                    {stats?.overallSummary?.couponCount?.unreserved}
                   </h3>
                   {/* <p className="text-sm text-emerald-400 flex items-center gap-1 mt-1">
                     <span>↗</span> +0.892 Increased
@@ -459,9 +462,6 @@ export default function DashboardNewPage({
                 </div>
               </div>
             </div>
-
-            {/* Unreserved Card */}
-           
 
             {/* Reserved Card */}
             <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50">
