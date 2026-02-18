@@ -40,9 +40,9 @@ export default function RootLayout({
           href="/images/ais-logo.png"
         />
       </head>
-      <StyledEngineProvider injectFirst>
-        <CssBaseline />
-        <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
+        <StyledEngineProvider injectFirst>
+          <CssBaseline />
           <main>
             <LoadingProvider>
               <SessionWrapper>
@@ -51,8 +51,8 @@ export default function RootLayout({
               <GlobalLoader />
             </LoadingProvider>
           </main>
-        </body>
-      </StyledEngineProvider>
+        </StyledEngineProvider>
+      </body>
     </html>
   );
 }
