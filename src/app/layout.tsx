@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { StyledEngineProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import SessionWrapper from "@/components/SessionWrapper";
 import Providers from "./provider";
 import { LoadingProvider } from "@/contexts/LoadingContext";
 import { GlobalLoader } from "@/components/GlobalLoader";
+import ThemeRegistry from "@/components/ThemeRegistry";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,8 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <StyledEngineProvider injectFirst>
-          <CssBaseline />
+        <ThemeRegistry>
           <main>
             <LoadingProvider>
               <SessionWrapper>
@@ -51,7 +49,7 @@ export default function RootLayout({
               <GlobalLoader />
             </LoadingProvider>
           </main>
-        </StyledEngineProvider>
+        </ThemeRegistry>
       </body>
     </html>
   );
