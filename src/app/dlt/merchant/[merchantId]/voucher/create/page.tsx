@@ -34,6 +34,8 @@ interface Reward {
   remaining: number;
   status: string;
   createdAt: string;
+  isExpired?: boolean;
+  endDate?: string;
 }
 const campaignTypes = [
   {
@@ -68,7 +70,6 @@ const campaignTypes = [
 
 export default function CampaignCreatePage() {
   const merchantId = useMerchantId();
-  const [error, setError] = useState<string | null>(null);
   const { execute } = useApiWithLoading();
 
   const [points, setPoints] = useState<Point[]>([]);
@@ -258,13 +259,15 @@ export default function CampaignCreatePage() {
           redeemed: v.totalRedeemed || 0,
           remaining: (v.totalIssued || 0) - (v.totalRedeemed || 0),
           status: v.status || "Inactive",
+          endDate: v.endDate,
+          isExpired: new Date(v.endDate).getTime() < Date.now(),
           createdAt: new Date(v.createdAt).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
           }),
         }));
-        setRewards(mappedRewards.filter((v) => v.status === "upcoming"));
+        setRewards(mappedRewards.filter((v) => v.status === "upcoming" && !v.isExpired));
       }
     } catch (err) {
       console.error("Error fetching rewards:", err);

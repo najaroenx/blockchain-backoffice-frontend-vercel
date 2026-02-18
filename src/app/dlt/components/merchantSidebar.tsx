@@ -218,7 +218,7 @@ export const MerchantSidebar = () => {
           />
           <MenuItem
             icon={ReceiptLongOutlined}
-            label="Campaign"
+            label="Marketplace"
             hasSubmenu
             isActive={pathname.startsWith(`${basePath}/voucher`)}
             subItems={[
