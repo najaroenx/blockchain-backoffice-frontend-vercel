@@ -21,6 +21,8 @@ interface Reward {
   remaining: number;
   status: string;
   createdAt: string;
+  endDate: string;
+  isExpired: boolean;
 }
 
 export default function OurRewardsPage() {
@@ -43,6 +45,7 @@ export default function OurRewardsPage() {
         }
         const data = await response.json();
 
+        console.log("Raw Rewards Data:", data);
         // Map API data to Reward structure
         const mappedRewards: Reward[] = data.map((v: any) => ({
           id: v.id,
@@ -56,6 +59,8 @@ export default function OurRewardsPage() {
           redeemed: v.totalRedeemed || 0,
           remaining: (v.totalIssued || 0) - (v.totalRedeemed || 0),
           status: v.status || "Inactive",
+          endDate: v.endDate,
+          isExpired: new Date(v.endDate).getTime() < Date.now(),
           createdAt: new Date(v.createdAt).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -146,7 +151,7 @@ export default function OurRewardsPage() {
                 (r) =>
                   r.status === "Low Stock" ||
                   r.status === "Out of Stock" ||
-                  (r.remaining < 10 && r.remaining > 0)
+                  (r.remaining < 10 && r.remaining > 0),
               ).length
             }
           </h3>
@@ -210,7 +215,7 @@ export default function OurRewardsPage() {
                   Value
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  Points Cost
+                  Expire
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
                   Stock
@@ -272,11 +277,11 @@ export default function OurRewardsPage() {
                       {reward.value}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-amber-400">
-                        {reward.pointsCost > 0
-                          ? `${reward.pointsCost.toLocaleString()} pts`
-                          : "Free"}
-                      </span>
+                      {reward.isExpired ? (
+                        <span className="text-sm font-medium text-red-400">หมดอายุ</span>
+                      ) : (
+                        <span className="text-sm font-medium text-green-400">ใช้งานได้</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -286,8 +291,8 @@ export default function OurRewardsPage() {
                               reward.remaining / reward.totalIssued > 0.5
                                 ? "bg-emerald-500"
                                 : reward.remaining / reward.totalIssued > 0.2
-                                ? "bg-amber-500"
-                                : "bg-red-500"
+                                  ? "bg-amber-500"
+                                  : "bg-red-500"
                             }`}
                             style={{
                               width: `${
@@ -307,7 +312,7 @@ export default function OurRewardsPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          reward.status
+                          reward.status,
                         )}`}
                       >
                         {reward.status}
