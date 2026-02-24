@@ -15,60 +15,12 @@ type BackendResponse<T = any> = {
 export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
-  if (fetchOptions.queryParams) {
-    const separator = url.includes("?") ? "&" : "?";
-    const queryString = new URLSearchParams(
-      fetchOptions.queryParams as any,
-    ).toString();
-    const finalUrl = `${url}${separator}${queryString}`;
+  // Build final URL (with or without query params)
+  const finalUrl = fetchOptions.queryParams
+    ? `${url}${url.includes("?") ? "&" : "?"}${new URLSearchParams(fetchOptions.queryParams as any).toString()}`
+    : url;
 
-    const response = await fetch(finalUrl, {
-      method: fetchOptions.method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(fetchOptions.headers || {}),
-      },
-      body: fetchOptions.body ? JSON.stringify(fetchOptions.body) : undefined,
-    });
-
-    if (!response.ok) {
-      // Try to parse error response, but handle empty body
-      const text = await response.text();
-      let errorData: any = {};
-      if (text) {
-        try {
-          errorData = JSON.parse(text);
-        } catch {
-          errorData = { message: text };
-        }
-      }
-      const message =
-        errorData.message || errorData.data?.message || "Request failed";
-      return { statusCode: response.status, message };
-    }
-
-    // Handle empty response body
-    const text = await response.text();
-    if (!text) {
-      return {};
-    }
-
-    let jsonData;
-    try {
-      jsonData = JSON.parse(text);
-    } catch {
-      return { statusCode: 500, message: "Invalid JSON response from server" };
-    }
-
-    // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
-    if (unwrapData && jsonData.data !== undefined) {
-      return jsonData.data;
-    }
-
-    return jsonData;
-  }
-
-  const response = await fetch(url, {
+  const response = await fetch(finalUrl, {
     method: fetchOptions.method,
     headers: {
       "Content-Type": "application/json",
@@ -78,7 +30,6 @@ export const api = async (url: string, options: RequestOptions) => {
   });
 
   if (!response.ok) {
-    // Try to parse error response, but handle empty body
     const text = await response.text();
     let errorData: any = {};
     if (text) {
@@ -90,23 +41,21 @@ export const api = async (url: string, options: RequestOptions) => {
     }
     const message =
       errorData.message || errorData.data?.message || "Request failed";
-    return { statusCode: response.status, message };
+    const err = new Error(message) as Error & { statusCode: number };
+    err.statusCode = response.status;
+    throw err;
   }
 
-  // Handle empty response body
   const text = await response.text();
-  if (!text) {
-    return {};
-  }
+  if (!text) return {};
 
-  let jsonData;
+  let jsonData: any;
   try {
     jsonData = JSON.parse(text);
   } catch {
-    return { statusCode: 500, message: "Invalid JSON response from server" };
+    throw new Error("Invalid JSON response from server");
   }
 
-  // Auto-unwrap backend ResponseInterceptor format: { status, message, data }
   if (unwrapData && jsonData.data !== undefined) {
     return jsonData.data;
   }

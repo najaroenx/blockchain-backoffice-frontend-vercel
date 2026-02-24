@@ -9,6 +9,15 @@ import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 import PercentIcon from "@mui/icons-material/Percent";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import StarsIcon from "@mui/icons-material/Stars";
+import dayjs from "dayjs";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type CampaignType = "voucher" | "discount" | "points" | "gift";
 interface Point {
@@ -101,42 +110,6 @@ export default function CampaignCreatePage() {
     memberTiers: [] as string[],
   });
 
-  // Mock available point programs
-  const availablePointPrograms = [
-    {
-      id: "PTS-001",
-      name: "Loyalty Points",
-      symbol: "LP",
-      balance: 125000,
-      icon: "🪙",
-      color: "amber",
-    },
-    {
-      id: "PTS-002",
-      name: "Reward Coins",
-      symbol: "RC",
-      balance: 50000,
-      icon: "💰",
-      color: "emerald",
-    },
-    {
-      id: "PTS-003",
-      name: "DLT Tokens",
-      symbol: "DLT",
-      balance: 10000,
-      icon: "⭐",
-      color: "purple",
-    },
-    {
-      id: "PTS-004",
-      name: "Cashback Credits",
-      symbol: "CB",
-      balance: 75000,
-      icon: "💎",
-      color: "cyan",
-    },
-  ];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -145,7 +118,7 @@ export default function CampaignCreatePage() {
       amount: +formData.maxUsage,
       pointId: formData.selectedPointProgram,
       currency: points.find(
-        (point) => point.id === formData.selectedPointProgram
+        (point) => point.id === formData.selectedPointProgram,
       )?.symbol,
     };
 
@@ -159,7 +132,7 @@ export default function CampaignCreatePage() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(body),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -175,9 +148,19 @@ export default function CampaignCreatePage() {
         errorText: "ไม่สามารถเปิดใช้งาน Voucher ได้",
         redirectOnSuccess: `/dlt/merchant/${merchantId}/voucher/list`,
         redirectDelay: 3000,
-      }
+      },
     );
   };
+
+  const isFormValid =
+    formData.name.trim() !== "" &&
+    formData.selectedCoupon !== "" &&
+    formData.selectedPointProgram !== "" &&
+    (formData.pointsType === "fixed"
+      ? formData.pointsRequired !== ""
+      : formData.pointsMin !== "" && formData.pointsMax !== "") &&
+    formData.validFrom !== "" &&
+    formData.validUntil !== "";
 
   const getColorClasses = (color: string, isSelected: boolean) => {
     const colors: Record<string, { bg: string; border: string; text: string }> =
@@ -222,7 +205,7 @@ export default function CampaignCreatePage() {
           loadingText: "กำลังโหลดข้อมูล...",
           showSuccessOnComplete: false,
           showErrorOnFail: false,
-        }
+        },
       );
       if (pointsData) {
         setPoints(pointsData);
@@ -243,7 +226,7 @@ export default function CampaignCreatePage() {
           loadingText: "กำลังโหลดข้อมูล Rewards...",
           showSuccessOnComplete: false,
           showErrorOnFail: false,
-        }
+        },
       );
 
       if (rewardsData) {
@@ -267,7 +250,9 @@ export default function CampaignCreatePage() {
             year: "numeric",
           }),
         }));
-        setRewards(mappedRewards.filter((v) => v.status === "upcoming" && !v.isExpired));
+        setRewards(
+          mappedRewards.filter((v) => v.status === "upcoming" && !v.isExpired),
+        );
       }
     } catch (err) {
       console.error("Error fetching rewards:", err);
@@ -398,7 +383,7 @@ export default function CampaignCreatePage() {
                     {formData.selectedCoupon ? (
                       (() => {
                         const selected = rewards.find(
-                          (c) => c.id === formData.selectedCoupon
+                          (c) => c.id === formData.selectedCoupon,
                         );
                         if (!selected)
                           return (
@@ -506,7 +491,7 @@ export default function CampaignCreatePage() {
               {formData.selectedCoupon &&
                 (() => {
                   const selected = rewards.find(
-                    (c) => c.id === formData.selectedCoupon
+                    (c) => c.id === formData.selectedCoupon,
                   );
                   if (!selected) return null;
                   return (
@@ -632,12 +617,12 @@ export default function CampaignCreatePage() {
                       (() => {
                         const selected =
                           points.find(
-                            (p) => p.id === formData.selectedPointProgram
+                            (p) => p.id === formData.selectedPointProgram,
                           ) ||
                           points.find(
                             (p) =>
                               p.initialSupply.toString() ===
-                              formData.selectedPointProgram
+                              formData.selectedPointProgram,
                           );
                         if (!selected)
                           return (
@@ -739,15 +724,15 @@ export default function CampaignCreatePage() {
               {/* Selected Point Program Preview */}
               {formData.selectedPointProgram &&
                 (() => {
-                  const selected = availablePointPrograms.find(
-                    (p) => p.id === formData.selectedPointProgram
+                  const selected = points.find(
+                    (p) => p.id === formData.selectedPointProgram,
                   );
                   if (!selected) return null;
                   return (
                     <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
                       <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/30">
-                          {selected.icon}
+                          🪙
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
@@ -759,9 +744,9 @@ export default function CampaignCreatePage() {
                             </span>
                           </div>
                           <p className="text-gray-400 text-sm mt-1">
-                            Available balance:{" "}
+                            Total supply:{" "}
                             <span className="text-amber-400 font-bold">
-                              {selected.balance.toLocaleString()}
+                              {(selected.initialSupply ?? 0).toLocaleString()}
                             </span>{" "}
                             points
                           </p>
@@ -814,15 +799,29 @@ export default function CampaignCreatePage() {
                         <input
                           type="number"
                           value={formData.pointsRequired}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") {
+                              setFormData({ ...formData, pointsRequired: "" });
+                              return;
+                            }
+                            const n = Math.min(
+                              5000,
+                              Math.max(1, Math.floor(Number(raw))),
+                            );
                             setFormData({
                               ...formData,
-                              pointsRequired: e.target.value,
-                            })
+                              pointsRequired: String(n),
+                            });
+                          }}
+                          onKeyDown={(e) =>
+                            ["-", "e", "+", "."].includes(e.key) &&
+                            e.preventDefault()
                           }
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all pr-16"
                           placeholder="e.g., 500"
-                          min="0"
+                          min="1"
+                          max="5000"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 font-medium">
                           pts
@@ -839,15 +838,29 @@ export default function CampaignCreatePage() {
                           <input
                             type="number"
                             value={formData.pointsMin}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                setFormData({ ...formData, pointsMin: "" });
+                                return;
+                              }
+                              const n = Math.min(
+                                5000,
+                                Math.max(1, Math.floor(Number(raw))),
+                              );
                               setFormData({
                                 ...formData,
-                                pointsMin: e.target.value,
-                              })
+                                pointsMin: String(n),
+                              });
+                            }}
+                            onKeyDown={(e) =>
+                              ["-", "e", "+", "."].includes(e.key) &&
+                              e.preventDefault()
                             }
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all pr-16"
                             placeholder="e.g., 100"
-                            min="0"
+                            min="1"
+                            max="5000"
                           />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 font-medium">
                             pts
@@ -862,15 +875,29 @@ export default function CampaignCreatePage() {
                           <input
                             type="number"
                             value={formData.pointsMax}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === "") {
+                                setFormData({ ...formData, pointsMax: "" });
+                                return;
+                              }
+                              const n = Math.min(
+                                5000,
+                                Math.max(1, Math.floor(Number(raw))),
+                              );
                               setFormData({
                                 ...formData,
-                                pointsMax: e.target.value,
-                              })
+                                pointsMax: String(n),
+                              });
+                            }}
+                            onKeyDown={(e) =>
+                              ["-", "e", "+", "."].includes(e.key) &&
+                              e.preventDefault()
                             }
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all pr-16"
                             placeholder="e.g., 1000"
-                            min="0"
+                            min="1"
+                            max="5000"
                           />
                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 font-medium">
                             pts
@@ -918,31 +945,215 @@ export default function CampaignCreatePage() {
                 Campaign Schedule
               </h3>
               <div className="grid grid-cols-2 gap-4">
+                {/* Start Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Start Date
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.validFrom}
-                    onChange={(e) =>
-                      setFormData({ ...formData, validFrom: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all [color-scheme:dark]"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/30 rounded-xl text-left transition-all hover:border-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                          formData.validFrom ? "text-white" : "text-gray-400",
+                        )}
+                      >
+                        <span>
+                          {formData.validFrom
+                            ? dayjs(formData.validFrom).format(
+                                "DD/MM/YYYY HH:mm",
+                              )
+                            : "DD/MM/YYYY HH:mm"}
+                        </span>
+                        <CalendarIcon className="h-4 w-4 text-white" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="dark w-auto p-0 bg-[#1a1a2e] border-white/10"
+                      align="start"
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          formData.validFrom
+                            ? new Date(formData.validFrom)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (date) {
+                            const now = dayjs();
+                            const isToday = dayjs(date).isSame(now, "day");
+                            const prev = formData.validFrom
+                              ? dayjs(formData.validFrom)
+                              : now;
+                            let hour = prev.hour();
+                            let minute = prev.minute();
+                            if (
+                              isToday &&
+                              hour * 60 + minute <
+                                now.hour() * 60 + now.minute()
+                            ) {
+                              hour = now.hour();
+                              minute = now.minute();
+                            }
+                            const newVal = dayjs(date)
+                              .hour(hour)
+                              .minute(minute);
+                            setFormData({
+                              ...formData,
+                              validFrom: newVal.format("YYYY-MM-DDTHH:mm"),
+                            });
+                          }
+                        }}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
+                        className="!bg-[#1a1a2e]"
+                        classNames={{
+                          today: "bg-purple-600/30 text-white rounded-md",
+                        }}
+                      />
+                      <div className="border-t border-white/10 p-3">
+                        <label className="text-xs text-gray-400 mb-1 block">
+                          Time
+                        </label>
+                        <input
+                          type="time"
+                          value={
+                            formData.validFrom
+                              ? dayjs(formData.validFrom).format("HH:mm")
+                              : ""
+                          }
+                          min={
+                            formData.validFrom &&
+                            dayjs(formData.validFrom).isSame(dayjs(), "day")
+                              ? dayjs().format("HH:mm")
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            const [h, m] = e.target.value
+                              .split(":")
+                              .map(Number);
+                            const base = formData.validFrom
+                              ? dayjs(formData.validFrom)
+                              : dayjs();
+                            let newVal = base.hour(h).minute(m);
+                            const now = dayjs();
+                            if (
+                              newVal.isSame(now, "day") &&
+                              newVal.isBefore(now)
+                            ) {
+                              newVal = now.second(0).millisecond(0);
+                            }
+                            setFormData({
+                              ...formData,
+                              validFrom: newVal.format("YYYY-MM-DDTHH:mm"),
+                            });
+                          }}
+                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 [color-scheme:dark]"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
+
+                {/* End Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     End Date
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.validUntil}
-                    onChange={(e) =>
-                      setFormData({ ...formData, validUntil: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all [color-scheme:dark]"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/30 rounded-xl text-left transition-all hover:border-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50",
+                          formData.validUntil ? "text-white" : "text-gray-400",
+                        )}
+                      >
+                        <span>
+                          {formData.validUntil
+                            ? dayjs(formData.validUntil).format(
+                                "DD/MM/YYYY HH:mm",
+                              )
+                            : "DD/MM/YYYY HH:mm"}
+                        </span>
+                        <CalendarIcon className="h-4 w-4 text-white" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="dark w-auto p-0 bg-[#1a1a2e] border-white/10"
+                      align="start"
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={
+                          formData.validUntil
+                            ? new Date(formData.validUntil)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (date) {
+                            const prev = formData.validUntil
+                              ? dayjs(formData.validUntil)
+                              : dayjs();
+                            const newVal = dayjs(date)
+                              .hour(prev.hour())
+                              .minute(prev.minute());
+                            setFormData({
+                              ...formData,
+                              validUntil: newVal.format("YYYY-MM-DDTHH:mm"),
+                            });
+                          }
+                        }}
+                        disabled={(date) =>
+                          formData.validFrom
+                            ? date <
+                              new Date(
+                                new Date(formData.validFrom).setHours(
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                ),
+                              )
+                            : false
+                        }
+                        className="!bg-[#1a1a2e]"
+                        classNames={{
+                          today: "bg-purple-600/30 text-white rounded-md",
+                        }}
+                      />
+                      <div className="border-t border-white/10 p-3">
+                        <label className="text-xs text-gray-400 mb-1 block">
+                          Time
+                        </label>
+                        <input
+                          type="time"
+                          value={
+                            formData.validUntil
+                              ? dayjs(formData.validUntil).format("HH:mm")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const [h, m] = e.target.value
+                              .split(":")
+                              .map(Number);
+                            const base = formData.validUntil
+                              ? dayjs(formData.validUntil)
+                              : dayjs();
+                            const newVal = base.hour(h).minute(m);
+                            setFormData({
+                              ...formData,
+                              validUntil: newVal.format("YYYY-MM-DDTHH:mm"),
+                            });
+                          }}
+                          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 [color-scheme:dark]"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
@@ -953,7 +1164,8 @@ export default function CampaignCreatePage() {
         <div className="flex gap-4 mt-6">
           <button
             type="submit"
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
+            disabled={!isFormValid}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:from-purple-700 enabled:hover:to-pink-700"
           >
             🚀 Launch Campaign
           </button>

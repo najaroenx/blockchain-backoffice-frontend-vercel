@@ -30,7 +30,6 @@ interface UsePointsOptions {
 interface UsePointOptions {
   merchantId: string;
   pointId: string;
-  phone: string;
 }
 
 interface UsePointsResult {
@@ -129,10 +128,10 @@ export function usePoint({
   };
 }
 
-// Hook: Transfer point (POST to transaction)
+// Hook: Transfer point (POST to dedicated transfer endpoint)
 export function useTransferPoint({ merchantId, pointId }: UsePointOptions) {
   const { trigger, isMutating, error, data } = useSWRMutation(
-    merchantId && pointId ? `/api/${merchantId}/point/${pointId}` : null,
+    merchantId && pointId ? `/api/${merchantId}/point/${pointId}/transfer` : null,
     transferFetcher,
   );
 

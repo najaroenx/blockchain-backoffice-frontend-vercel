@@ -76,7 +76,7 @@ const PointDataTable = ({
                     key={col.key}
                     className="py-4 px-3 text-sm text-gray-300"
                   >
-                    {String(row[col.key] ?? "-")}
+                    {typeof row[col.key] === "object" ? JSON.stringify(row[col.key] ?? "-") : String(row[col.key] ?? "-")}
                   </td>
                 ))}
               </tr>
