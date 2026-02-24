@@ -25,8 +25,9 @@ const authRedirectRoutes = [
   "/dlt/sign-up",
 ];
 
-const isTokenExpired = (token: any): boolean => {
-  return Date.now() >= token?.data.valid_until * 1000;
+const isTokenExpired = (token: { data?: { valid_until?: number } }): boolean => {
+  const exp = token?.data?.valid_until;
+  return exp !== undefined && Date.now() >= exp * 1000;
 };
 
 // Helper to determine the correct sign-in page based on the route
@@ -59,9 +60,10 @@ export default async function middleware(req: NextRequest) {
     const signInPage = getSignInPage(path);
     const response = NextResponse.redirect(new URL(signInPage, req.nextUrl));
 
-    // Clear session cookies
-    response.cookies.set("next-auth.session-token", "", { maxAge: 0 });
-    response.cookies.set("next-auth.csrf-token", "", { maxAge: 0 });
+    // Clear session cookies (name differs between HTTP and HTTPS)
+    const cookiePrefix = process.env.NODE_ENV === "production" ? "__Secure-" : "";
+    response.cookies.set(`${cookiePrefix}next-auth.session-token`, "", { maxAge: 0 });
+    response.cookies.set(`${cookiePrefix}next-auth.csrf-token`, "", { maxAge: 0 });
 
     return response;
   }

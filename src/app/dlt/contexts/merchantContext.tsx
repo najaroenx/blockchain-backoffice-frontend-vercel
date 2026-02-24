@@ -5,41 +5,19 @@ import React, {
   useState,
   useRef,
   useCallback,
-  ReactNode,
+  useMemo,
 } from "react";
 import { SuccessLoadingComponent } from "@/app/dlt/components/SuccessLoadingComponent";
 import LoadingDefaultComponent from "../components/LoadingDefaultComponent";
 import { ErrorLoadingComponent } from "@/app/dlt/components/ErrorLoadingComponent";
-
-interface MerchantContextProps {
-  merchantId: string | null;
-  isSidebarCollapsed: boolean;
-  toggleSidebar: () => void;
-  // Loading state
-  isLoading: boolean;
-  loadingText: string;
-  showLoading: (text?: string) => void;
-  hideLoading: () => void;
-  // Success Loading state
-  isLoadingSuccess: boolean;
-  successText: string;
-  showLoadingSuccess: (text?: string) => void;
-  hideLoadingSuccess: () => void;
-  // Error Loading state
-  isLoadingError: boolean;
-  errorText: string;
-  showLoadingError: (text?: string) => void;
-  hideLoadingError: () => void;
-}
+import type {
+  MerchantContextProps,
+  MerchantProviderProps,
+} from "@/app/dlt/interfaces/merchantContext";
 
 const MerchantContext = createContext<MerchantContextProps | undefined>(
   undefined
 );
-
-interface MerchantProviderProps {
-  value: string | null;
-  children: ReactNode;
-}
 
 // Minimum time to show loading (ms)
 const MIN_LOADING_TIME = 500;
@@ -68,9 +46,9 @@ export const MerchantProvider = ({
   const successTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     setIsSidebarCollapsed((prev) => !prev);
-  };
+  }, []);
 
   const showLoading = useCallback((text?: string) => {
     // Clear any pending hide timeout
@@ -156,26 +134,34 @@ export const MerchantProvider = ({
     setIsLoadingError(false);
   }, []);
 
+  const contextValue = useMemo<MerchantContextProps>(
+    () => ({
+      merchantId: value,
+      isSidebarCollapsed,
+      toggleSidebar,
+      isLoading,
+      loadingText,
+      showLoading,
+      hideLoading,
+      isLoadingSuccess,
+      successText,
+      showLoadingSuccess,
+      hideLoadingSuccess,
+      isLoadingError,
+      errorText,
+      showLoadingError,
+      hideLoadingError,
+    }),
+    [
+      value, isSidebarCollapsed, toggleSidebar,
+      isLoading, loadingText, showLoading, hideLoading,
+      isLoadingSuccess, successText, showLoadingSuccess, hideLoadingSuccess,
+      isLoadingError, errorText, showLoadingError, hideLoadingError,
+    ]
+  );
+
   return (
-    <MerchantContext.Provider
-      value={{
-        merchantId: value,
-        isSidebarCollapsed,
-        toggleSidebar,
-        isLoading,
-        loadingText,
-        showLoading,
-        hideLoading,
-        isLoadingSuccess,
-        successText,
-        showLoadingSuccess,
-        hideLoadingSuccess,
-        isLoadingError,
-        errorText,
-        showLoadingError,
-        hideLoadingError,
-      }}
-    >
+    <MerchantContext.Provider value={contextValue}>
       {children}
 
       {/* Global Loading Overlay */}

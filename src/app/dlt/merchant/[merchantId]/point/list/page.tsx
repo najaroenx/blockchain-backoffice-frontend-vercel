@@ -76,13 +76,13 @@ export default function PointListPage() {
 
   // Calculate total supply
   const totalSupply = points.reduce(
-    (sum, p) => sum + (p.initialSupply || 0),
+    (sum, p) => sum + (Number(p.initialSupply) || 0),
     0
   );
 
   // Calculate total remaining
   const totalRemaining = points.reduce(
-    (sum, p) => sum + (p.remaining || 0),
+    (sum, p) => sum + (Number(p.remaining) || 0),
     0
   );
 

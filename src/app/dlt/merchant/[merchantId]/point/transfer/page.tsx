@@ -28,7 +28,6 @@ export default function PointTransferPage() {
   const { transfer, isTransferring } = useTransferPoint({
     merchantId: merchantId || "",
     pointId: formData.pointId,
-    phone: formData.toUserId,
   });
 
   // Get selected point details
@@ -273,79 +272,6 @@ export default function PointTransferPage() {
             Transfer Points
           </button>
         </form>
-      </div>
-
-      {/* Recent Transfers */}
-      <div className="bg-[#1a1a2e] rounded-2xl border border-white/5 overflow-hidden">
-        <div className="p-6 border-b border-white/5">
-          <h3 className="text-lg font-semibold text-white">Recent Transfers</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-white/5">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  Token
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  From
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  To
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {[
-                {
-                  token: "TORTE",
-                  from: "0x1234...5678",
-                  to: "0xabcd...efgh",
-                  amount: "500",
-                  date: "Jan 8, 2026",
-                },
-                {
-                  token: "MONDAY",
-                  from: "0x9876...5432",
-                  to: "0x1111...2222",
-                  amount: "1,200",
-                  date: "Jan 7, 2026",
-                },
-                {
-                  token: "LOKA",
-                  from: "0xaaaa...bbbb",
-                  to: "0xcccc...dddd",
-                  amount: "250",
-                  date: "Jan 6, 2026",
-                },
-              ].map((item, i) => (
-                <tr key={i} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 text-sm text-purple-400 font-medium">
-                    {item.token}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-300 font-mono">
-                    {item.from}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-300 font-mono">
-                    {item.to}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-white">
-                    {item.amount}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
-                    {item.date}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

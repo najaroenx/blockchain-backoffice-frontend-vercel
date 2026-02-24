@@ -218,11 +218,11 @@ export const MerchantSidebar = () => {
           />
           <MenuItem
             icon={ReceiptLongOutlined}
-            label="Campaign"
+            label="Marketplace"
             hasSubmenu
             isActive={pathname.startsWith(`${basePath}/voucher`)}
             subItems={[
-              { label: "Products", href: `${basePath}/voucher/list` },
+              { label: "Marketplace", href: `${basePath}/voucher/list` },
               {
                 label: "Set Product price",
                 href: `${basePath}/voucher/create`,
