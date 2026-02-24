@@ -24,20 +24,7 @@ type VerifyPhoneContextValue = {
   setCallbackUri: (callbackUri: string | null) => void;
 };
 
-const VerifyPhoneContext = createContext<VerifyPhoneContextValue>({
-  phoneNumber: null,
-  token: null,
-  otpCode: null,
-  merchantId: null,
-  status: Status.INITIALIZING,
-  setPhoneNumber: () => {},
-  setToken: () => {},
-  setOtpCode: () => {},
-  setMerchantId: () => {},
-  setStatus: () => {},
-  callbackUri: null,
-  setCallbackUri: () => {},
-});
+const VerifyPhoneContext = createContext<VerifyPhoneContextValue | undefined>(undefined);
 
 type VerifyPhoneProviderProps = {
   phoneNumber?: string | null;
@@ -84,4 +71,10 @@ export const VerifyPhoneProvider = ({
   );
 };
 
-export const useVerifyPhone = () => useContext(VerifyPhoneContext);
+export const useVerifyPhone = (): VerifyPhoneContextValue => {
+  const context = useContext(VerifyPhoneContext);
+  if (!context) {
+    throw new Error("useVerifyPhone must be used within a VerifyPhoneProvider");
+  }
+  return context;
+};

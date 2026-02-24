@@ -550,13 +550,6 @@ export default function CustomerDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex justify-end gap-4">
-        <button className="px-6 py-3 bg-white/5 border border-white/10 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/10 hover:border-red-500/30 transition-colors">
-          Delete Customer
-        </button>
-      </div>
     </div>
   );
 }

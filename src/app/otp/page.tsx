@@ -2,8 +2,6 @@ import { Suspense } from "react";
 import { Loading } from "@/components/layout/Loading";
 import { VerifyPhoneProvider } from "@/contexts/VerifyPhoneContext";
 import dynamic from "next/dynamic";
-import PinPhoneNumber from "@/components/verifyPhone/PinPhoneNumber";
-import VerifyPhoneComponent from "@/components/verifyPhone/VerifyPhone";
 
 const VerifyPhone = dynamic(
   () => import("@/components/verifyPhone/VerifyPhone"),

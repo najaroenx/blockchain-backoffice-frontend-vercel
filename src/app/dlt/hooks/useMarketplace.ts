@@ -65,7 +65,6 @@ export interface MarketplaceCategory {
 
 export interface ProductFilters {
   category?: string;
-  valueType?: string;
   isActive?: boolean;
   search?: string;
   page?: number;
@@ -151,7 +150,6 @@ export const listFetcher = async (url: string) => {
 
   // Handle response structure: { status, message, data: { total, listings } }
   if (json.data) {
-    console.log("Using json.data:", json.data);
     return {
       listings: json.data.listings || [],
       total: json.data.total || 0,
@@ -160,7 +158,6 @@ export const listFetcher = async (url: string) => {
 
   // Fallback for direct array response
   const total = res.headers.get("X-Total-Count") || "0";
-  console.log("Using fallback, json is:", json);
   return {
     listings: Array.isArray(json) ? json : [],
     total: parseInt(total, 10),
@@ -191,19 +188,16 @@ export const buyFetcher = async (
 ) => {
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(arg),
   });
 
-  const json = await res.json();
-
   if (!res.ok) {
-    throw new Error(json.message || "Failed to complete purchase");
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Failed to complete purchase");
   }
 
-  return json;
+  return res.json();
 };
 
 // List batch fetcher (POST)
@@ -213,19 +207,16 @@ export const listBatchFetcher = async (
 ) => {
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(arg),
   });
 
-  const json = await res.json();
-
   if (!res.ok) {
-    throw new Error(json.message || "Failed to list products to marketplace");
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Failed to list products to marketplace");
   }
 
-  return json;
+  return res.json();
 };
 
 // ==================== HOOKS ====================
@@ -242,7 +233,6 @@ export function useMarketplaceProducts(
   if (filters?.category && filters.category !== "all") {
     queryParams.set("valueType", filters.category);
   }
-  if (filters?.valueType) queryParams.set("valueType", filters.valueType);
   if (filters?.isActive !== undefined)
     queryParams.set("isActive", filters.isActive.toString());
   if (filters?.search) queryParams.set("search", filters.search);

@@ -28,7 +28,6 @@ export default function PointTransferPage() {
   const { transfer, isTransferring } = useTransferPoint({
     merchantId: merchantId || "",
     pointId: formData.pointId,
-    phone: formData.toUserId,
   });
 
   // Get selected point details

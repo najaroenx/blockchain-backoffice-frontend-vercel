@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMerchantId, useLoading } from "@/app/dlt/contexts/merchantContext";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -22,6 +21,49 @@ interface Transaction {
   createdAt: string;
   txHash?: string;
 }
+
+// Pure helper functions — defined at module level to avoid recreation on every render
+const getTypeIcon = (type: string) => {
+  switch (type) {
+    case "transfer":
+      return <SwapHorizIcon className="w-4 h-4" />;
+    case "mint":
+      return <ArrowDownwardIcon className="w-4 h-4" />;
+    case "burn":
+    case "redeem":
+      return <ArrowUpwardIcon className="w-4 h-4" />;
+    default:
+      return <SwapHorizIcon className="w-4 h-4" />;
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case "transfer": return "bg-blue-500/20 text-blue-400";
+    case "mint":     return "bg-emerald-500/20 text-emerald-400";
+    case "burn":     return "bg-red-500/20 text-red-400";
+    case "redeem":   return "bg-amber-500/20 text-amber-400";
+    default:         return "bg-gray-500/20 text-gray-400";
+  }
+};
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "completed": return "bg-emerald-500/20 text-emerald-400";
+    case "pending":   return "bg-amber-500/20 text-amber-400";
+    case "failed":    return "bg-red-500/20 text-red-400";
+    default:          return "bg-gray-500/20 text-gray-400";
+  }
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("th-TH", {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+
+const truncateAddress = (address: string) =>
+  address.length > 12 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
 
 export default function PointTransactionPage() {
   const merchantId = useMerchantId();
@@ -49,11 +91,17 @@ export default function PointTransactionPage() {
             // Only show transactions with typeAsset = "POINT"
             return t.typeAsset === AssetType.POINT;
           })
-          .map((t: any) => ({
-            id: t.id || t.txHash || `TX-${Date.now()}`,
+          .map((t: any, i: number) => ({
+            id: t.id || t.txHash || `TX-${i}`,
             type: t.type || "transfer",
-            senderAddress: t.senderAddress || t.from || "0x0000000000000000000000000000000000000000",
-            receiverAddress: t.receiverAddress || t.to || "0x0000000000000000000000000000000000000000",
+            senderAddress:
+              t.senderAddress ||
+              t.from ||
+              "0x0000000000000000000000000000000000000000",
+            receiverAddress:
+              t.receiverAddress ||
+              t.to ||
+              "0x0000000000000000000000000000000000000000",
             amount: t.amount || 0,
             pointSymbol: t.pointSymbol || t.symbol || "PTS",
             pointName: t.pointName || t.name || "Point",
@@ -65,42 +113,7 @@ export default function PointTransactionPage() {
         setTransactions(mappedTransactions);
       } catch (error) {
         console.error("Error fetching transactions:", error);
-        // Set mock data for demo
-        setTransactions([
-          {
-            id: "TX-001",
-            type: "transfer",
-            senderAddress: "0x1234567890abcdef1234567890abcdef12345678",
-            receiverAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-            amount: 500,
-            pointSymbol: "PTS",
-            pointName: "Loyalty Point",
-            status: "completed",
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "TX-002",
-            type: "mint",
-            senderAddress: "0x0000000000000000000000000000000000000000",
-            receiverAddress: "0x1234567890abcdef1234567890abcdef12345678",
-            amount: 1000,
-            pointSymbol: "PTS",
-            pointName: "Loyalty Point",
-            status: "completed",
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-          },
-          {
-            id: "TX-003",
-            type: "redeem",
-            senderAddress: "0xabcdef1234567890abcdef1234567890abcdef12",
-            receiverAddress: "0xf5e40ec8bfa4818278c04489b34a486281658e5c",
-            amount: 200,
-            pointSymbol: "PTS",
-            pointName: "Loyalty Point",
-            status: "pending",
-            createdAt: new Date(Date.now() - 172800000).toISOString(),
-          },
-        ]);
+        setTransactions([]);
       } finally {
         hideLoading();
       }
@@ -109,73 +122,20 @@ export default function PointTransactionPage() {
     fetchTransactions();
   }, [merchantId]);
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      tx.senderAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.receiverAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === "all" || tx.type === selectedType;
-    return matchesSearch && matchesType;
-  });
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter((tx) => {
+        const matchesSearch =
+          tx.senderAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tx.receiverAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tx.id.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesType = selectedType === "all" || tx.type === selectedType;
+        return matchesSearch && matchesType;
+      }),
+    [transactions, searchQuery, selectedType]
+  );
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "transfer":
-        return <SwapHorizIcon className="w-4 h-4" />;
-      case "mint":
-        return <ArrowDownwardIcon className="w-4 h-4" />;
-      case "burn":
-      case "redeem":
-        return <ArrowUpwardIcon className="w-4 h-4" />;
-      default:
-        return <SwapHorizIcon className="w-4 h-4" />;
-    }
-  };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "transfer":
-        return "bg-blue-500/20 text-blue-400";
-      case "mint":
-        return "bg-emerald-500/20 text-emerald-400";
-      case "burn":
-        return "bg-red-500/20 text-red-400";
-      case "redeem":
-        return "bg-amber-500/20 text-amber-400";
-      default:
-        return "bg-gray-500/20 text-gray-400";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-emerald-500/20 text-emerald-400";
-      case "pending":
-        return "bg-amber-500/20 text-amber-400";
-      case "failed":
-        return "bg-red-500/20 text-red-400";
-      default:
-        return "bg-gray-500/20 text-gray-400";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const truncateAddress = (address: string) => {
-    if (address.length > 12) {
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-    return address;
-  };
 
   return (
     <div className="space-y-6">
@@ -187,9 +147,6 @@ export default function PointTransactionPage() {
             View all point transactions for merchant {merchantId}
           </p>
         </div>
-        <button className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25">
-          Export CSV
-        </button>
       </div>
 
       {/* Stats Cards */}
@@ -333,7 +290,7 @@ export default function PointTransactionPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full capitalize ${getTypeColor(
-                          tx.type
+                          tx.type,
                         )}`}
                       >
                         {getTypeIcon(tx.type)}
@@ -341,12 +298,18 @@ export default function PointTransactionPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-white font-mono" title={tx.senderAddress}>
+                      <p
+                        className="text-sm text-white font-mono"
+                        title={tx.senderAddress}
+                      >
                         {truncateAddress(tx.senderAddress)}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-white font-mono" title={tx.receiverAddress}>
+                      <p
+                        className="text-sm text-white font-mono"
+                        title={tx.receiverAddress}
+                      >
                         {truncateAddress(tx.receiverAddress)}
                       </p>
                     </td>
@@ -357,15 +320,15 @@ export default function PointTransactionPage() {
                             tx.type === "mint"
                               ? "text-emerald-400"
                               : tx.type === "burn" || tx.type === "redeem"
-                              ? "text-red-400"
-                              : "text-purple-400"
+                                ? "text-red-400"
+                                : "text-purple-400"
                           }`}
                         >
                           {tx.type === "mint"
                             ? "+"
                             : tx.type === "burn" || tx.type === "redeem"
-                            ? "-"
-                            : ""}
+                              ? "-"
+                              : ""}
                           {tx.amount.toLocaleString()}
                         </span>
                         <span className="text-xs text-gray-500">
@@ -376,7 +339,7 @@ export default function PointTransactionPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(
-                          tx.status
+                          tx.status,
                         )}`}
                       >
                         {tx.status}

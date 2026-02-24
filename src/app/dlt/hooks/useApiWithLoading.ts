@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   useLoading,
@@ -33,6 +33,14 @@ export function useApiWithLoading() {
   const { showLoading, hideLoading } = useLoading();
   const { showLoadingSuccess } = useLoadingSuccess();
   const { showLoadingError } = useLoadingError();
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cancel any pending redirect timer when the hook unmounts
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   const execute = useCallback(
     async <T>(
@@ -53,9 +61,9 @@ export function useApiWithLoading() {
           showLoadingSuccess(opts.successText);
         }
 
-        // Handle redirect on success
         if (opts.redirectOnSuccess) {
-          setTimeout(() => {
+          if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+          redirectTimerRef.current = setTimeout(() => {
             router.push(opts.redirectOnSuccess!);
           }, opts.redirectDelay);
         }
@@ -70,7 +78,9 @@ export function useApiWithLoading() {
           showLoadingError(errorMessage);
         }
 
-        throw error;
+        // Return null — the error overlay already informs the user.
+        // Callers check for null return instead of catching.
+        return null;
       } finally {
         setIsExecuting(false);
       }

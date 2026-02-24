@@ -1,6 +1,4 @@
 import DefaultCard2 from "../DefaultCard2";
-import CircleChart from "../CircleChart";
-import CircleChart2 from "../CircleChart2";
 import DefaultDonutChart from "../DefaultDonutChart";
 interface ICouponValueProps {
   couponValue: {
