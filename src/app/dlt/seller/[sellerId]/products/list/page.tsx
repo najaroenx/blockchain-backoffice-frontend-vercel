@@ -7,9 +7,11 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import { useParams } from "next/navigation";
 import { IProductResponse, useProduct } from "../hooks/useProduct";
 
 export default function ProductListPage() {
+  const params = useParams<{ sellerId: string }>();
   const { getProducts, isLoading } = useProduct();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [product, setProduct] = useState<IProductResponse | null>(null);
@@ -36,7 +38,7 @@ export default function ProductListPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await getProducts();
+        const res = await getProducts({ merchantId: params.sellerId });
 
         if (res && res.status === 200) {
           const fetchedData = await res.json();
