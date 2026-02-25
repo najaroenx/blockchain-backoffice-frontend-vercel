@@ -95,6 +95,12 @@ export default function ProductCreatePage() {
         return;
       }
 
+      // Validate AIS coupon value must not exceed 100
+      if (formData.valueType === "aispoint" && formData.value > 100) {
+        setIsSubmitting(false);
+        return;
+      }
+
       const payload = {
         merchantId: sellerId,
         coupon: {
@@ -303,14 +309,26 @@ export default function ProductCreatePage() {
                     value={formData.value}
                     onChange={handleInputChange}
                     min="0"
+                    max={formData.valueType === "aispoint" ? 100 : undefined}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                    className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all ${
+                      formData.valueType === "aispoint" && formData.value > 100
+                        ? "border-red-500"
+                        : "border-white/10"
+                    }`}
                   />
+                  {formData.valueType === "aispoint" && formData.value > 100 && (
+                    <p className="text-xs text-red-400 mt-1">
+                      AIS Coupon value ต้องไม่เกิน 100
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     {formData.valueType === "cash"
                       ? "มูลค่าเงินสดของคูปอง (บาท)"
                       : formData.valueType === "percentage"
                       ? "เปอร์เซ็นต์ส่วนลด (%)"
+                      : formData.valueType === "aispoint"
+                      ? "จำนวน AIS Point (สูงสุด 100)"
                       : "จำนวน Point/สินค้าที่ได้รับ"}
                   </p>
                 </div>
