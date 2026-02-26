@@ -282,20 +282,34 @@ export default function ProductCreatePage() {
                       name="valueType"
                       value={formData.valueType}
                       onChange={handleInputChange}
-                      className="w-full appearance-none px-4 py-3 pr-10 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                      disabled={formData.productType === "point"}
+                      className="w-full appearance-none px-4 py-3 pr-10 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      <option value="cash" className="bg-[#1a1a2e]">
-                        Cash
-                      </option>
-                      <option value="percentage" className="bg-[#1a1a2e]">
-                        Percentage
-                      </option>
-                      <option value="product" className="bg-[#1a1a2e]">
-                        Product
-                      </option>
+                      {formData.productType === "point" ? (
+                        <option value="aispoint" className="bg-[#1a1a2e]">
+                          AIS Point
+                        </option>
+                      ) : (
+                        <>
+                          <option value="cash" className="bg-[#1a1a2e]">
+                            Cash
+                          </option>
+                          <option value="percentage" className="bg-[#1a1a2e]">
+                            Percentage
+                          </option>
+                          <option value="product" className="bg-[#1a1a2e]">
+                            Product
+                          </option>
+                        </>
+                      )}
                     </select>
                     <KeyboardArrowDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.productType === "point"
+                      ? "กำหนดอัตโนมัติตาม Product Type"
+                      : "เลือกประเภทมูลค่าของคูปอง"}
+                  </p>
                 </div>
 
                 {/* Value */}
@@ -519,7 +533,9 @@ export default function ProductCreatePage() {
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Value</span>
                       <span className="text-xl font-bold text-purple-400">
-                        ฿{formData.value.toLocaleString()}
+                        {formData.valueType === "aispoint"
+                          ? `${formData.value.toLocaleString()} Point`
+                          : `฿${formData.value.toLocaleString()}`}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
