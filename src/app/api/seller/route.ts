@@ -50,8 +50,13 @@ export async function POST(req: Request) {
 
 /**
  * GET /api/seller
- * Get seller's vouchers
- * Real backend endpoint: /coupon/seller/vouchers?merchantId=xxx
+ *
+ * type=listings → Get seller marketplace listings
+ *   1. Fetch merchant info to get walletAddress
+ *   2. Call /coupon/seller/listings?walletAddress=xxx&page=&limit=&status=
+ *
+ * (default) → Get seller's vouchers
+ *   Real backend endpoint: /coupon/seller/vouchers?merchantId=xxx
  */
 export async function GET(req: Request) {
   logger.info(`Received request: ${req.method} ${req.url}`);
@@ -60,11 +65,63 @@ export async function GET(req: Request) {
     // Parse query parameters
     const url = new URL(req.url);
     const merchantId = url.searchParams.get("merchantId");
+    const type = url.searchParams.get("type");
 
     if (!merchantId) {
       return handleError("merchantId query parameter is required", 400);
     }
 
+    // ─── type=listings → /coupon/seller/listings ───
+    if (type === "listings") {
+      const page = url.searchParams.get("page") || "1";
+      const limit = url.searchParams.get("limit") || "20";
+      const status = url.searchParams.get("status") || "";
+
+      logger.info(`Fetching marketplace listings for merchantId: ${merchantId}`);
+
+      // 1. Fetch merchant info to get walletAddress
+      const merchantResponse = await api(`${BACKEND_URL}/merchant/${merchantId}`, {
+        method: "GET",
+      });
+
+      logger.info(`Merchant response: ${JSON.stringify(merchantResponse)}`);
+
+      // api() unwraps "data", so response may be { merchant: { ... } } or the merchant directly
+      const merchantData = merchantResponse?.merchant || merchantResponse;
+      const walletAddress =
+        merchantData?.wallet?.walletAddress || merchantData?.walletAddress;
+
+      if (!walletAddress) {
+        logger.error(`Wallet address not found in merchant response: ${JSON.stringify(merchantResponse)}`);
+        return handleError("Merchant wallet address not found", 404);
+      }
+
+      // 2. Fetch seller listings using walletAddress
+      const queryParams = new URLSearchParams({
+        walletAddress,
+        page,
+        limit,
+        ...(status ? { status } : {}),
+      });
+
+      const listingsUrl = `${BACKEND_URL}/coupon/seller/listings?${queryParams.toString()}`;
+      logger.info(`Forwarding to backend: GET ${listingsUrl}`);
+
+      const response = await api(listingsUrl, {
+        method: "GET",
+      });
+
+      if (response.statusCode) {
+        return handleError(response.message, response.statusCode);
+      }
+
+      return Response.json(
+        { message: "success", data: response },
+        { status: 200 }
+      );
+    }
+
+    // ─── default → /coupon/seller/vouchers ───
     logger.info(`Fetching vouchers for merchantId: ${merchantId}`);
 
     const response = await api(
@@ -73,7 +130,7 @@ export async function GET(req: Request) {
         method: "GET",
       }
     );
-    
+
     logger.info(`test ${BACKEND_URL}/coupon/seller/vouchers?merchantId=${merchantId}`);
 
     if (response.statusCode) {
