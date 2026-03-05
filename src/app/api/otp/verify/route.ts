@@ -34,22 +34,27 @@ const generateRandomString = (length: number = 8): string => {
 
 const checkCustomerExists = async (
   merchantId: string,
-  phoneNumber: string
+  phoneNumber: string,
 ): Promise<boolean> => {
-  const customer = await api(
-    `${BACKEND_URL}/${merchantId}/customer/phone/${phoneNumber}`,
-    { method: "GET" }
-  );
-  console.log("Customer Exists:", customer);
-  if (customer.statusCode === 404) {
-    return false;
+  try {
+    const customer = await api(
+      `${BACKEND_URL}/${merchantId}/customer/phone/${phoneNumber}`,
+      { method: "GET" },
+    );
+    console.log("Customer Exists:", customer);
+    return true;
+  } catch (err: any) {
+    const status = err?.statusCode ?? err?.status;
+    if (status === 404 || status === 400) {
+      return false;
+    }
+    throw err;
   }
-  return true;
 };
 
 const verifyOTPCode = async (
   phoneNumber: string,
-  otpCode: string
+  otpCode: string,
 ): Promise<OTPVerifyResponse> => {
   const response = await api(`${BACKEND_URL}/templink/verify-otp`, {
     method: "POST",
@@ -62,7 +67,7 @@ const verifyOTPCode = async (
 
 const createNewCustomer = async (
   merchantId: string,
-  phoneNumber: string
+  phoneNumber: string,
 ): Promise<void> => {
   const email = generateRandomEmail();
 
@@ -103,6 +108,8 @@ export async function POST(request: NextRequest) {
 
     // Step 2: Check if customer exists
     const customerExists = await checkCustomerExists(merchantId, phoneNumber);
+
+    console.log("Customer Exists:", customerExists);
 
     // Step 3: Create customer if not exists
     if (!customerExists) {
