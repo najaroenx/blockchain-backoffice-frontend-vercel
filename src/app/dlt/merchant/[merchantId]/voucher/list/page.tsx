@@ -17,6 +17,31 @@ interface Reward {
   status: string;
   createdAt: string;
 }
+const typeLabels: Record<string, string> = {
+  percentage: "Percentage",
+  cash: "Cash",
+  gift: "Gift",
+  multiplier: "Multiplier",
+  aispoint: "AIS Point",
+};
+
+const valueDisplay = (valueType: string, value: number): string => {
+  switch (valueType) {
+    case "percentage":
+      return `${value}%`;
+    case "cash":
+      return `฿${value}`;
+    case "gift":
+      return "Gift";
+    case "multiplier":
+      return `x${value}`;
+    case "aispoint":
+      return `${value} pts`;
+    default:
+      return `${value}`;
+  }
+};
+
 export default function VoucherListPage() {
   const merchantId = useMerchantId();
   const { showLoading, hideLoading } = useLoading();
@@ -80,8 +105,8 @@ export default function VoucherListPage() {
           name: v.name,
           imageUrl:
             v.imageUrl || "https://placehold.co/100x100/purple/white?text=RWD",
-          type: "Voucher", // Assuming API returns vouchers
-          value: v.valueType === "FIXED" ? `฿${v.value}` : `${v.value}%`,
+          type: typeLabels[v.valueType] || v.valueType || "Voucher",
+          value: valueDisplay(v.valueType, v.value),
           pointsCost: v.pointsCost || 0,
           totalIssued: v.totalIssued || 0,
           redeemed: v.totalRedeemed || 0,
