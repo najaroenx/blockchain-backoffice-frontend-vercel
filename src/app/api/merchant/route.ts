@@ -1,3 +1,4 @@
+'use server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/options";
 import { api } from "@/libs/api";
@@ -12,7 +13,7 @@ const shouldProtectPortal =
   (process.env.PORTAL_REQUIRE_AUTH ?? "true").toLowerCase() !== "false";
 
 export async function GET(req: NextRequest) {
-  logger.info(`Received request: ${req.method} ${req.url}`);
+  logger.info(`Received request ${req.method} ${req.url}`);
 
   try {
     if (!shouldProtectPortal) {
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
     }
 
     const token = await getSessionToken();
+    console.log("Token:", token);
     if (!token) {
       return handleError("Unauthorized access", 401);
     }

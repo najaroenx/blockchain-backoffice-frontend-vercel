@@ -3,13 +3,26 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import InventoryIcon from "@mui/icons-material/Inventory2Outlined";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import Link from "next/link";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
 import { useSellerId } from "@/app/dlt/contexts/sellerContext";
 import { MerchantRefStoreResponse } from "@/app/api/merchant-ref-store/route";
+
+const getPlainTextFromHtml = (html: string) => {
+  if (!html) return "";
+
+  if (globalThis.window === undefined) {
+    return html.replaceAll(/<[^>]*>/g, " ").replaceAll(/\s+/g, " ").trim();
+  }
+
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  return parsed.body.textContent?.replaceAll(/\s+/g, " ").trim() ?? "";
+};
 
 export default function ProductCreatePage() {
   const router = useRouter();
@@ -73,7 +86,7 @@ export default function ProductCreatePage() {
     setFormData((prev) => ({
       ...prev,
       [name]: ["value", "pointsCost", "totalIssued"].includes(name)
-        ? parseInt(value) || 0
+        ? Number.parseInt(value, 10) || 0
         : value,
     }));
   };
@@ -84,13 +97,47 @@ export default function ProductCreatePage() {
     setImagePreview(url);
   };
 
+  const descriptionEditor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder:
+          "e.g., แลกรับคูปองเงินสด 1100 บาท ใช้ได้ที่สาขาเดอะมอลล์ทุกสาขา",
+      }),
+    ],
+    content: formData.description,
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        id: "description-editor",
+        "aria-label": "Product description",
+        class:
+          "min-h-[140px] px-4 py-3 text-white focus:outline-none [&_p.is-editor-empty:first-child::before]:text-gray-500 [&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_p.is-editor-empty:first-child::before]:float-left [&_p.is-editor-empty:first-child::before]:h-0 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_strong]:font-semibold [&_em]:italic [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:text-lg [&_h2]:font-semibold",
+      },
+    },
+    onUpdate: ({ editor }) => {
+      setFormData((prev) => ({
+        ...prev,
+        description: editor.getHTML(),
+      }));
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      const plainDescription = getPlainTextFromHtml(formData.description);
+
       if (!sellerId) {
         alert("Merchant ID is required. Please select a seller first.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!plainDescription) {
+        alert("Description is required.");
         setIsSubmitting(false);
         return;
       }
@@ -143,6 +190,10 @@ export default function ProductCreatePage() {
       setIsSubmitting(false);
     }
   };
+
+  const descriptionPreviewText = getPlainTextFromHtml(formData.description);
+  const editorToolbarButtonClass =
+    "rounded-lg border px-3 py-1.5 text-sm font-medium transition-all";
 
   return (
     <div className="space-y-6">
@@ -218,18 +269,45 @@ export default function ProductCreatePage() {
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="description-editor" className="block text-sm font-medium text-gray-400 mb-2">
                   Description *
                 </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="e.g., แลกรับคูปองเงินสด 1100 บาท ใช้ได้ที่สาขาเดอะมอลล์ทุกสาขา"
-                  rows={4}
-                  required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all resize-none"
-                />
+                <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-all focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-500/50">
+                  <div className="flex flex-wrap gap-2 border-b border-white/10 p-3">
+                    <button
+                      type="button"
+                      onClick={() => descriptionEditor?.chain().focus().toggleBold().run()}
+                      className={`${editorToolbarButtonClass} ${descriptionEditor?.isActive("bold") ? "border-purple-500 bg-purple-500/20 text-purple-200" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"}`}
+                    >
+                      Bold
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descriptionEditor?.chain().focus().toggleItalic().run()}
+                      className={`${editorToolbarButtonClass} ${descriptionEditor?.isActive("italic") ? "border-purple-500 bg-purple-500/20 text-purple-200" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"}`}
+                    >
+                      Italic
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descriptionEditor?.chain().focus().toggleBulletList().run()}
+                      className={`${editorToolbarButtonClass} ${descriptionEditor?.isActive("bulletList") ? "border-purple-500 bg-purple-500/20 text-purple-200" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"}`}
+                    >
+                      Bullet List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => descriptionEditor?.chain().focus().toggleOrderedList().run()}
+                      className={`${editorToolbarButtonClass} ${descriptionEditor?.isActive("orderedList") ? "border-purple-500 bg-purple-500/20 text-purple-200" : "border-white/10 bg-white/5 text-gray-300 hover:bg-white/10"}`}
+                    >
+                      Numbered List
+                    </button>
+                  </div>
+                  <EditorContent editor={descriptionEditor} />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  รองรับตัวหนา ตัวเอียง และรายการแบบ bullet/number
+                </p>
               </div>
 
               {/* Merchant Reference */}
@@ -524,7 +602,7 @@ export default function ProductCreatePage() {
                   {/* Description */}
                   {formData.description && (
                     <p className="text-sm text-gray-400 line-clamp-2">
-                      {formData.description}
+                      {descriptionPreviewText}
                     </p>
                   )}
 
@@ -581,9 +659,9 @@ export default function ProductCreatePage() {
               <div className="mt-6 space-y-3">
                 <button
                   type="submit"
-                  disabled={isSubmitting || !formData.name}
+                  disabled={isSubmitting || !formData.name || !descriptionPreviewText}
                   className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                    formData.name && !isSubmitting
+                    formData.name && descriptionPreviewText && !isSubmitting
                       ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25"
                       : "bg-white/10 text-gray-500 cursor-not-allowed"
                   }`}

@@ -238,6 +238,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
+        usePoint({ merchantId: "merchant-123", pointId: "point-1" }),
       );
 
       expect(result.current.point).toBe(null);
@@ -259,6 +260,7 @@ describe("usePoints Hooks", () => {
       });
 
       const { result } = renderHook(() =>
+        usePoint({ merchantId: "merchant-123", pointId: "point-1" }),
       );
 
       expect(result.current.point).toEqual(mockPoint);
@@ -275,6 +277,7 @@ describe("usePoints Hooks", () => {
       });
 
       renderHook(() =>
+        usePoint({ merchantId: "", pointId: "point-1" }),
       );
       expect(useSWR).toHaveBeenCalledWith(
         null,
@@ -283,6 +286,7 @@ describe("usePoints Hooks", () => {
       );
 
       renderHook(() =>
+        usePoint({ merchantId: "merchant-123", pointId: "" }),
       );
       expect(useSWR).toHaveBeenCalledWith(
         null,
