@@ -63,15 +63,15 @@ describe("useApiWithLoading Hook", () => {
     const error = new Error("Test error");
     const mockFn = jest.fn().mockRejectedValue(error);
 
-    await expect(
-      act(async () => {
-        await result.current.execute(mockFn);
-      }),
-    ).rejects.toThrow("Test error");
+    let response;
+    await act(async () => {
+      response = await result.current.execute(mockFn);
+    });
 
     expect(result.current.isExecuting).toBe(false);
     expect(mockHideLoading).toHaveBeenCalled();
     expect(mockShowLoadingError).toHaveBeenCalledWith("Test error");
+    expect(response).toBeNull();
   });
 
   it("should use custom options", async () => {
@@ -124,12 +124,14 @@ describe("useApiWithLoading Hook", () => {
     const { result } = renderHook(() => useApiWithLoading());
     const mockFn = jest.fn().mockRejectedValue("string error");
 
-    await expect(
-      act(async () => {
-        await result.current.execute(mockFn, { errorText: "Custom error" });
-      }),
-    ).rejects.toEqual("string error");
+    let response;
+    await act(async () => {
+      response = await result.current.execute(mockFn, {
+        errorText: "Custom error",
+      });
+    });
 
     expect(mockShowLoadingError).toHaveBeenCalledWith("Custom error");
+    expect(response).toBeNull();
   });
 });
