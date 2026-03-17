@@ -24,7 +24,7 @@ jobs:
       helm-values-file: values.yaml
       unit-test-node-version: 20
       node-yarn-install: true
-      ignored-unit-test: true
+      ignored-unit-test: false
       sonarqube-url: https://sast.matador.ais.co.th/
       sonarqube-args: |
         -Dsonar.sources=src
