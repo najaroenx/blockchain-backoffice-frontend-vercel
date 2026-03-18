@@ -50,7 +50,7 @@ const getSignInPage = (path: string): string => {
   if (path.startsWith("/dlt/")) {
     return "/dlt/sign-in";
   }
-  return "/auth/sign-in";
+  return "/dlt/sign-in";
 };
 
 // Helper to determine the redirect destination after login
