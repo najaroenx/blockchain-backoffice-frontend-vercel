@@ -18,12 +18,27 @@ const protectedRoutePatterns = [
 ];
 
 // Auth pages - redirect away if already authenticated
-const authRedirectRoutes = [
-  "/auth/sign-in",
-  "/auth/sign-up",
+const authRedirectRoutes = new Set([
   "/dlt/sign-in",
   "/dlt/sign-up",
-];
+]);
+
+const clearAuthCookies = (response: NextResponse) => {
+  const cookieNames = [
+    "next-auth.session-token",
+    "__Secure-next-auth.session-token",
+    "next-auth.csrf-token",
+    "__Secure-next-auth.csrf-token",
+    "next-auth.callback-url",
+    "__Secure-next-auth.callback-url",
+  ];
+
+  cookieNames.forEach((cookieName) => {
+    response.cookies.set(cookieName, "", { maxAge: 0, path: "/" });
+  });
+
+  return response;
+};
 
 const isTokenExpired = (token: { data?: { valid_until?: number } }): boolean => {
   const exp = token?.data?.valid_until;
@@ -53,24 +68,23 @@ export default async function middleware(req: NextRequest) {
   const isProtectedRoute = protectedRoutePatterns.some((pattern) =>
     pattern.test(path)
   );
-  const shouldRedirectWhenAuthenticated = authRedirectRoutes.includes(path);
+  const shouldRedirectWhenAuthenticated = authRedirectRoutes.has(path);
+  const signInPage = getSignInPage(path);
+  const isAuthPage = authRedirectRoutes.has(path);
 
   // Handle expired token
   if (token && isTokenExpired(token)) {
-    const signInPage = getSignInPage(path);
-    const response = NextResponse.redirect(new URL(signInPage, req.nextUrl));
+    if (isAuthPage) {
+      return clearAuthCookies(NextResponse.next());
+    }
 
-    // Clear session cookies (name differs between HTTP and HTTPS)
-    const cookiePrefix = process.env.NODE_ENV === "production" ? "__Secure-" : "";
-    response.cookies.set(`${cookiePrefix}next-auth.session-token`, "", { maxAge: 0 });
-    response.cookies.set(`${cookiePrefix}next-auth.csrf-token`, "", { maxAge: 0 });
-
-    return response;
+    return clearAuthCookies(
+      NextResponse.redirect(new URL(signInPage, req.nextUrl)),
+    );
   }
 
   // If trying to access protected routes without a valid token
   if (isProtectedRoute && !token) {
-    const signInPage = getSignInPage(path);
     return NextResponse.redirect(new URL(signInPage, req.nextUrl));
   }
 
@@ -84,5 +98,5 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
+  matcher: [String.raw`/((?!api|_next/static|_next/image|.*\.png$).*)`],
 };
