@@ -25,7 +25,6 @@ const mockMarketerDashboard: DashboardData = {
   points: [{ symbol: "subtawecoin", total: 1000000, balance: 989998 }],
   thbToken: { deposited: 0, balance: 0, bought: 0 },
 };
-
 const emptyDashboard: DashboardData = {
   dateRange: { startDate: "", endDate: "" },
   couponCount: { total: 0, unsold: 0, sold: 0, unredeemed: 0, redeemed: 0 },
@@ -36,7 +35,6 @@ const emptyDashboard: DashboardData = {
   points: [],
   thbToken: { deposited: 0, balance: 0, bought: 0 },
 };
-
 export const getDashboardData = async (
   merchantId: string,
   options?: { startDate?: string; endDate?: string; couponIds?: string },
@@ -108,12 +106,96 @@ export const getCouponData = async (merchantId: string) => {
     throw new Error(response.message || "Failed to fetch coupon data");
   }
   let data = [{ id: "all", name: "All Coupons" }];
-  if (response && response.coupons && Array.isArray(response.coupons)) {
+  if (Array.isArray(response?.coupons)) {
     data = data.concat(response.coupons);
   }
   return { coupons: data } as CouponData;
 };
 
+export const getMerchantById = async (
+  merchantId: string,
+): Promise<Merchant | null> => {
+  logger.info(`Fetching merchant detail for merchant: ${merchantId}`);
+
+  try {
+    if (!merchantId) {
+      return null;
+    }
+
+    const token = (await getSessionToken()) ?? "";
+    if (!token) {
+      throw new Error("Unauthorized access");
+    }
+
+    const response = (await api(`${BACKEND_URL}/merchant/${merchantId}`, {
+      method: "GET",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })) as MerchantByIdApiResponse;
+
+    if (response.statusCode !== 200 || !response.data?.merchant) {
+      throw new Error(response.message || "Failed to fetch merchant detail");
+    }
+
+    const { merchant } = response.data;
+
+    return {
+      id: merchant.id,
+      name: merchant.name,
+      description: merchant.description,
+      imageUrl: merchant.imageUrl,
+      points: merchant.points,
+      location: merchant.location,
+      website: merchant.website,
+      voucherIds: merchant.voucherIds,
+      createdAt: merchant.createdAt,
+      updatedAt: merchant.updatedAt,
+      tel: merchant.tel,
+      status: merchant.status,
+      walletId: merchant.walletId,
+    };
+  } catch (error) {
+    logger.error(`Error fetching merchant detail: ${error}`);
+    return null;
+  }
+};
+export const toggleMerchantStatus = async (
+  merchantId: string,
+  isDisabled: boolean,
+): Promise<boolean> => {
+  logger.info(`Updating merchant status for merchant: ${merchantId}`);
+
+  try {
+    if (!merchantId) {
+      return false;
+    }
+
+    if (!shouldProtectAdmin) {
+      return true;
+    }
+
+    const token = (await getSessionToken()) ?? "";
+    if (!token) {
+      throw new Error("Unauthorized access");
+    }
+
+    await api(`${BACKEND_URL}/merchant/${merchantId}/status`, {
+      method: "PATCH",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: {
+        status: isDisabled, // Toggle the status
+      },
+    });
+
+    return true;
+  } catch (error) {
+    logger.error(`Error updating merchant status: ${error}`);
+    return false;
+  }
+};
 export interface DashboardData {
   dateRange: {
     startDate: string;
@@ -167,4 +249,42 @@ export interface CouponData {
     id: string;
     name: string;
   }[];
+}
+
+export interface MerchantWallet {
+  id: string;
+  walletAddress: string;
+  seedPhrase: string;
+  chainCode: string;
+  derivationIndex: number;
+  email: string;
+  phoneNumber: string;
+  type: string;
+  status: string;
+}
+
+export interface Merchant {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  points: number;
+  location: string;
+  website: string;
+  voucherIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  tel: string;
+  status: boolean;
+  walletId: string;
+  wallet?: MerchantWallet;
+}
+
+export interface MerchantByIdApiResponse {
+  statusCode: number;
+  status: string;
+  message: string;
+  data: {
+    merchant: Merchant;
+  };
 }
