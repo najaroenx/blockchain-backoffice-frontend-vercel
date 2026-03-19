@@ -142,6 +142,12 @@ export default function ProductCreatePage() {
         return;
       }
 
+      if (!formData.merchantRef) {
+        alert("Merchant reference is required.");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Validate AIS coupon value must not exceed 100
       if (formData.valueType === "aispoint" && formData.value > 100) {
         setIsSubmitting(false);
@@ -313,7 +319,7 @@ export default function ProductCreatePage() {
               {/* Merchant Reference */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Merchant Reference
+                  Merchant Reference *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -323,6 +329,7 @@ export default function ProductCreatePage() {
                     name="merchantRef"
                     value={formData.merchantRef}
                     onChange={handleInputChange}
+                    required
                     disabled={isLoadingStores}
                     className="w-full appearance-none pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -338,7 +345,7 @@ export default function ProductCreatePage() {
                   <KeyboardArrowDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  เลือกร้านค้าที่คูปองนี้สามารถใช้งานได้
+                  ต้องเลือกร้านค้าที่คูปองนี้สามารถใช้งานได้
                 </p>
               </div>
             </div>
@@ -659,9 +666,9 @@ export default function ProductCreatePage() {
               <div className="mt-6 space-y-3">
                 <button
                   type="submit"
-                  disabled={isSubmitting || !formData.name || !descriptionPreviewText}
+                  disabled={isSubmitting || !formData.name || !descriptionPreviewText || !formData.merchantRef}
                   className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                    formData.name && descriptionPreviewText && !isSubmitting
+                    formData.name && descriptionPreviewText && formData.merchantRef && !isSubmitting
                       ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25"
                       : "bg-white/10 text-gray-500 cursor-not-allowed"
                   }`}
