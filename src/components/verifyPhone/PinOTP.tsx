@@ -326,7 +326,7 @@ const PinOTP = ({
  
           </button>
         </div>
-        <div>หากมีข้อสงสัยหรือติดปัญหา สามารถแจ้งได้ผ่าน Microsoft Teams กลุ่มสีของท่าน</div>
+        <div className="text-center text-sm text-gray-500">หากมีข้อสงสัยหรือติดปัญหา สามารถแจ้งได้ผ่าน Microsoft Teams กลุ่มสีของท่าน</div>
 
         <div className="flex-grow" />
 
