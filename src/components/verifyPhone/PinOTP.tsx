@@ -322,9 +322,11 @@ const PinOTP = ({
                 : "text-gray-400 cursor-not-allowed"
             }`}
           >
-            ขอรหัส OTP ใหม่
+            ขอรหัส OTP ใหม่ 
+ 
           </button>
         </div>
+        <div>หากมีข้อสงสัยหรือติดปัญหา สามารถแจ้งได้ผ่าน Microsoft Teams กลุ่มสีของท่าน</div>
 
         <div className="flex-grow" />
 
