@@ -6,7 +6,13 @@ jest.mock('next/font/google', () => ({
   Inter: () => ({ className: 'mock-inter-font' }),
 }));
 
+jest.mock('next/navigation', () => ({
+  useServerInsertedHTML: jest.fn(),
+}));
+
 jest.mock('@mui/material/styles', () => ({
+  createTheme: jest.fn(() => ({ palette: {} })),
+  ThemeProvider: ({ children }: { children: ReactNode }) => children,
   StyledEngineProvider: ({ children }: { children: ReactNode }) => children,
 }));
 

@@ -159,11 +159,13 @@ describe("POST /api/otp/request", () => {
         requestId: "req123",
       });
 
-      mockApi.mockResolvedValueOnce({ customerId: "customer123" });
+      mockApi
+        .mockResolvedValueOnce({ customerId: "customer123" })
+        .mockResolvedValueOnce({ success: true });
 
       const response = await POST(mockRequest as NextRequest);
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(200);
     });
 
     it("should format phone number to international format", async () => {

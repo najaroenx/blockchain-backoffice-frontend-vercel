@@ -77,7 +77,9 @@ const VerifyPhoneSuccess = ({
                 "Redirecting to callback URI:",
                 `${callbackUri}?phoneNumber=${phoneNumber}`
               );
-              window.location.href = `${callbackUri}?phoneNumber=${phoneNumber}`;
+              window.location.assign(
+                `${callbackUri}?phoneNumber=${phoneNumber}`
+              );
             }
           }}
           className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"

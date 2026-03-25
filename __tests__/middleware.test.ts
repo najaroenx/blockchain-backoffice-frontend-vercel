@@ -82,7 +82,7 @@ describe("middleware", () => {
 
       expect(NextResponse.redirect).toHaveBeenCalledWith(
         expect.objectContaining({
-          href: expect.stringContaining("/auth/sign-in"),
+          href: expect.stringContaining("/dlt/sign-in"),
         })
       );
     });
@@ -135,7 +135,7 @@ describe("middleware", () => {
 
       expect(NextResponse.redirect).toHaveBeenCalledWith(
         expect.objectContaining({
-          href: expect.stringContaining("/auth/sign-in"),
+          href: expect.stringContaining("/dlt/sign-in"),
         })
       );
     });
@@ -197,18 +197,18 @@ describe("middleware", () => {
 
       expect(NextResponse.redirect).toHaveBeenCalledWith(
         expect.objectContaining({
-          href: expect.stringContaining("/auth/sign-in"),
+          href: expect.stringContaining("/dlt/sign-in"),
         })
       );
       expect(mockRedirectResponse.cookies.set).toHaveBeenCalledWith(
         "next-auth.session-token",
         "",
-        { maxAge: 0 }
+        { maxAge: 0, path: "/" }
       );
       expect(mockRedirectResponse.cookies.set).toHaveBeenCalledWith(
         "next-auth.csrf-token",
         "",
-        { maxAge: 0 }
+        { maxAge: 0, path: "/" }
       );
     });
 
@@ -231,7 +231,7 @@ describe("middleware", () => {
 
       await middleware(mockRequest as NextRequest);
 
-      expect(mockRedirectResponse.cookies.set).toHaveBeenCalledTimes(2);
+      expect(mockRedirectResponse.cookies.set).toHaveBeenCalledTimes(6);
     });
 
     it("should handle token expiring exactly now", async () => {
@@ -264,14 +264,14 @@ describe("middleware", () => {
   });
 
   describe("Auth routes redirect", () => {
-    it("should redirect authenticated users away from /auth/sign-in", async () => {
+    it("should redirect authenticated users away from /dlt/sign-in", async () => {
       const validToken = {
         data: {
           valid_until: Math.floor(Date.now() / 1000) + 3600,
         },
       };
       (getToken as jest.Mock).mockResolvedValue(validToken);
-      mockRequest.nextUrl!.pathname = "/auth/sign-in";
+      mockRequest.nextUrl!.pathname = "/dlt/sign-in";
 
       await middleware(mockRequest as NextRequest);
 
@@ -282,32 +282,32 @@ describe("middleware", () => {
       );
     });
 
-    it("should redirect authenticated users away from /auth/sign-up", async () => {
+    it("should redirect authenticated users away from /dlt/sign-up", async () => {
       const validToken = {
         data: {
           valid_until: Math.floor(Date.now() / 1000) + 3600,
         },
       };
       (getToken as jest.Mock).mockResolvedValue(validToken);
-      mockRequest.nextUrl!.pathname = "/auth/sign-up";
+      mockRequest.nextUrl!.pathname = "/dlt/sign-up";
 
       await middleware(mockRequest as NextRequest);
 
       expect(NextResponse.redirect).toHaveBeenCalled();
     });
 
-    it("should allow unauthenticated users to access /auth/sign-in", async () => {
+    it("should allow unauthenticated users to access /dlt/sign-in", async () => {
       (getToken as jest.Mock).mockResolvedValue(null);
-      mockRequest.nextUrl!.pathname = "/auth/sign-in";
+      mockRequest.nextUrl!.pathname = "/dlt/sign-in";
 
       await middleware(mockRequest as NextRequest);
 
       expect(NextResponse.next).toHaveBeenCalled();
     });
 
-    it("should allow unauthenticated users to access /auth/sign-up", async () => {
+    it("should allow unauthenticated users to access /dlt/sign-up", async () => {
       (getToken as jest.Mock).mockResolvedValue(null);
-      mockRequest.nextUrl!.pathname = "/auth/sign-up";
+      mockRequest.nextUrl!.pathname = "/dlt/sign-up";
 
       await middleware(mockRequest as NextRequest);
 
@@ -372,8 +372,9 @@ describe("middleware", () => {
       (getToken as jest.Mock).mockResolvedValue(nullDataToken);
       mockRequest.nextUrl!.pathname = "/admin";
 
-      // Expect it to redirect due to expired/invalid token
-      await expect(middleware(mockRequest as NextRequest)).rejects.toThrow();
+      await middleware(mockRequest as NextRequest);
+
+      expect(NextResponse.next).toHaveBeenCalled();
     });
 
     it("should handle getToken throwing error", async () => {

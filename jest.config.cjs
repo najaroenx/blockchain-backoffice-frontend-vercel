@@ -6,6 +6,7 @@ const config = {
   testMatch: ["**/__tests__/**/*.(test|spec).(ts|tsx)"],
   testEnvironment: "jest-environment-jsdom",
   setupFilesAfterEnv: ["<rootDir>/test/setupTests.ts"],
+  coverageProvider: "v8",
 
   // ✅ เปิดการเก็บ coverage
   collectCoverage: true,

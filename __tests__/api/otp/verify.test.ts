@@ -5,6 +5,9 @@ import { api } from "@/libs/api";
 // Mock dependencies
 jest.mock("@/libs/api");
 
+const createNotFoundError = () =>
+  Object.assign(new Error("Not found"), { statusCode: 404 });
+
 describe("POST /api/otp/verify", () => {
   let mockRequest: any;
   const mockApi = api as jest.MockedFunction<typeof api>;
@@ -31,13 +34,14 @@ describe("POST /api/otp/verify", () => {
 
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
-        .mockResolvedValueOnce({ success: true }) // OTP verification
-        .mockResolvedValueOnce({ customerId: "customer123" }); // Customer creation
+        .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
+        .mockResolvedValueOnce({ customerId: "customer123" });
 
       const response = await POST(mockRequest as NextRequest);
 
       expect(response.status).toBe(200);
-      expect(mockApi).toHaveBeenCalledTimes(2);
+      expect(mockApi).toHaveBeenCalledTimes(3);
     });
 
     it("should call backend OTP verification endpoint", async () => {
@@ -76,6 +80,7 @@ describe("POST /api/otp/verify", () => {
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
         .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
         .mockResolvedValueOnce({ customerId: "new-customer" });
 
       await POST(mockRequest as NextRequest);
@@ -102,12 +107,13 @@ describe("POST /api/otp/verify", () => {
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
         .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
         .mockResolvedValueOnce({ customerId: "customer123" });
 
       await POST(mockRequest as NextRequest);
 
-      const customerCreateCall = mockApi.mock.calls.find((call) =>
-        call[0].includes("/customer")
+      const customerCreateCall = mockApi.mock.calls.find(
+        (call) => call[1]?.method === "POST" && !!call[1]?.body?.tel
       );
       expect(customerCreateCall).toBeDefined();
       if (customerCreateCall) {
@@ -129,12 +135,13 @@ describe("POST /api/otp/verify", () => {
         mockRequest.json = jest.fn().mockResolvedValue(requestBody);
         mockApi
           .mockResolvedValueOnce({ success: true })
+          .mockRejectedValueOnce(createNotFoundError())
           .mockResolvedValueOnce({ customerId: `customer${i}` });
 
         await POST(mockRequest as NextRequest);
 
-        const customerCreateCall = mockApi.mock.calls.find((call) =>
-          call[0].includes("/customer")
+        const customerCreateCall = mockApi.mock.calls.find(
+          (call) => call[1]?.method === "POST" && !!call[1]?.body?.tel
         );
         if (customerCreateCall) {
           emails.add(customerCreateCall[1].body.email);
@@ -312,13 +319,14 @@ describe("POST /api/otp/verify", () => {
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
         .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
         .mockResolvedValueOnce({ customerId: "customer123" });
 
       await POST(mockRequest as NextRequest);
 
       expect(mockApi).toHaveBeenCalledWith(
-        `${BACKEND_URL}/undefined/customer`,
-        expect.any(Object)
+        `${BACKEND_URL}/undefined/customer/phone/0812345678`,
+        expect.objectContaining({ method: "GET" })
       );
     });
 
@@ -382,6 +390,7 @@ describe("POST /api/otp/verify", () => {
 
         mockApi
           .mockResolvedValueOnce({ success: true })
+          .mockRejectedValueOnce(createNotFoundError())
           .mockResolvedValueOnce({ customerId: "customer123" });
 
         await POST(mockRequest as NextRequest);
@@ -407,6 +416,7 @@ describe("POST /api/otp/verify", () => {
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
         .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
         .mockResolvedValueOnce({ customerId: "customer123" });
 
       await POST(mockRequest as NextRequest);
@@ -433,13 +443,17 @@ describe("POST /api/otp/verify", () => {
       mockRequest.json = jest.fn().mockResolvedValue(requestBody);
       mockApi
         .mockResolvedValueOnce({ success: true })
+        .mockRejectedValueOnce(createNotFoundError())
         .mockResolvedValueOnce({ customerId: "customer123" });
 
       await POST(mockRequest as NextRequest);
 
       expect(mockApi).toHaveBeenCalledWith(
         `${BACKEND_URL}/test-merchant-456/customer`,
-        expect.any(Object)
+        expect.objectContaining({
+          method: "POST",
+          body: expect.objectContaining({ tel: "0812345678" }),
+        })
       );
     });
 

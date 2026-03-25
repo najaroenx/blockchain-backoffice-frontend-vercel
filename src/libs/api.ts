@@ -12,6 +12,18 @@ type BackendResponse<T = any> = {
   data: T;
 };
 
+const readResponseBody = async (response: Response) => {
+  if (typeof response.text === "function") {
+    return response.text();
+  }
+
+  if (typeof response.json === "function") {
+    return JSON.stringify(await response.json());
+  }
+
+  return "";
+};
+
 export const api = async (url: string, options: RequestOptions) => {
   const { unwrapData = true, ...fetchOptions } = options;
 
@@ -30,7 +42,7 @@ export const api = async (url: string, options: RequestOptions) => {
   });
 
   if (!response.ok) {
-    const text = await response.text();
+    const text = await readResponseBody(response);
     let errorData: any = {};
     if (text) {
       try {
@@ -46,7 +58,7 @@ export const api = async (url: string, options: RequestOptions) => {
     throw err;
   }
 
-  const text = await response.text();
+  const text = await readResponseBody(response);
   if (!text) return {};
 
   let jsonData: any;

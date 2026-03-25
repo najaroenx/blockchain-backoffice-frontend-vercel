@@ -13,7 +13,7 @@ describe("api utility", () => {
     it("should append query params with ? when url has no params", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: "success" }),
+        text: async () => JSON.stringify({ data: "success" }),
       });
 
       await api("/test", {
@@ -30,7 +30,7 @@ describe("api utility", () => {
     it("should append query params with & when url already has params", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: "success" }),
+        text: async () => JSON.stringify({ data: "success" }),
       });
 
       await api("/test?existing=true", {
@@ -49,7 +49,7 @@ describe("api utility", () => {
     it("should set default headers", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: "success" }),
+        text: async () => JSON.stringify({ data: "success" }),
       });
 
       await api("/test", { method: "POST" });
@@ -67,7 +67,7 @@ describe("api utility", () => {
     it("should merge custom headers", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: "success" }),
+        text: async () => JSON.stringify({ data: "success" }),
       });
 
       await api("/test", {
@@ -89,7 +89,7 @@ describe("api utility", () => {
     it("should stringify body", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: "success" }),
+        text: async () => JSON.stringify({ data: "success" }),
       });
 
       await api("/test", {
@@ -110,7 +110,8 @@ describe("api utility", () => {
     it("should unwrap data by default when data key exists", async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ status: "ok", message: "done", data: { id: 1 } }),
+        text: async () =>
+          JSON.stringify({ status: "ok", message: "done", data: { id: 1 } }),
       });
 
       const result = await api("/test", { method: "GET" });
@@ -122,7 +123,7 @@ describe("api utility", () => {
       const mockResponse = { status: "ok", message: "done", data: { id: 1 } };
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        text: async () => JSON.stringify(mockResponse),
       });
 
       const result = await api("/test", {
@@ -137,7 +138,7 @@ describe("api utility", () => {
       const mockResponse = { other: "field" };
       mockFetch.mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        text: async () => JSON.stringify(mockResponse),
       });
 
       const result = await api("/test", { method: "GET" });
@@ -146,44 +147,46 @@ describe("api utility", () => {
   });
 
   describe("Error handling", () => {
-    it("should handle error response with message", async () => {
+    it("should throw error response with message", async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 400,
-        json: async () => ({ message: "Bad Request" }),
+        text: async () => JSON.stringify({ message: "Bad Request" }),
       });
 
-      const result = await api("/test", { method: "GET" });
-
-      expect(result).toEqual({ statusCode: 400, message: "Bad Request" });
+      await expect(api("/test", { method: "GET" })).rejects.toMatchObject({
+        statusCode: 400,
+        message: "Bad Request",
+      });
     });
 
-    it("should handle error response with nested data.message", async () => {
+    it("should throw error response with nested data.message", async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 500,
-        json: async () => ({ data: { message: "Server Error" } }),
+        text: async () => JSON.stringify({ data: { message: "Server Error" } }),
       });
 
-      const result = await api("/test", { method: "GET" });
-
-      expect(result).toEqual({ statusCode: 500, message: "Server Error" });
+      await expect(api("/test", { method: "GET" })).rejects.toMatchObject({
+        statusCode: 500,
+        message: "Server Error",
+      });
     });
 
-    it("should handle error response with query params logic path", async () => {
+    it("should throw error response with query params logic path", async () => {
       // Cover the 'if (fetchOptions.queryParams)' branch error handling
       mockFetch.mockResolvedValue({
         ok: false,
         status: 404,
-        json: async () => ({ message: "Not Found" }),
+        text: async () => JSON.stringify({ message: "Not Found" }),
       });
 
-      const result = await api("/test", {
-        method: "GET",
-        queryParams: { id: 1 },
-      });
-
-      expect(result).toEqual({ statusCode: 404, message: "Not Found" });
+      await expect(
+        api("/test", {
+          method: "GET",
+          queryParams: { id: 1 },
+        })
+      ).rejects.toMatchObject({ statusCode: 404, message: "Not Found" });
     });
   });
 });
