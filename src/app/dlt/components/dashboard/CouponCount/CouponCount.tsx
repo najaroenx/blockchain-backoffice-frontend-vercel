@@ -1,7 +1,9 @@
 import { useMemo } from "react";
-import { ApexOptions, type ApexAxisChartSeries } from "apexcharts";
+import { ApexOptions } from "apexcharts";
 import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
 import DefaultCard from "../DefaultCard";
+
+type ChartSeries = NonNullable<ApexOptions["series"]>;
 
 const areaOpts = (color: string): ApexOptions => ({
   chart: {
@@ -60,7 +62,7 @@ const CouponCount = ({ couponCount }: ICouponCountProps) => {
 
   const chartData = [15, 30, 20, 40, 35, 50, 45, 55, 60];
   const options = areaOpts("#3b82f6");
-  const series: ApexAxisChartSeries = [{ name: "", data: chartData }];
+  const series: ChartSeries = [{ name: "", data: chartData }];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">

@@ -1,10 +1,9 @@
-import {
-  ApexOptions,
-  type ApexAxisChartSeries,
-  type ApexNonAxisChartSeries,
-} from "apexcharts";
+import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
+
+type ChartSeries = NonNullable<ApexOptions["series"]>;
+
 interface IDefaultCardProps {
   title: string;
   value: string | number;
@@ -17,7 +16,7 @@ interface IDefaultCardProps {
   changeLabel: string; // e.g., "Since last week"
   option: ApexOptions;
   chartType: "line" | "bar" | "radialBar";
-  series: ApexAxisChartSeries | ApexNonAxisChartSeries;
+  series: ChartSeries;
   isUp: boolean; // true if change is positive, false if negative
 }
 const DefaultCard = ({
