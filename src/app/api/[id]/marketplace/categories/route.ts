@@ -2,6 +2,7 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 import { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
@@ -26,12 +27,12 @@ const mockCategories = [
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext<{ id: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const merchantId = params.id;
+    const { id: merchantId } = await context.params;
 
     // Validate merchantId
     if (!merchantId || !/^[a-zA-Z0-9_-]+$/.test(merchantId)) {
@@ -67,12 +68,12 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext<{ id: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const merchantId = params.id;
+    const { id: merchantId } = await context.params;
     const body = await req.json();
 
     // Validate merchantId

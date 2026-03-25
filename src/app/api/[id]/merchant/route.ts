@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 import { mockMerchants } from "@/data/mockAdmin";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
@@ -13,13 +14,14 @@ const shouldProtectAdmin =
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext<{ id: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
+    const { id } = await context.params;
     if (!shouldProtectAdmin) {
-      const merchantId = params?.id;
+      const merchantId = id;
       const filteredMerchants = merchantId
         ? mockMerchants.filter((merchant) => merchant.id === merchantId)
         : mockMerchants;

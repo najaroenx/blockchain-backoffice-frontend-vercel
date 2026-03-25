@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
@@ -56,8 +56,9 @@ const suggestedProducts: SuggestedProduct[] = [
 export default function ProductDetailPage({
   params,
 }: {
-  params: { merchantId: string; productId: string };
+  params: Promise<{ merchantId: string; productId: string }>;
 }) {
+  const { productId } = use(params);
   const merchantId = useMerchantId();
   const { selectedProduct } = useSelectedProduct();
 
@@ -65,7 +66,7 @@ export default function ProductDetailPage({
   const { product: fetchedProduct, isLoading: isFetching } =
     useMarketplaceProduct(
       merchantId || "",
-      selectedProduct ? "" : params.productId // Only fetch if no context data
+      selectedProduct ? "" : productId // Only fetch if no context data
     );
 
   // Buy hook

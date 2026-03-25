@@ -9,9 +9,9 @@ export default function FullscreenLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { merchantId: string };
+  params: Promise<{ merchantId: string }>;
 }) {
-  const { merchantId } = params;
+  const { merchantId } = React.use(params);
 
   return (
     <MerchantProvider value={merchantId}>

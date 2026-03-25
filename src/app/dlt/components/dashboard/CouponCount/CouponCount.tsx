@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ApexOptions } from "apexcharts";
+import { ApexOptions, type ApexAxisChartSeries } from "apexcharts";
 import WorkOutlineOutlinedIcon from "@mui/icons-material/WorkOutlineOutlined";
 import DefaultCard from "../DefaultCard";
 

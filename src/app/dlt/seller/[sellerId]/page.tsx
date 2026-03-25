@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { use, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Montserrat } from "next/font/google";
 import { ApexOptions } from "apexcharts";
@@ -74,8 +74,9 @@ interface Ipoints {
 export default function DashboardNewPage({
   params,
 }: {
-  params: { sellerId: string };
+  params: Promise<{ sellerId: string }>;
 }) {
+  const { sellerId } = use(params);
   const { execute } = useApiWithLoading();
   const [data, setData] = useState<SellerDashboardResponse | null>(null);
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
@@ -104,7 +105,7 @@ export default function DashboardNewPage({
     const fetchCoupons = async () => {
       try {
         const res = await api(
-          `/api/seller/address/${params.sellerId}/coupons`,
+          `/api/seller/address/${sellerId}/coupons`,
           {
             method: "GET",
             queryParams: { marketerMerchantId: selectedMerchantId },
@@ -118,7 +119,7 @@ export default function DashboardNewPage({
       }
     };
     fetchCoupons();
-  }, [selectedMerchantId]);
+  }, [selectedMerchantId, sellerId]);
 
   // Fetch merchants breakdown (with optional coupon filter)
   useEffect(() => {
@@ -129,7 +130,7 @@ export default function DashboardNewPage({
           queryParams.couponIds = selectedCouponId;
         }
         const res = await api(
-          `/api/seller/address/${params.sellerId}/merchants`,
+          `/api/seller/address/${sellerId}/merchants`,
           { method: "GET", queryParams },
         );
         if (res?.merchants) {
@@ -160,7 +161,7 @@ export default function DashboardNewPage({
       }
     };
     fetchMerchants();
-  }, [params.sellerId, selectedCouponId]);
+  }, [sellerId, selectedCouponId, merchantOptions.length, selectedMerchantId]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -169,7 +170,7 @@ export default function DashboardNewPage({
       const result = await execute(
         async () => {
           // 1. Fetch Merchant Info first to get walletAddress
-          const merchant = await api(`/api/dlt/merchant/${params.sellerId}`, {
+          const merchant = await api(`/api/dlt/merchant/${sellerId}`, {
             method: "GET",
           });
 
@@ -179,7 +180,7 @@ export default function DashboardNewPage({
 
           // 2. Fetch Dashboard data using walletAddress
           const dashboard = await api(
-            `/api/seller/address/${params.sellerId}`,
+            `/api/seller/address/${sellerId}`,
             {
               method: "GET",
               queryParams: {
@@ -226,7 +227,7 @@ export default function DashboardNewPage({
       }
     };
     fetchDashboardData();
-  }, [params.sellerId, startDate, endDate]);
+  }, [execute, sellerId, startDate, endDate]);
 
   const defaultStats: SellerDashboardResponse = {
     dateRange: { startDate: "", endDate: "" },

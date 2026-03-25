@@ -1,6 +1,7 @@
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -42,9 +43,9 @@ export interface MerchantRefDashboardResponse {
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } },
+  context: RouteContext<{ id: string }>,
 ) {
-  const { id } = params;
+  const { id } = await context.params;
   logger.info(
     `Received request: ${req.method} ${req.url} for merchantRef: ${id}`,
   );

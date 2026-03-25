@@ -2,6 +2,7 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -10,13 +11,12 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; transactionId: string } }
+  context: RouteContext<{ id: string; transactionId: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const walletAddress = params.id; // Changed from merchantId to walletAddress
-    const transactionId = params.transactionId;
+    const { id: walletAddress, transactionId } = await context.params;
 
     if (!walletAddress || !transactionId) {
       return handleError("Missing walletAddress or transactionId", 400);

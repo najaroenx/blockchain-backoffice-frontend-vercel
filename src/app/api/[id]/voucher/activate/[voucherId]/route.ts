@@ -3,18 +3,18 @@ import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string; voucherId: string } }
+  context: RouteContext<{ id: string; voucherId: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const merchantId = params.id;
-    const voucherId = params.voucherId;
+    const { id: merchantId, voucherId } = await context.params;
 
     if (!merchantId || !voucherId) {
       return handleError("Missing merchantId or voucherId", 400);

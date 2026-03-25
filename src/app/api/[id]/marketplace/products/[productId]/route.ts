@@ -2,6 +2,7 @@ import { api } from "@/libs/api";
 import { getSessionToken } from "@/libs/auth";
 import { handleError } from "@/libs/errorHandler";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 import { NextRequest } from "next/server";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
@@ -60,12 +61,12 @@ const mockProduct = {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string; productId: string } }
+  context: RouteContext<{ id: string; productId: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const { id: merchantId, productId } = params;
+    const { id: merchantId, productId } = await context.params;
 
     // Validate IDs
     if (!merchantId || !/^[a-zA-Z0-9_-]+$/.test(merchantId)) {
@@ -107,12 +108,12 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string; productId: string } }
+  context: RouteContext<{ id: string; productId: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const { id: merchantId, productId } = params;
+    const { id: merchantId, productId } = await context.params;
     const body = await req.json();
 
     // Validate IDs
@@ -166,12 +167,12 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string; productId: string } }
+  context: RouteContext<{ id: string; productId: string }>
 ) {
   logger.info(`Received request: ${req.method} ${req.url}`);
 
   try {
-    const { id: merchantId, productId } = params;
+    const { id: merchantId, productId } = await context.params;
 
     // Validate IDs
     if (!merchantId || !/^[a-zA-Z0-9_-]+$/.test(merchantId)) {

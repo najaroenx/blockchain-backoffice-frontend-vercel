@@ -1,4 +1,8 @@
-import { ApexOptions } from "apexcharts";
+import {
+  ApexOptions,
+  type ApexAxisChartSeries,
+  type ApexNonAxisChartSeries,
+} from "apexcharts";
 import dynamic from "next/dynamic";
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 interface IDefaultCardProps {
