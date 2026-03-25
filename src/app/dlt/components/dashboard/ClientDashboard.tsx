@@ -254,7 +254,7 @@ const ClientDashboard = ({ merchantId }: ClientDashboardProps) => {
           >
             {couponData?.coupons.map((c) => (
               <MenuItem key={c.id} value={c.id}>
-                {c.name}{" "}({c.merchantRefName})
+                {c.name}{" "}{c.merchantRefName ?  "" + `(${c.merchantRefName})` : ""}
               </MenuItem>
             ))}
           </Select>
