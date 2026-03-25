@@ -248,6 +248,8 @@ export interface CouponData {
   coupons: {
     id: string;
     name: string;
+    merchantRef: string;
+    merchantRefName: string;
   }[];
 }
 
