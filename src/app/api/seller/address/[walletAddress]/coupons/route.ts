@@ -1,6 +1,7 @@
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -23,9 +24,9 @@ export interface SellerCouponsResponse {
 
 export async function GET(
   req: Request,
-  { params }: { params: { walletAddress: string } },
+  context: RouteContext<{ walletAddress: string }>,
 ) {
-  const { walletAddress: sellerMerchantId } = params;
+  const { walletAddress: sellerMerchantId } = await context.params;
   const url = new URL(req.url);
   const marketerMerchantId = url.searchParams.get("marketerMerchantId") || "";
   logger.info(

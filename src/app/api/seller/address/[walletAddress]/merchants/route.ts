@@ -1,6 +1,7 @@
 import { handleError } from "@/libs/errorHandler";
 import { api } from "@/libs/api";
 import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
 
 const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
@@ -10,9 +11,9 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 
 export async function GET(
   req: Request,
-  { params }: { params: { walletAddress: string } },
+  context: RouteContext<{ walletAddress: string }>,
 ) {
-  const { walletAddress: merchantId } = params;
+  const { walletAddress: merchantId } = await context.params;
   logger.info(
     `Received request: ${req.method} ${req.url} for merchantId: ${merchantId}`,
   );

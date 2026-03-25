@@ -24,9 +24,9 @@ export default function SellerIdLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { sellerId: string };
+  params: Promise<{ sellerId: string }>;
 }) {
-  const { sellerId } = params;
+  const { sellerId } = React.use(params);
 
   return (
     <SellerProvider value={sellerId}>
