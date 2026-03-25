@@ -96,30 +96,33 @@ const ClientDashboard = ({ merchantId }: ClientDashboardProps) => {
     }
   }, [merchantId]);
 
-  const handleToggleChange = useCallback(async (checked: boolean) => {
-    const previousValue = isToggleEnabled;
-    const loadingStartedAt = Date.now();
+  const handleToggleChange = useCallback(
+    async (checked: boolean) => {
+      const previousValue = isToggleEnabled;
+      const loadingStartedAt = Date.now();
 
-    setIsToggleEnabled(checked);
-    setIsToggleLoading(true);
+      setIsToggleEnabled(checked);
+      setIsToggleLoading(true);
 
-    try {
-      const success = await toggleMerchantStatus(merchantId, checked);
-      if (!success) {
+      try {
+        const success = await toggleMerchantStatus(merchantId, checked);
+        if (!success) {
+          setIsToggleEnabled(previousValue);
+        }
+      } catch (err) {
+        console.error("Failed to update merchant status:", err);
         setIsToggleEnabled(previousValue);
-      }
-    } catch (err) {
-      console.error("Failed to update merchant status:", err);
-      setIsToggleEnabled(previousValue);
-    } finally {
-      const elapsedTime = Date.now() - loadingStartedAt;
-      const remainingTime = Math.max(MIN_LOADING_MS - elapsedTime, 0);
+      } finally {
+        const elapsedTime = Date.now() - loadingStartedAt;
+        const remainingTime = Math.max(MIN_LOADING_MS - elapsedTime, 0);
 
-      setTimeout(() => {
-        setIsToggleLoading(false);
-      }, remainingTime);
-    }
-  }, [isToggleEnabled, merchantId]);
+        setTimeout(() => {
+          setIsToggleLoading(false);
+        }, remainingTime);
+      }
+    },
+    [isToggleEnabled, merchantId],
+  );
 
   useEffect(() => {
     fetchCouponData();
@@ -251,7 +254,7 @@ const ClientDashboard = ({ merchantId }: ClientDashboardProps) => {
           >
             {couponData?.coupons.map((c) => (
               <MenuItem key={c.id} value={c.id}>
-                {c.name}
+                {c.name}{" "}({c.merchantRefName})
               </MenuItem>
             ))}
           </Select>
@@ -310,12 +313,12 @@ const ClientDashboard = ({ merchantId }: ClientDashboardProps) => {
       {/* ── Row 4: Deal Status Table ── */}
       <div className="bg-[#111827] rounded-2xl border border-gray-700/40 p-6">
         {dashboardData?.couponValueByCurrency?.length ? (
-            <PointDataTable
-              title="มูลค่าคูปอง (Point)"
-              columns={getColumnDataTable()}
-              rows={dashboardData?.couponValueByCurrency || []}
-            />
-          ) : null}
+          <PointDataTable
+            title="มูลค่าคูปอง (Point)"
+            columns={getColumnDataTable()}
+            rows={dashboardData?.couponValueByCurrency || []}
+          />
+        ) : null}
       </div>
     </div>
   );
