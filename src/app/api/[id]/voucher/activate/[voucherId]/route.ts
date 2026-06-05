@@ -1,0 +1,79 @@
+import { NextRequest } from "next/server";
+import { getSessionToken } from "@/libs/auth";
+import { handleError } from "@/libs/errorHandler";
+import { api } from "@/libs/api";
+import logger from "@/libs/logger";
+import type { RouteContext } from "@/libs/nextRoute";
+
+const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
+
+export async function PATCH(
+  req: NextRequest,
+  context: RouteContext<{ id: string; voucherId: string }>
+) {
+  logger.info(`Received request: ${req.method} ${req.url}`);
+
+  try {
+    const { id: merchantId, voucherId } = await context.params;
+
+    if (!merchantId || !voucherId) {
+      return handleError("Missing merchantId or voucherId", 400);
+    }
+
+    const token = (await getSessionToken()) ?? "";
+    if (!token) {
+      return handleError("Unauthorized access", 401);
+    }
+
+    const body = await req.json();
+    const { pointsCost, amount, currency , pointId } = body;
+
+    // Validate input
+    if (typeof pointsCost !== "number" || pointsCost < 0) {
+      return handleError("Invalid pointsCost", 400);
+    }
+
+    if (typeof amount !== "number" || amount <= 0) {
+      return handleError("Invalid amount", 400);
+    }
+
+    if (!currency || typeof currency !== "string") {
+      return handleError("Invalid or missing currency", 400);
+    }
+
+    logger.info(`Activating voucher ${voucherId} with pointsCost: ${pointsCost}, amount: ${amount}, currency: ${currency}`);
+
+    const response = await api(`${BACKEND_URL}/coupon/activate/${voucherId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: {
+        pointId,
+        pointsCost,
+        amount,
+        currency,
+      },
+    });
+
+    if (response.statusCode) {
+      return handleError(response.message ?? "Failed to activate voucher", response.statusCode);
+    }
+
+    logger.info(`Voucher ${voucherId} activated successfully`);
+
+    return Response.json(
+      { 
+        message: "Voucher activated successfully",
+        voucher: response 
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    logger.error(`Error occurred: ${error}`);
+    return Response.json(
+      { error: "Failed to activate voucher" },
+      { status: 500 }
+    );
+  }
+}
