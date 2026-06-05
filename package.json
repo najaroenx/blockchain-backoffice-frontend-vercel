@@ -16,7 +16,7 @@
     "@dotlottie/react-player": "^1.6.19",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@headlessui/react": "^2.1.8",
+    "@headlessui/react": "^2.2.10",
     "@heroicons/react": "2.2.0",
     "@lottiefiles/dotlottie-react": "^0.17.13",
     "@mui/icons-material": "^6.5.0",
