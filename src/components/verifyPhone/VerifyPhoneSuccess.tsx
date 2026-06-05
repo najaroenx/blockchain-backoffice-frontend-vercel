@@ -1,0 +1,107 @@
+"use client";
+import { useVerifyPhone } from "@/contexts/VerifyPhoneContext";
+import { VerifyPhoneStep } from "./VerifyPhone";
+import { useSearchParams } from "next/navigation";
+
+const VerifyPhoneSuccess = ({
+  onChangeStep,
+}: {
+  onChangeStep: (step: VerifyPhoneStep) => void;
+}) => {
+  const { phoneNumber } = useVerifyPhone();
+  const searchParams = useSearchParams();
+  const callbackUri = searchParams.get("callbackUri");
+  return (
+    <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
+      {/* Close button */}
+      <div className="w-full flex justify-end mt-2">
+        <button
+          className="w-6 h-6 flex items-center justify-center"
+          aria-label="Close"
+        >
+          <svg
+            className="w-5 h-5 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Success Icon */}
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="relative w-32 h-32 mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center">
+            <svg
+              className="w-16 h-16 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Success Text */}
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+            ยืนยันตัวตน
+          </h1>
+          <h2 className="text-2xl font-semibold text-gray-900">สำเร็จแล้ว</h2>
+        </div>
+      </div>
+
+      {/* Fixed button at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
+        <button
+          onClick={() => {
+            console.log(
+              "Redirecting to callback URI:",
+              `${callbackUri}?phoneNumber=${phoneNumber}`
+            );
+            if (callbackUri) {
+              console.log(
+                "Redirecting to callback URI:",
+                `${callbackUri}?phoneNumber=${phoneNumber}`
+              );
+              window.location.assign(
+                `${callbackUri}?phoneNumber=${phoneNumber}`
+              );
+            }
+          }}
+          className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"
+        >
+          กลับไปหน้าหลัก
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default VerifyPhoneSuccess;
