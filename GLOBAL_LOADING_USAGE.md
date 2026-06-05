@@ -2,7 +2,7 @@
 
 ## Usage in Any Component
 
-Import the `useLoading` hook in any component to trigger the global loading state:
+Import the `useLoading` s hook in any component to trigger the global loading state:
 
 ```tsx
 "use client";
