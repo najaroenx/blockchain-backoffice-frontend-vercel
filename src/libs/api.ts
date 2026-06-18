@@ -12,6 +12,17 @@ type BackendResponse<T = any> = {
   data: T;
 };
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+    public details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 const readResponseBody = async (response: Response) => {
   if (typeof response.text === "function") {
     return response.text();
@@ -74,3 +85,29 @@ export const api = async (url: string, options: RequestOptions) => {
 
   return jsonData;
 };
+
+export class ApiClient {
+  private baseURL: string;
+
+  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'https://api.example.com') {
+    this.baseURL = baseURL;
+  }
+
+  async get<T>(endpoint: string): Promise<T> {
+    return api(`${this.baseURL}${endpoint}`, { method: 'GET' }) as Promise<T>;
+  }
+
+  async post<T>(endpoint: string, data: unknown): Promise<T> {
+    return api(`${this.baseURL}${endpoint}`, { method: 'POST', body: data as object }) as Promise<T>;
+  }
+
+  async put<T>(endpoint: string, data: unknown): Promise<T> {
+    return api(`${this.baseURL}${endpoint}`, { method: 'PUT', body: data as object }) as Promise<T>;
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    return api(`${this.baseURL}${endpoint}`, { method: 'DELETE' }) as Promise<T>;
+  }
+}
+
+export const apiClient = new ApiClient();
