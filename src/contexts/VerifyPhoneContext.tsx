@@ -15,6 +15,8 @@ type VerifyPhoneContextValue = {
   token: string | null;
   otpCode: string | null;
   status: Status;
+  tempOtp?: string | null;
+  setTempOtp: (tempOtp: string | null) => void;
   setPhoneNumber: (phone: string | null) => void;
   setToken: (token: string | null) => void;
   setOtpCode: (otp: string | null) => void;
@@ -32,6 +34,7 @@ type VerifyPhoneProviderProps = {
   otpCode?: string | null;
   status?: Status;
   callbackUri?: string | null;
+  tempOtp?: string | null;
   children: ReactNode;
 };
 
@@ -41,6 +44,7 @@ export const VerifyPhoneProvider = ({
   otpCode: initialOtp = null,
   status: initialStatus = Status.INITIALIZING,
   callbackUri: initialCallbackUri = null,
+  tempOtp: initialTempOtp = null,
   children,
 }: VerifyPhoneProviderProps) => {
   const [phoneNumber, setPhoneNumber] = useState<string | null>(initialPhone);
@@ -49,6 +53,8 @@ export const VerifyPhoneProvider = ({
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>(initialStatus);
   const [callbackUri, setCallbackUri] = useState<string | null>(initialCallbackUri);
+  const [tempOtp, setTempOtp] = useState<string | null>(initialTempOtp);
+
   return (
     <VerifyPhoneContext.Provider
       value={{
@@ -64,6 +70,8 @@ export const VerifyPhoneProvider = ({
         setStatus,
         callbackUri,
         setCallbackUri,
+        tempOtp,
+        setTempOtp,
         }}
     >
       {children}

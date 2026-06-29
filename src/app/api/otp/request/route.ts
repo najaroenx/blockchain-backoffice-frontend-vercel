@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "สามารถลงทะเบียนใหม่ได้" },
+      { message: "สามารถลงทะเบียนใหม่ได้", otp: response?.otp, verificationId: response?.verificationId },
       { status: 200 }
     );
   } catch (error) {
