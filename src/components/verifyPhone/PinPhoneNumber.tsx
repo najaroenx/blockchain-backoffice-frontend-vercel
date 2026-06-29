@@ -11,6 +11,7 @@ const PinPhoneNumber = ({
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
+  const { tempOtp, setTempOtp } = useVerifyPhone();
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestid");
   const merchantIds = searchParams.get("merchantId");
@@ -53,10 +54,11 @@ const PinPhoneNumber = ({
       });
 
       const data = await response.json();
-
+      console.log("OTP Request Response:", data);
       if (response.ok) {
         setPhoneNumber(phoneNumber);
         setToken(data.token || data.verificationId);
+        setTempOtp(data.otp || null);
         onChangeStep(VerifyPhoneStep.PIN_OTP);
       } else {
         setError(data.message || "เกิดข้อผิดพลาดในการร้องขอ OTP");

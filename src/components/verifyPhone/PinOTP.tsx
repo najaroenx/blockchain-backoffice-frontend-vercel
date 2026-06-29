@@ -1,12 +1,5 @@
 "use client";
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  createContext,
-  useContext,
-} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -133,6 +126,8 @@ const PinOTP = ({
     setOtpCode,
     setToken: updateToken,
     merchantId,
+    tempOtp,
+    setTempOtp,
   } = useVerifyPhone();
   // Parameters
   const searchParams = useSearchParams();
@@ -209,6 +204,7 @@ const PinOTP = ({
     setVerifyOtp("");
     setError(null);
     setIsVerificationSuccess(false);
+    setTempOtp(null); // Clear the temporary OTP when resending
 
     try {
       console.log("Resending OTP for:", phoneNumber, requestId);
@@ -229,7 +225,7 @@ const PinOTP = ({
       if (!response.ok) {
         throw new Error(data.message || "Failed to resend OTP");
       }
-
+      setTempOtp(data.otp || null);
       console.log("OTP resent successfully");
     } catch (error: any) {
       console.error("Error resending OTP:", error);
@@ -281,7 +277,10 @@ const PinOTP = ({
           <span className="text-3xl font-semibold text-gray-400 pb-1">:</span>
           <TimeBox value={sec} />
         </div>
-
+        {/* tempOtp Text */}
+        <div className="mt-3 text-center h-5">
+          {tempOtp && <span className="text-xs animate-pulse">{tempOtp}</span>}
+        </div>
         {/* Expiration Text */}
         <div className="mt-3 text-center h-5">
           {isExpired && (
@@ -322,11 +321,13 @@ const PinOTP = ({
                 : "text-gray-400 cursor-not-allowed"
             }`}
           >
-            ขอรหัส OTP ใหม่ 
- 
+            ขอรหัส OTP ใหม่
           </button>
         </div>
-        <div className="text-center text-sm text-gray-500">หากมีข้อสงสัยหรือติดปัญหา สามารถแจ้งได้ผ่าน Microsoft Teams กลุ่มสีของท่าน</div>
+        <div className="text-center text-sm text-gray-500">
+          หากมีข้อสงสัยหรือติดปัญหา สามารถแจ้งได้ผ่าน Microsoft Teams
+          กลุ่มสีของท่าน
+        </div>
 
         <div className="flex-grow" />
 

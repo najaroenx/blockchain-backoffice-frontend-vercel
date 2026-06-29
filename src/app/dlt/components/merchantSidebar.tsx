@@ -233,6 +233,17 @@ export const MerchantSidebar = () => {
           />
           <MenuItem
             icon={ReceiptLongOutlined}
+            label="Coupon"
+            hasSubmenu
+            isActive={pathname.startsWith(`${basePath}/coupon`)}
+            subItems={[
+              { label: "Bulk send coupon", href: `${basePath}/coupon/send` },
+              { label: "History", href: `${basePath}/coupon/history` },
+            ]}
+            isCollapsed={isSidebarCollapsed}
+          />
+          <MenuItem
+            icon={ReceiptLongOutlined}
             label="Transactions"
             hasSubmenu
             isActive={pathname.startsWith(`${basePath}/transaction`)}
