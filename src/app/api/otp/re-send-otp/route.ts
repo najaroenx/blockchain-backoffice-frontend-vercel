@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     if (!requestId) {
       return NextResponse.json(
         { message: "กรุณาระบุหมายเลขโทรศัพท์และ requestId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,18 +31,18 @@ export async function POST(request: NextRequest) {
     if (response?.status === "error" || response?.statusCode === 404) {
       return NextResponse.json(
         { message: "เกิดข้อผิดพลาดในการส่ง OTP อีกครั้ง" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     return NextResponse.json(
-      { message: "ส่ง OTP อีกครั้งสำเร็จ" },
-      { status: 200 }
+      { message: "ส่ง OTP อีกครั้งสำเร็จ", otp: response?.otp },
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error resending OTP:", error);
     return NextResponse.json(
       { message: "เกิดข้อผิดพลาดในการประมวลผล" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
