@@ -1,200 +1,72 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
 
 type DateRange = "all" | "today" | "7" | "30" | "custom";
 
-type HistoryItem = {
-  id: string;
-  daysAgo: number;
-  label: string;
-  time: string;
-  file: string;
-  coupon: string;
-  total: number;
-  sent: number;
-  admin: string;
-  initials: string;
-  avatarClass: string;
-};
-
 type DetailRow = {
+  seqNo: number;
   phone: string;
   coupon: string;
+  quantity: number;
   status: "success" | "failed";
   error: string | null;
 };
 
-const HISTORY_DATA: HistoryItem[] = [
-  {
-    id: "B012",
-    daysAgo: 0,
-    label: "24 มิ.ย. 2569",
-    time: "14:32",
-    file: "summer_promo_final.csv",
-    coupon: "SUMMER2024",
-    total: 200,
-    sent: 198,
-    admin: "Tik Wannasin",
-    initials: "TW",
-    avatarClass: "from-rose-500 to-pink-600",
-  },
-  {
-    id: "B011",
-    daysAgo: 1,
-    label: "23 มิ.ย. 2569",
-    time: "09:15",
-    file: "welcome_june_batch.csv",
-    coupon: "WELCOME50",
-    total: 85,
-    sent: 85,
-    admin: "Admin Ploy",
-    initials: "AP",
-    avatarClass: "from-indigo-500 to-violet-600",
-  },
-  {
-    id: "B010",
-    daysAgo: 3,
-    label: "21 มิ.ย. 2569",
-    time: "16:48",
-    file: "flash_sale_weekend.csv",
-    coupon: "FLASH30",
-    total: 320,
-    sent: 310,
-    admin: "Tik Wannasin",
-    initials: "TW",
-    avatarClass: "from-rose-500 to-pink-600",
-  },
-  {
-    id: "B009",
-    daysAgo: 6,
-    label: "18 มิ.ย. 2569",
-    time: "11:22",
-    file: "vip_june_members.csv",
-    coupon: "VIP100",
-    total: 50,
-    sent: 50,
-    admin: "Admin Mint",
-    initials: "AM",
-    avatarClass: "from-fuchsia-500 to-purple-600",
-  },
-  {
-    id: "B008",
-    daysAgo: 7,
-    label: "17 มิ.ย. 2569",
-    time: "13:05",
-    file: "loyalty_june_tier1.csv",
-    coupon: "LOYAL20",
-    total: 124,
-    sent: 120,
-    admin: "Admin Ploy",
-    initials: "AP",
-    avatarClass: "from-indigo-500 to-violet-600",
-  },
-  {
-    id: "B007",
-    daysAgo: 10,
-    label: "14 มิ.ย. 2569",
-    time: "10:30",
-    file: "campaign_mid_june.csv",
-    coupon: "MID20",
-    total: 500,
-    sent: 492,
-    admin: "Tik Wannasin",
-    initials: "TW",
-    avatarClass: "from-rose-500 to-pink-600",
-  },
-  {
-    id: "B006",
-    daysAgo: 14,
-    label: "10 มิ.ย. 2569",
-    time: "08:00",
-    file: "june_kickoff.csv",
-    coupon: "JUNE15",
-    total: 300,
-    sent: 300,
-    admin: "Admin Mint",
-    initials: "AM",
-    avatarClass: "from-fuchsia-500 to-purple-600",
-  },
-  {
-    id: "B005",
-    daysAgo: 19,
-    label: "05 มิ.ย. 2569",
-    time: "15:20",
-    file: "weekend_special.csv",
-    coupon: "WKND25",
-    total: 180,
-    sent: 172,
-    admin: "Admin Ploy",
-    initials: "AP",
-    avatarClass: "from-indigo-500 to-violet-600",
-  },
-  {
-    id: "B004",
-    daysAgo: 23,
-    label: "01 มิ.ย. 2569",
-    time: "09:45",
-    file: "june_welcome_promo.csv",
-    coupon: "JUNE50",
-    total: 95,
-    sent: 95,
-    admin: "Tik Wannasin",
-    initials: "TW",
-    avatarClass: "from-rose-500 to-pink-600",
-  },
-  {
-    id: "B003",
-    daysAgo: 27,
-    label: "28 พ.ค. 2569",
-    time: "14:10",
-    file: "may_closeout_batch.csv",
-    coupon: "MAY20",
-    total: 450,
-    sent: 448,
-    admin: "Admin Mint",
-    initials: "AM",
-    avatarClass: "from-fuchsia-500 to-purple-600",
-  },
-  {
-    id: "B002",
-    daysAgo: 35,
-    label: "20 พ.ค. 2569",
-    time: "11:00",
-    file: "loyalty_may.csv",
-    coupon: "LOYAL20",
-    total: 210,
-    sent: 205,
-    admin: "Admin Ploy",
-    initials: "AP",
-    avatarClass: "from-indigo-500 to-violet-600",
-  },
-  {
-    id: "B001",
-    daysAgo: 40,
-    label: "15 พ.ค. 2569",
-    time: "16:30",
-    file: "early_summer.csv",
-    coupon: "EARLY15",
-    total: 88,
-    sent: 88,
-    admin: "Tik Wannasin",
-    initials: "TW",
-    avatarClass: "from-rose-500 to-pink-600",
-  },
-];
+type HistoryItem = {
+  id: string;
+  createdAt: string;
+  label: string;
+  time: string;
+  file: string;
+  total: number;
+  sent: number;
+  failed: number;
+  details: DetailRow[];
+};
 
-const ERROR_REASONS = [
-  "เบอร์โทรศัพท์ไม่ถูกต้อง",
-  "บัญชีผู้ใช้ถูกระงับชั่วคราว",
-  "รับคูปองนี้ครบโควต้าแล้ว",
-  "ไม่พบบัญชีในระบบ",
-  "คูปองหมดอายุแล้ว",
-];
+type ApiHistoryDetail = {
+  phone: string;
+  seqNo: number;
+  status: string;
+  couponId: string;
+  quantity: number;
+  error?: string;
+};
 
-const PAGE_SIZE = 8;
+type ApiHistoryItem = {
+  batchJobId: string;
+  fileName: string;
+  status: string;
+  totalRecords: number;
+  successfulCount: number;
+  failedCount: number;
+  createdAt: string;
+  details?: ApiHistoryDetail[];
+};
 
-function buildPageList(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
+type ApiHistoryResponse = {
+  statusCode?: number;
+  status?: string;
+  message?: string;
+  data?: {
+    summary?: {
+      page?: number;
+      limit?: number;
+      totalRecords?: number;
+    };
+    history?: ApiHistoryItem[];
+  };
+};
+
+const PAGE_SIZE = 10;
+const HISTORY_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/history`;
+
+function buildPageList(
+  currentPage: number,
+  totalPages: number,
+): Array<number | "ellipsis"> {
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
@@ -217,53 +89,38 @@ function buildPageList(currentPage: number, totalPages: number): Array<number | 
   return pages;
 }
 
-function dateToDaysAgo(dateValue: string): number {
-  const today = new Date("2026-06-24T00:00:00");
-  const selectedDate = new Date(dateValue);
-  const difference = today.getTime() - selectedDate.getTime();
-  return Math.round(difference / (1000 * 60 * 60 * 24));
-}
-
-function buildDetailRows(item: HistoryItem): DetailRow[] {
-  const failedCount = item.total - item.sent;
-  const rowLimit = Math.min(15, item.total);
-  const shownFailed = Math.min(failedCount, Math.max(0, rowLimit - 3));
-  const shownSuccess = rowLimit - shownFailed;
-
-  const rows: DetailRow[] = [];
-  for (let index = 0; index < shownSuccess; index += 1) {
-    rows.push({
-      phone: generatePhone(item.id, index),
-      coupon: item.coupon,
-      status: "success",
-      error: null,
-    });
+function formatDateTime(input: string): { label: string; time: string } {
+  const date = new Date(input);
+  if (Number.isNaN(date.getTime())) {
+    return { label: "-", time: "-" };
   }
 
-  for (let index = 0; index < shownFailed; index += 1) {
-    rows.push({
-      phone: generatePhone(item.id, 200 + index),
-      coupon: item.coupon,
-      status: "failed",
-      error: ERROR_REASONS[index % ERROR_REASONS.length],
-    });
-  }
-  return rows;
-}
+  const label = date.toLocaleDateString("th-TH", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const time = date.toLocaleTimeString("th-TH", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 
-function generatePhone(seed: string, index: number): string {
-  const sum = seed
-    .split("")
-    .reduce((accumulator, character) => accumulator + (character.codePointAt(0) ?? 0), 0);
-  const randomNumber = ((sum * 1731 + index * 7919) % 90000000) + 10000000;
-  return `0${8 + (index % 2)}${String(randomNumber).slice(0, 8)}`;
+  return { label, time };
 }
 
 function exportRowsCsv(item: HistoryItem, rows: DetailRow[]): void {
-  const headers = "เบอร์โทรศัพท์,คูปอง,จำนวน,สถานะ,หมายเหตุ";
+  const headers = "seqNo,phone,couponId,quantity,status,error";
   const csvLines = rows.map((row) => {
-    const statusText = row.status === "success" ? "สำเร็จ" : "ไม่สำเร็จ";
-    return [row.phone, row.coupon, "1", statusText, row.error ?? ""].join(",");
+    const statusText = row.status === "success" ? "SUCCESS" : "FAILED";
+    return [
+      String(row.seqNo),
+      row.phone,
+      row.coupon,
+      String(row.quantity),
+      statusText,
+      row.error ?? "",
+    ].join(",");
   });
 
   const blob = new Blob([`\uFEFF${[headers, ...csvLines].join("\n")}`], {
@@ -272,14 +129,89 @@ function exportRowsCsv(item: HistoryItem, rows: DetailRow[]): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `report_${item.id}_${item.file}`;
+  link.download = `report_${item.id}.csv`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 }
 
+function isInDateRange(
+  createdAt: string,
+  dateRange: DateRange,
+  fromDate: string,
+  toDate: string,
+): boolean {
+  if (dateRange === "all") {
+    return true;
+  }
+
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) {
+    return false;
+  }
+
+  const now = new Date();
+  const diffDays = Math.floor(
+    (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (dateRange === "today") {
+    return diffDays === 0;
+  }
+  if (dateRange === "7") {
+    return diffDays <= 7;
+  }
+  if (dateRange === "30") {
+    return diffDays <= 30;
+  }
+
+  if (dateRange === "custom" && fromDate) {
+    const from = new Date(fromDate);
+    const to = toDate ? new Date(toDate) : new Date();
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+      return true;
+    }
+
+    const start = new Date(
+      Math.min(from.getTime(), to.getTime()),
+    ).setHours(0, 0, 0, 0);
+    const end = new Date(
+      Math.max(from.getTime(), to.getTime()),
+    ).setHours(23, 59, 59, 999);
+
+    return created.getTime() >= start && created.getTime() <= end;
+  }
+
+  return true;
+}
+
+function mapApiHistoryItem(item: ApiHistoryItem): HistoryItem {
+  const { label, time } = formatDateTime(item.createdAt);
+
+  return {
+    id: item.batchJobId,
+    createdAt: item.createdAt,
+    label,
+    time,
+    file: item.fileName,
+    total: item.totalRecords,
+    sent: item.successfulCount,
+    failed: item.failedCount,
+    details: (item.details ?? []).map((detail) => ({
+      seqNo: detail.seqNo,
+      phone: detail.phone,
+      coupon: detail.couponId,
+      quantity: detail.quantity,
+      status: detail.status?.toUpperCase() === "SUCCESS" ? "success" : "failed",
+      error: detail.error ?? null,
+    })),
+  };
+}
+
 export default function CouponHistoryPage() {
+  const merchantId = useMerchantId();
+
   const [query, setQuery] = useState("");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [fromDate, setFromDate] = useState("");
@@ -287,63 +219,106 @@ export default function CouponHistoryPage() {
   const [page, setPage] = useState(1);
   const [selectedBatch, setSelectedBatch] = useState<HistoryItem | null>(null);
 
+  const [historyRows, setHistoryRows] = useState<HistoryItem[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+
+  useEffect(() => {
+    if (!merchantId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchHistory = async () => {
+      setIsLoadingHistory(true);
+      setHistoryError("");
+
+      try {
+        const params = new URLSearchParams({
+          merchantId,
+          page: String(page),
+          limit: String(PAGE_SIZE),
+        });
+
+        const response = await fetch(`${HISTORY_ENDPOINT}?${params.toString()}`, {
+          method: "GET",
+        });
+
+        const payload = (await response.json()) as ApiHistoryResponse;
+        if (!response.ok || payload.status === "error") {
+          throw new Error(payload.message || "ไม่สามารถดึงประวัติการส่งคูปองได้");
+        }
+
+        const items = payload.data?.history ?? [];
+        const mappedRows: HistoryItem[] = items.map(mapApiHistoryItem);
+
+        if (!cancelled) {
+          setHistoryRows(mappedRows);
+          setTotalRecords(payload.data?.summary?.totalRecords ?? mappedRows.length);
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "เกิดข้อผิดพลาดระหว่างดึงข้อมูลประวัติ";
+        setHistoryRows([]);
+        setTotalRecords(0);
+        setHistoryError(message);
+      } finally {
+        if (!cancelled) {
+          setIsLoadingHistory(false);
+        }
+      }
+    };
+
+    void fetchHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [merchantId, page]);
+
   const filteredData = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return HISTORY_DATA.filter((item) => {
+    return historyRows.filter((item) => {
       const matchedText =
         !normalizedQuery ||
         item.file.toLowerCase().includes(normalizedQuery) ||
-        item.coupon.toLowerCase().includes(normalizedQuery) ||
         item.id.toLowerCase().includes(normalizedQuery);
-
       if (!matchedText) {
         return false;
       }
 
-      if (dateRange === "today") {
-        return item.daysAgo === 0;
-      }
-      if (dateRange === "7") {
-        return item.daysAgo <= 7;
-      }
-      if (dateRange === "30") {
-        return item.daysAgo <= 30;
-      }
-      if (dateRange === "custom" && fromDate) {
-        const fromDays = dateToDaysAgo(fromDate);
-        const toDays = toDate ? dateToDaysAgo(toDate) : 0;
-        const minDays = Math.min(fromDays, toDays);
-        const maxDays = Math.max(fromDays, toDays);
-        return item.daysAgo >= minDays && item.daysAgo <= maxDays;
-      }
-      return true;
+      return isInDateRange(item.createdAt, dateRange, fromDate, toDate);
     });
-  }, [dateRange, fromDate, query, toDate]);
+  }, [dateRange, fromDate, historyRows, query, toDate]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const visibleRows = filteredData.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const totalSent = useMemo(() => HISTORY_DATA.reduce((sum, row) => sum + row.sent, 0), []);
-  const totalAll = useMemo(() => HISTORY_DATA.reduce((sum, row) => sum + row.total, 0), []);
-  const perfectCount = useMemo(
-    () => HISTORY_DATA.filter((row) => row.sent === row.total).length,
-    []
+  const startIndex = totalRecords === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endIndex = Math.min(currentPage * PAGE_SIZE, totalRecords);
+
+  const totalSent = useMemo(
+    () => historyRows.reduce((sum, row) => sum + row.sent, 0),
+    [historyRows],
   );
-  const successRate = totalAll === 0 ? "-" : `${((totalSent / totalAll) * 100).toFixed(1)}%`;
+  const perfectCount = useMemo(
+    () => historyRows.filter((row) => row.failed === 0).length,
+    [historyRows],
+  );
 
-  const selectedDetails = useMemo(() => {
-    if (!selectedBatch) {
-      return [];
-    }
-    return buildDetailRows(selectedBatch);
-  }, [selectedBatch]);
+  const selectedDetails = useMemo(() => selectedBatch?.details ?? [], [selectedBatch]);
 
   const changeDateFilter = (nextRange: DateRange) => {
     setDateRange(nextRange);
-    setPage(1);
   };
 
   return (
@@ -355,21 +330,16 @@ export default function CouponHistoryPage() {
         </p>
       </header>
 
-      <section className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-white/10 bg-[#12132a] p-4">
           <p className="text-xs uppercase tracking-wide text-slate-400">Batch ทั้งหมด</p>
-          <p className="mt-2 text-3xl font-semibold">{HISTORY_DATA.length}</p>
+          <p className="mt-2 text-3xl font-semibold">{totalRecords}</p>
           <p className="mt-2 text-xs text-slate-500">รอบการส่งที่บันทึกไว้</p>
         </div>
         <div className="rounded-xl border border-white/10 bg-[#12132a] p-4">
           <p className="text-xs uppercase tracking-wide text-slate-400">คูปองที่ส่งทั้งหมด</p>
           <p className="mt-2 text-3xl font-semibold">{totalSent.toLocaleString()}</p>
-          <p className="mt-2 text-xs text-slate-500">รวมทุก Batch</p>
-        </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <p className="text-xs uppercase tracking-wide text-emerald-300">อัตราความสำเร็จ</p>
-          <p className="mt-2 text-3xl font-semibold text-emerald-300">{successRate}</p>
-          <p className="mt-2 text-xs text-emerald-200/80">เฉลี่ยทุก Batch</p>
+          <p className="mt-2 text-xs text-slate-500">รวมข้อมูลที่โหลดมา</p>
         </div>
         <div className="rounded-xl border border-white/10 bg-[#12132a] p-4">
           <p className="text-xs uppercase tracking-wide text-slate-400">สำเร็จ 100%</p>
@@ -388,11 +358,8 @@ export default function CouponHistoryPage() {
           <div className="flex flex-wrap items-center gap-3">
             <input
               value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setPage(1);
-              }}
-              placeholder="ค้นหาชื่อไฟล์ หรือชื่อคูปอง"
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="ค้นหาชื่อไฟล์ หรือ batch ID"
               className="h-10 w-full max-w-sm rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white placeholder:text-slate-500 focus:border-white/40 focus:outline-none"
             />
 
@@ -421,32 +388,32 @@ export default function CouponHistoryPage() {
                 <input
                   type="date"
                   value={fromDate}
-                  onChange={(event) => {
-                    setFromDate(event.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(event) => setFromDate(event.target.value)}
                   className="h-10 rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white focus:border-white/40 focus:outline-none"
                 />
                 <span className="text-slate-500">-</span>
                 <input
                   type="date"
                   value={toDate}
-                  onChange={(event) => {
-                    setToDate(event.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(event) => setToDate(event.target.value)}
                   className="h-10 rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white focus:border-white/40 focus:outline-none"
                 />
               </div>
             )}
 
             <p className="ml-auto text-sm text-slate-400">
-              {filteredData.length > 0
-                ? `แสดง ${startIndex + 1}-${Math.min(startIndex + PAGE_SIZE, filteredData.length)} จาก ${filteredData.length} รายการ`
+              {totalRecords > 0
+                ? `แสดง ${startIndex}-${endIndex} จาก ${totalRecords} รายการ`
                 : "ไม่พบรายการ"}
             </p>
           </div>
         </div>
+
+        {historyError && (
+          <div className="border-b border-white/10 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {historyError}
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -458,7 +425,15 @@ export default function CouponHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleRows.length === 0 && (
+              {isLoadingHistory && (
+                <tr className="border-t border-white/10">
+                  <td colSpan={3} className="px-3 py-10 text-center text-slate-400">
+                    กำลังโหลดข้อมูล...
+                  </td>
+                </tr>
+              )}
+
+              {!isLoadingHistory && filteredData.length === 0 && (
                 <tr className="border-t border-white/10">
                   <td colSpan={3} className="px-3 py-12 text-center text-slate-400">
                     ไม่พบรายการที่ตรงกัน
@@ -466,15 +441,15 @@ export default function CouponHistoryPage() {
                 </tr>
               )}
 
-              {visibleRows.map((item) => {
-                return (
+              {!isLoadingHistory &&
+                filteredData.map((item) => (
                   <tr key={item.id} className="border-t border-white/10 hover:bg-white/5">
                     <td className="px-3 py-3 text-slate-300">
                       <span className="block font-semibold text-white">{item.label}</span>
                       <span className="text-xs text-slate-400">{item.time} น.</span>
                     </td>
                     <td className="px-3 py-3">
-                      <p className="max-w-[220px] truncate font-semibold text-white">{item.file}</p>
+                      <p className="max-w-[320px] truncate font-semibold text-white">{item.file}</p>
                       <p className="font-mono text-xs text-slate-400">{item.id}</p>
                     </td>
                     <td className="px-3 py-3 text-center">
@@ -486,21 +461,20 @@ export default function CouponHistoryPage() {
                       </button>
                     </td>
                   </tr>
-                );
-              })}
+                ))}
             </tbody>
           </table>
         </div>
 
-        {filteredData.length > 0 && (
+        {totalRecords > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 p-4">
             <p className="text-sm text-slate-400">
-              แสดง <span className="font-semibold text-white">{startIndex + 1}-{Math.min(startIndex + PAGE_SIZE, filteredData.length)}</span> จาก <span className="font-semibold text-white">{filteredData.length}</span>
+              แสดง <span className="font-semibold text-white">{startIndex}-{endIndex}</span> จาก <span className="font-semibold text-white">{totalRecords}</span>
             </p>
 
             <div className="flex items-center gap-1">
               <button
-                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                onClick={() => setPage((previous) => Math.max(1, previous - 1))}
                 disabled={currentPage === 1}
                 className="h-8 w-8 rounded-lg border border-white/20 text-sm text-slate-200 transition hover:bg-white/10 disabled:opacity-30"
               >
@@ -532,7 +506,7 @@ export default function CouponHistoryPage() {
               })}
 
               <button
-                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                onClick={() => setPage((previous) => Math.min(totalPages, previous + 1))}
                 disabled={currentPage === totalPages}
                 className="h-8 w-8 rounded-lg border border-white/20 text-sm text-slate-200 transition hover:bg-white/10 disabled:opacity-30"
               >
@@ -550,7 +524,7 @@ export default function CouponHistoryPage() {
               <div>
                 <h3 className="text-lg font-semibold">{selectedBatch.file}</h3>
                 <p className="mt-1 text-sm text-slate-400">
-                  {selectedBatch.label} {selectedBatch.time} น. · ส่งโดย {selectedBatch.admin} · Batch {selectedBatch.id}
+                  {selectedBatch.label} {selectedBatch.time} น. · Batch {selectedBatch.id}
                 </p>
               </div>
               <button
@@ -585,12 +559,12 @@ export default function CouponHistoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedDetails.map((row, index) => (
-                    <tr key={`${row.phone}-${index}`} className="border-t border-white/10">
-                      <td className="px-3 py-2 text-right text-slate-400">{index + 1}</td>
+                  {selectedDetails.map((row) => (
+                    <tr key={`${selectedBatch.id}-${row.seqNo}-${row.phone}`} className="border-t border-white/10">
+                      <td className="px-3 py-2 text-right text-slate-400">{row.seqNo}</td>
                       <td className="px-3 py-2 font-mono">{row.phone}</td>
                       <td className="px-3 py-2 font-semibold">{row.coupon}</td>
-                      <td className="px-3 py-2">1 ใบ</td>
+                      <td className="px-3 py-2">{row.quantity} ใบ</td>
                       <td className="px-3 py-2">
                         {row.status === "success" ? (
                           <span className="inline-flex rounded-full bg-emerald-500/20 px-2 py-1 text-xs font-semibold text-emerald-300">
@@ -611,7 +585,9 @@ export default function CouponHistoryPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 p-4">
               <p className="text-xs text-slate-400">
-                {selectedBatch.total > 15 ? "แสดงตัวอย่าง 15 รายการแรก Export CSV เพื่อดูทั้งหมด" : "แสดงข้อมูลครบทั้งหมด"}
+                {selectedBatch.details.length > 15
+                  ? "แสดงข้อมูลบางส่วนในหน้า Export CSV เพื่อดูทั้งหมด"
+                  : "แสดงข้อมูลครบทั้งหมด"}
               </p>
               <div className="flex gap-2">
                 <button

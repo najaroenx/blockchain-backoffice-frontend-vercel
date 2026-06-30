@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
+import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
 
 type ViewStep = 1 | 2 | 3;
 type VerifyFilter = "all" | "valid" | "invalid";
@@ -10,8 +11,6 @@ type UploadRow = {
   phone: string;
   coupon: string;
   qty: number;
-  start: string;
-  expiry: string;
 };
 
 type ValidationRow = UploadRow & {
@@ -19,8 +18,34 @@ type ValidationRow = UploadRow & {
   error: string | null;
 };
 
-const TEMPLATE_HEADERS = "phone,coupon_code,qty,start_date,expiry_date";
+type PreviewApiDetail = {
+  seqNo: number;
+  customerPhone: string;
+  voucherId: string;
+  quantity: number;
+  isValid: boolean;
+  errors?: string[];
+};
+
+type PreviewApiResponse = {
+  statusCode?: number;
+  status?: string;
+  message?: string;
+  data?: {
+    details?: PreviewApiDetail[];
+  };
+};
+
+type ExecuteApiResponse = {
+  statusCode?: number;
+  status?: string;
+  message?: string;
+};
+
+const TEMPLATE_HEADERS = "sequence_number,phone_number,voucher_id,quantity";
 const MAX_UPLOAD_ROWS = 30;
+const COUPON_PREVIEW_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/preview-csv`;
+const COUPON_EXECUTE_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/execute-csv`;
 
 function parseCsvContent(csvContent: string): UploadRow[] {
   const lines = csvContent
@@ -33,23 +58,29 @@ function parseCsvContent(csvContent: string): UploadRow[] {
   }
 
   const firstColumns = new Set(
-    lines[0].split(",").map((column) => column.trim().toLowerCase())
+    lines[0].split(",").map((column) => column.trim().toLowerCase()),
   );
-  const hasHeader = firstColumns.has("phone") || firstColumns.has("coupon_code");
+  const hasHeader =
+    firstColumns.has("sequence_number") || firstColumns.has("phone_number");
   const dataLines = hasHeader ? lines.slice(1) : lines;
 
   return dataLines
     .map((line, index) => {
       const columns = line.split(",").map((column) => column.trim());
-      const qty = Number(columns[2] ?? "1");
+      const sequenceNo = Number(columns[0]);
+      const phoneColumnIndex = hasHeader ? 1 : 0;
+      const couponColumnIndex = hasHeader ? 2 : 1;
+      const qtyColumnIndex = hasHeader ? 3 : 2;
+      const qty = Number(columns[qtyColumnIndex] ?? "1");
 
       return {
-        row: index + 1,
-        phone: columns[0] ?? "",
-        coupon: columns[1] ?? "",
+        row:
+          Number.isFinite(sequenceNo) && sequenceNo > 0
+            ? sequenceNo
+            : index + 1,
+        phone: columns[phoneColumnIndex] ?? "",
+        coupon: columns[couponColumnIndex] ?? "",
         qty: Number.isFinite(qty) && qty > 0 ? qty : 1,
-        start: columns[3] ?? "-",
-        expiry: columns[4] ?? "-",
       } satisfies UploadRow;
     })
     .filter((row) => row.phone || row.coupon);
@@ -95,6 +126,7 @@ function formatBytes(sizeInBytes: number): string {
 
 export default function SendCouponPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const merchantId = useMerchantId();
 
   const [currentStep, setCurrentStep] = useState<ViewStep>(1);
   const [dragOver, setDragOver] = useState(false);
@@ -106,14 +138,18 @@ export default function SendCouponPage() {
   const [validationRows, setValidationRows] = useState<ValidationRow[]>([]);
   const [filter, setFilter] = useState<VerifyFilter>("all");
   const [uploadError, setUploadError] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const validCount = useMemo(
     () => validationRows.filter((row) => row.status === "valid").length,
-    [validationRows]
+    [validationRows],
   );
   const invalidCount = useMemo(
     () => validationRows.filter((row) => row.status === "invalid").length,
-    [validationRows]
+    [validationRows],
   );
 
   const filteredRows = useMemo(() => {
@@ -138,6 +174,10 @@ export default function SendCouponPage() {
     setIsVerifying(false);
     setFilter("all");
     setUploadError("");
+    setVerifyError("");
+    setSubmitError("");
+    setIsSubmitting(false);
+    setUploadedFile(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -154,8 +194,9 @@ export default function SendCouponPage() {
       setSelectedFileName("");
       setSelectedFileMeta("");
       setUploadError(
-        `ไฟล์ต้องมีข้อมูลไม่เกิน ${MAX_UPLOAD_ROWS} แถว (พบ ${parsedRows.length} แถว)`
+        `ไฟล์ต้องมีข้อมูลไม่เกิน ${MAX_UPLOAD_ROWS} แถว (พบ ${parsedRows.length} แถว)`,
       );
+      setUploadedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -168,8 +209,13 @@ export default function SendCouponPage() {
     setProgress(0);
     setFilter("all");
     setUploadError("");
+    setVerifyError("");
+    setSubmitError("");
+    setUploadedFile(file);
     setSelectedFileName(file.name);
-    setSelectedFileMeta(`${parsedRows.length} รายการ · ${formatBytes(file.size)}`);
+    setSelectedFileMeta(
+      `${parsedRows.length} รายการ · ${formatBytes(file.size)}`,
+    );
   };
 
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -197,40 +243,120 @@ export default function SendCouponPage() {
     await loadFileContent(file);
   };
 
-  const goVerify = () => {
+  const goVerify = async () => {
+    if (!uploadedFile) {
+      setUploadError("กรุณาอัปโหลดไฟล์ CSV ก่อนตรวจสอบข้อมูล");
+      return;
+    }
+
     setCurrentStep(2);
     setIsVerifying(true);
     setProgress(0);
+    setVerifyError("");
 
-    const completeVerification = () => {
-      setValidationRows(validateRows(uploadRows));
-      setIsVerifying(false);
-      setFilter("all");
-    };
-
-    let nextProgress = 0;
-
-    const timer = setInterval(() => {
-      nextProgress = Math.min(nextProgress + 18, 100);
-      setProgress(nextProgress);
-
-      if (nextProgress === 100) {
-        clearInterval(timer);
-        setTimeout(completeVerification, 250);
-      }
+    const progressTimer = globalThis.setInterval(() => {
+      setProgress((previous) => (previous >= 90 ? previous : previous + 10));
     }, 120);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("merchantId", merchantId ?? "");
+
+      const response = await fetch(COUPON_PREVIEW_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json()) as PreviewApiResponse;
+      if (!response.ok || payload.status === "error") {
+        throw new Error(payload.message || "ไม่สามารถตรวจสอบข้อมูลจาก API ได้");
+      }
+
+      const details = payload.data?.details ?? [];
+      const mappedRows: ValidationRow[] = details.map((detail, index) => ({
+        row:
+          Number.isFinite(detail.seqNo) && detail.seqNo > 0
+            ? detail.seqNo
+            : index + 1,
+        phone: detail.customerPhone,
+        coupon: detail.voucherId,
+        qty:
+          Number.isFinite(detail.quantity) && detail.quantity > 0
+            ? detail.quantity
+            : 1,
+        status: detail.isValid ? "valid" : "invalid",
+        error:
+          detail.isValid || !detail.errors || detail.errors.length === 0
+            ? null
+            : detail.errors.join(" · "),
+      }));
+
+      setValidationRows(mappedRows);
+      setFilter("all");
+      setProgress(100);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาดระหว่างตรวจสอบข้อมูล";
+      setValidationRows([]);
+      setVerifyError(message);
+      setProgress(0);
+    } finally {
+      globalThis.clearInterval(progressTimer);
+      setIsVerifying(false);
+    }
   };
 
-  const goSuccess = () => {
-    setCurrentStep(3);
+  const confirmSendCoupons = async () => {
+    if (!uploadedFile) {
+      setSubmitError("ไม่พบไฟล์ CSV สำหรับส่งข้อมูล กรุณาอัปโหลดไฟล์ใหม่อีกครั้ง");
+      return;
+    }
+
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+      formData.append("merchantId", merchantId ?? "");
+
+      const response = await fetch(COUPON_EXECUTE_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      let payload: ExecuteApiResponse | undefined;
+      try {
+        payload = (await response.json()) as ExecuteApiResponse;
+      } catch {
+        payload = undefined;
+      }
+
+      if (!response.ok || payload?.status === "error") {
+        throw new Error(payload?.message || "ไม่สามารถยืนยันการส่งคูปองได้");
+      }
+
+      setCurrentStep(3);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาดระหว่างยืนยันการส่งคูปอง";
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const downloadTemplate = () => {
     const templateRows = [
       TEMPLATE_HEADERS,
-      "0812345678,SUMMER2024,1,2024-07-01,2024-12-31",
-      "0823456789,WELCOME50,2,2024-06-15,2024-09-30",
-      "0834567890,FLASH30,1,2024-07-10,2024-07-31",
+      "0812345678,0812345678,COUPON-bdac5bde-c5a9-4cc4-8a76-06794a6431f3,10",
+      "0812345678,0812345678,COUPON-bdac5bde-c5a9-4cc4-8a76-06794a6431f3,3",
+      "0812345678,0812345678,COUPON-bdac5bde-c5a9-4cc4-8a76-06794a6431f3,7",
     ];
 
     const blob = new Blob([templateRows.join("\n")], {
@@ -250,9 +376,12 @@ export default function SendCouponPage() {
   return (
     <div className="mx-auto w-full max-w-6xl text-slate-100">
       <header className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">CSV Coupon Bulk Sender</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          CSV Coupon Bulk Sender
+        </h1>
         <p className="mt-2 text-sm text-slate-400">
-          อัปโหลดไฟล์ CSV เพื่อส่งคูปองให้ผู้ใช้งานแบบ Bulk รองรับสูงสุด 10,000 รายการต่อครั้ง
+          อัปโหลดไฟล์ CSV เพื่อส่งคูปองให้ผู้ใช้งานแบบ Bulk รองรับสูงสุด 10,000
+          รายการต่อครั้ง
         </p>
       </header>
 
@@ -276,13 +405,17 @@ export default function SendCouponPage() {
                   {stepDone ? "✓" : step}
                 </div>
                 <div>
-                  <p className={`text-sm font-medium ${stepActive ? "text-white" : "text-slate-400"}`}>
+                  <p
+                    className={`text-sm font-medium ${stepActive ? "text-white" : "text-slate-400"}`}
+                  >
                     {step === 1 && "อัปโหลด & พรีวิว"}
                     {step === 2 && "ตรวจสอบข้อมูล"}
                     {step === 3 && "ส่งสำเร็จ"}
                   </p>
                 </div>
-                {step < 3 && <div className="mx-2 hidden h-px w-12 bg-white/10 md:block" />}
+                {step < 3 && (
+                  <div className="mx-2 hidden h-px w-12 bg-white/10 md:block" />
+                )}
               </div>
             );
           })}
@@ -294,7 +427,9 @@ export default function SendCouponPage() {
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 p-5">
             <div>
               <h2 className="text-xl font-semibold">อัปโหลดไฟล์ CSV</h2>
-              <p className="mt-1 text-sm text-slate-400">รองรับไฟล์ .csv ขนาดไม่เกิน 10 MB</p>
+              <p className="mt-1 text-sm text-slate-400">
+                รองรับไฟล์ .csv ขนาดไม่เกิน 5 MB
+              </p>
             </div>
             <button
               onClick={downloadTemplate}
@@ -322,10 +457,16 @@ export default function SendCouponPage() {
                       : "border-white/20 hover:border-pink-400 hover:bg-pink-500/5"
                   }`}
                 >
-                  <p className="text-base font-semibold">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
-                  <p className="mt-2 text-sm text-slate-400">รองรับ .csv เท่านั้น · สูงสุด 30 แถว</p>
+                  <p className="text-base font-semibold">
+                    ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    รองรับ .csv เท่านั้น · สูงสุด 30 แถว
+                  </p>
                 </button>
-                {uploadError && <p className="mt-3 text-sm text-rose-300">{uploadError}</p>}
+                {uploadError && (
+                  <p className="mt-3 text-sm text-rose-300">{uploadError}</p>
+                )}
               </>
             ) : (
               <>
@@ -354,10 +495,17 @@ export default function SendCouponPage() {
                     </thead>
                     <tbody>
                       {uploadRows.map((row) => (
-                        <tr key={`${row.row}-${row.phone}-${row.coupon}`} className="border-t border-white/10">
-                          <td className="px-3 py-2 text-right text-slate-400">{row.row}</td>
+                        <tr
+                          key={`${row.row}-${row.phone}-${row.coupon}`}
+                          className="border-t border-white/10"
+                        >
+                          <td className="px-3 py-2 text-right text-slate-400">
+                            {row.row}
+                          </td>
                           <td className="px-3 py-2 font-mono">{row.phone}</td>
-                          <td className="px-3 py-2 font-semibold">{row.coupon}</td>
+                          <td className="px-3 py-2 font-semibold">
+                            {row.coupon}
+                          </td>
                           <td className="px-3 py-2">{row.qty} ใบ</td>
                         </tr>
                       ))}
@@ -367,7 +515,11 @@ export default function SendCouponPage() {
 
                 <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                   <p className="mr-auto text-sm text-slate-400">
-                    พบ <span className="font-semibold text-white">{uploadRows.length}</span> รายการในไฟล์
+                    พบ{" "}
+                    <span className="font-semibold text-white">
+                      {uploadRows.length}
+                    </span>{" "}
+                    รายการในไฟล์
                   </p>
                   <button
                     onClick={resetUpload}
@@ -402,7 +554,9 @@ export default function SendCouponPage() {
             <div className="rounded-2xl border border-white/10 bg-[#12132a] p-8 text-center">
               <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-pink-400" />
               <h2 className="text-lg font-semibold">กำลังตรวจสอบข้อมูล...</h2>
-              <p className="mt-2 text-sm text-slate-400">ระบบกำลังตรวจสอบเบอร์โทรศัพท์และคูปองกับฐานข้อมูล</p>
+              <p className="mt-2 text-sm text-slate-400">
+                ระบบกำลังตรวจสอบเบอร์โทรศัพท์และคูปองกับฐานข้อมูล
+              </p>
               <div className="mx-auto mt-5 h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
@@ -412,32 +566,55 @@ export default function SendCouponPage() {
             </div>
           ) : (
             <>
+              {verifyError && (
+                <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
+                  {verifyError}
+                </div>
+              )}
               <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div className="rounded-xl border border-white/10 bg-[#12132a] p-4">
-                  <p className="text-xs uppercase tracking-wide text-slate-400">รายการทั้งหมด</p>
-                  <p className="mt-2 text-3xl font-semibold">{validationRows.length}</p>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    รายการทั้งหมด
+                  </p>
+                  <p className="mt-2 text-3xl font-semibold">
+                    {validationRows.length}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-                  <p className="text-xs uppercase tracking-wide text-emerald-300">ผ่านการตรวจสอบ</p>
-                  <p className="mt-2 text-3xl font-semibold text-emerald-300">{validCount}</p>
+                  <p className="text-xs uppercase tracking-wide text-emerald-300">
+                    ผ่านการตรวจสอบ
+                  </p>
+                  <p className="mt-2 text-3xl font-semibold text-emerald-300">
+                    {validCount}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
-                  <p className="text-xs uppercase tracking-wide text-rose-300">ไม่ผ่านการตรวจสอบ</p>
-                  <p className="mt-2 text-3xl font-semibold text-rose-300">{invalidCount}</p>
+                  <p className="text-xs uppercase tracking-wide text-rose-300">
+                    ไม่ผ่านการตรวจสอบ
+                  </p>
+                  <p className="mt-2 text-3xl font-semibold text-rose-300">
+                    {invalidCount}
+                  </p>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#12132a]">
                 <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 p-5">
                   <div>
-                    <h2 className="text-xl font-semibold">ผลการตรวจสอบรายการ</h2>
-                    <p className="mt-1 text-sm text-slate-400">รายการที่ไม่ผ่านจะถูกข้ามโดยอัตโนมัติ</p>
+                    <h2 className="text-xl font-semibold">
+                      ผลการตรวจสอบรายการ
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-400">
+                      รายการที่ไม่ผ่านจะถูกข้ามโดยอัตโนมัติ
+                    </p>
                   </div>
                   <div className="inline-flex rounded-lg bg-white/5 p-1 text-sm">
                     <button
                       onClick={() => setFilter("all")}
                       className={`rounded-md px-3 py-1.5 transition ${
-                        filter === "all" ? "bg-white text-slate-900" : "text-slate-300"
+                        filter === "all"
+                          ? "bg-white text-slate-900"
+                          : "text-slate-300"
                       }`}
                     >
                       ทั้งหมด ({validationRows.length})
@@ -445,7 +622,9 @@ export default function SendCouponPage() {
                     <button
                       onClick={() => setFilter("valid")}
                       className={`rounded-md px-3 py-1.5 transition ${
-                        filter === "valid" ? "bg-white text-slate-900" : "text-slate-300"
+                        filter === "valid"
+                          ? "bg-white text-slate-900"
+                          : "text-slate-300"
                       }`}
                     >
                       ผ่าน ({validCount})
@@ -453,7 +632,9 @@ export default function SendCouponPage() {
                     <button
                       onClick={() => setFilter("invalid")}
                       className={`rounded-md px-3 py-1.5 transition ${
-                        filter === "invalid" ? "bg-white text-slate-900" : "text-slate-300"
+                        filter === "invalid"
+                          ? "bg-white text-slate-900"
+                          : "text-slate-300"
                       }`}
                     >
                       ไม่ผ่าน ({invalidCount})
@@ -475,18 +656,30 @@ export default function SendCouponPage() {
                     <tbody>
                       {filteredRows.length === 0 && (
                         <tr className="border-t border-white/10">
-                          <td colSpan={5} className="px-3 py-8 text-center text-slate-400">
+                          <td
+                            colSpan={5}
+                            className="px-3 py-8 text-center text-slate-400"
+                          >
                             ไม่มีรายการ
                           </td>
                         </tr>
                       )}
                       {filteredRows.map((row) => (
-                        <tr key={`${row.row}-${row.phone}-${row.coupon}`} className="border-t border-white/10">
-                          <td className="px-3 py-2 text-right text-slate-400">{row.row}</td>
-                          <td className={`px-3 py-2 font-mono ${row.status === "invalid" ? "text-rose-300" : ""}`}>
+                        <tr
+                          key={`${row.row}-${row.phone}-${row.coupon}`}
+                          className="border-t border-white/10"
+                        >
+                          <td className="px-3 py-2 text-right text-slate-400">
+                            {row.row}
+                          </td>
+                          <td
+                            className={`px-3 py-2 font-mono ${row.status === "invalid" ? "text-rose-300" : ""}`}
+                          >
                             {row.phone}
                           </td>
-                          <td className="px-3 py-2 font-semibold">{row.coupon}</td>
+                          <td className="px-3 py-2 font-semibold">
+                            {row.coupon}
+                          </td>
                           <td className="px-3 py-2">{row.qty} ใบ</td>
                           <td className="px-3 py-2">
                             {row.status === "valid" ? (
@@ -498,7 +691,11 @@ export default function SendCouponPage() {
                                 <span className="inline-flex items-center rounded-full bg-rose-500/20 px-2 py-1 text-xs font-semibold text-rose-300">
                                   ไม่ผ่าน
                                 </span>
-                                {row.error && <p className="mt-1 text-xs text-rose-300">{row.error}</p>}
+                                {row.error && (
+                                  <p className="mt-1 text-xs text-rose-300">
+                                    {row.error}
+                                  </p>
+                                )}
                               </div>
                             )}
                           </td>
@@ -511,8 +708,15 @@ export default function SendCouponPage() {
 
               <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                 <p className="mr-auto text-sm text-slate-400">
-                  รายการที่ไม่ผ่าน <span className="font-semibold text-rose-300">{invalidCount}</span> รายการจะถูกข้ามโดยอัตโนมัติ
+                  รายการที่ไม่ผ่าน{" "}
+                  <span className="font-semibold text-rose-300">
+                    {invalidCount}
+                  </span>{" "}
+                  รายการจะถูกข้ามโดยอัตโนมัติ
                 </p>
+                {submitError && (
+                  <p className="w-full text-sm text-rose-300">{submitError}</p>
+                )}
                 <button
                   onClick={() => setCurrentStep(1)}
                   className="rounded-lg border border-white/20 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
@@ -526,11 +730,13 @@ export default function SendCouponPage() {
                   ยกเลิก
                 </button>
                 <button
-                  onClick={goSuccess}
-                  disabled={validCount === 0 || invalidCount > 0}
+                  onClick={confirmSendCoupons}
+                  disabled={validCount === 0 || invalidCount > 0 || isSubmitting}
                   className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  ยืนยันการส่ง ({validCount} รายการ)
+                  {isSubmitting
+                    ? "กำลังส่งข้อมูล..."
+                    : `ยืนยันการส่ง (${validCount} รายการ)`}
                 </button>
               </div>
             </>
@@ -545,12 +751,17 @@ export default function SendCouponPage() {
           </div>
           <h2 className="text-3xl font-semibold">ส่งคูปองสำเร็จ!</h2>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-400">
-            ระบบส่งคูปองเรียบร้อยแล้ว ผู้ใช้งานจะได้รับภายใน 5-10 นาที และสามารถตรวจสอบสถานะได้ที่หน้า History
+            ระบบส่งคูปองเรียบร้อยแล้ว ผู้ใช้งานจะได้รับภายใน 5-10 นาที
+            และสามารถตรวจสอบสถานะได้ที่หน้า History
           </p>
 
           <div className="mx-auto mt-6 max-w-sm rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-            <p className="text-5xl font-semibold text-emerald-300">{validCount}</p>
-            <p className="mt-2 text-sm text-slate-300">คูปองที่ส่งสำเร็จทั้งหมด</p>
+            <p className="text-5xl font-semibold text-emerald-300">
+              {validCount}
+            </p>
+            <p className="mt-2 text-sm text-slate-300">
+              คูปองที่ส่งสำเร็จทั้งหมด
+            </p>
           </div>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">

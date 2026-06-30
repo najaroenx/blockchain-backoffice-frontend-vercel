@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: blockchain-backoffice-frontend
+    
+    ports:
+      - "3000:3000"
+    
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=https://dlp-backofficebe-testnet.adldigitalservice.com
+      - NEXT_PUBLIC_USE_EMULATOR=false
+      - NEXTAUTH_SECRET=3nfTG^'o2P&ckx<}2X#+Y./ihOZEdng)
+      - NEXTAUTH_URL=http://localhost:3000
+      - MERCHANT_BACKEND_URL=https://dlp-backofficebe-testnet.adldigitalservice.com
+      - MERCHANT_BACKEND=https://dlp-backofficebe-testnet.adldigitalservice.com
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    networks:
+      - blockchain-network
+
+networks:
+  blockchain-network:
+    driver: bridge
