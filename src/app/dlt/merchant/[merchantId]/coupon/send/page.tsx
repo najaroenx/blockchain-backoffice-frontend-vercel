@@ -45,8 +45,12 @@ type ExecuteApiResponse = {
 
 const TEMPLATE_HEADERS = "sequence_number,phone_number,voucher_id,quantity";
 const MAX_UPLOAD_ROWS = 30;
-const COUPON_PREVIEW_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/preview-csv`;
-const COUPON_EXECUTE_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/execute-csv`;
+const COUPON_API_BASE =
+  process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:4004";
+const COUPON_PREVIEW_ENDPOINT = `${COUPON_API_BASE}/coupon/transfer/batch/preview-csv`;
+const COUPON_EXECUTE_ENDPOINT = `${COUPON_API_BASE}/coupon/transfer/batch/execute-csv`;
 
 function parseCsvContent(csvContent: string): UploadRow[] {
   const lines = csvContent

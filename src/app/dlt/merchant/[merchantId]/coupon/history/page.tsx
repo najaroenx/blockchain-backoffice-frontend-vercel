@@ -60,7 +60,11 @@ type ApiHistoryResponse = {
 };
 
 const PAGE_SIZE = 10;
-const HISTORY_ENDPOINT = `${process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ?? "http://localhost:4004"}/coupon/transfer/batch/history`;
+const COUPON_API_BASE =
+  process.env.NEXT_PUBLIC_COUPON_PREVIEW_API_BASE ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:4004";
+const HISTORY_ENDPOINT = `${COUPON_API_BASE}/coupon/transfer/batch/history`;
 
 function buildPageList(
   currentPage: number,
