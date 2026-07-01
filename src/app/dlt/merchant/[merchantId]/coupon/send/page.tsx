@@ -2,6 +2,7 @@
 
 import { ChangeEvent, DragEvent, useMemo, useRef, useState } from "react";
 import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
+import LoadingDefaultComponent from "@/app/dlt/components/LoadingDefaultComponent";
 
 type ViewStep = 1 | 2 | 3;
 type VerifyFilter = "all" | "valid" | "invalid";
@@ -375,6 +376,18 @@ export default function SendCouponPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl text-slate-100">
+      {isSubmitting ? (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200">
+          <div className="flex flex-col items-center gap-4">
+            <LoadingDefaultComponent className="w-54 h-54" />
+            <div className="text-center">
+              <p className="text-white font-semibold text-lg">กำลังยืนยันการส่งคูปอง...</p>
+              <p className="text-gray-400 text-sm mt-1">Please wait</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <header className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">
           CSV Coupon Bulk Sender

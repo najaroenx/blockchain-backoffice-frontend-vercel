@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useMerchantId } from "@/app/dlt/contexts/merchantContext";
-
-type DateRange = "all" | "today" | "7" | "30" | "custom";
+import LoadingDefaultComponent from "@/app/dlt/components/LoadingDefaultComponent";
 
 type DetailRow = {
   seqNo: number;
@@ -136,55 +135,6 @@ function exportRowsCsv(item: HistoryItem, rows: DetailRow[]): void {
   URL.revokeObjectURL(url);
 }
 
-function isInDateRange(
-  createdAt: string,
-  dateRange: DateRange,
-  fromDate: string,
-  toDate: string,
-): boolean {
-  if (dateRange === "all") {
-    return true;
-  }
-
-  const created = new Date(createdAt);
-  if (Number.isNaN(created.getTime())) {
-    return false;
-  }
-
-  const now = new Date();
-  const diffDays = Math.floor(
-    (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  if (dateRange === "today") {
-    return diffDays === 0;
-  }
-  if (dateRange === "7") {
-    return diffDays <= 7;
-  }
-  if (dateRange === "30") {
-    return diffDays <= 30;
-  }
-
-  if (dateRange === "custom" && fromDate) {
-    const from = new Date(fromDate);
-    const to = toDate ? new Date(toDate) : new Date();
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
-      return true;
-    }
-
-    const start = new Date(
-      Math.min(from.getTime(), to.getTime()),
-    ).setHours(0, 0, 0, 0);
-    const end = new Date(
-      Math.max(from.getTime(), to.getTime()),
-    ).setHours(23, 59, 59, 999);
-
-    return created.getTime() >= start && created.getTime() <= end;
-  }
-
-  return true;
-}
 
 function mapApiHistoryItem(item: ApiHistoryItem): HistoryItem {
   const { label, time } = formatDateTime(item.createdAt);
@@ -212,10 +162,6 @@ function mapApiHistoryItem(item: ApiHistoryItem): HistoryItem {
 export default function CouponHistoryPage() {
   const merchantId = useMerchantId();
 
-  const [query, setQuery] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange>("all");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
   const [selectedBatch, setSelectedBatch] = useState<HistoryItem | null>(null);
 
@@ -284,21 +230,7 @@ export default function CouponHistoryPage() {
     };
   }, [merchantId, page]);
 
-  const filteredData = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return historyRows.filter((item) => {
-      const matchedText =
-        !normalizedQuery ||
-        item.file.toLowerCase().includes(normalizedQuery) ||
-        item.id.toLowerCase().includes(normalizedQuery);
-      if (!matchedText) {
-        return false;
-      }
-
-      return isInDateRange(item.createdAt, dateRange, fromDate, toDate);
-    });
-  }, [dateRange, fromDate, historyRows, query, toDate]);
+  const filteredData = historyRows;
 
   const totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -317,12 +249,20 @@ export default function CouponHistoryPage() {
 
   const selectedDetails = useMemo(() => selectedBatch?.details ?? [], [selectedBatch]);
 
-  const changeDateFilter = (nextRange: DateRange) => {
-    setDateRange(nextRange);
-  };
-
   return (
     <div className="mx-auto w-full max-w-7xl text-slate-100">
+      {isLoadingHistory ? (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200">
+          <div className="flex flex-col items-center gap-4">
+            <LoadingDefaultComponent className="w-54 h-54" />
+            <div className="text-center">
+              <p className="text-white font-semibold text-lg">Loading history...</p>
+              <p className="text-gray-400 text-sm mt-1">Please wait</p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <header className="mb-6">
         <h1 className="text-3xl font-semibold tracking-tight">ประวัติการส่งคูปอง</h1>
         <p className="mt-2 text-sm text-slate-400">
@@ -355,52 +295,7 @@ export default function CouponHistoryPage() {
         </div>
 
         <div className="border-b border-white/10 p-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="ค้นหาชื่อไฟล์ หรือ batch ID"
-              className="h-10 w-full max-w-sm rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white placeholder:text-slate-500 focus:border-white/40 focus:outline-none"
-            />
-
-            <div className="inline-flex rounded-lg bg-white/5 p-1 text-sm">
-              {([
-                ["all", "ทั้งหมด"],
-                ["today", "วันนี้"],
-                ["7", "7 วัน"],
-                ["30", "30 วัน"],
-                ["custom", "กำหนดเอง"],
-              ] as Array<[DateRange, string]>).map(([value, label]) => (
-                <button
-                  key={value}
-                  onClick={() => changeDateFilter(value)}
-                  className={`rounded-md px-3 py-1.5 transition ${
-                    dateRange === value ? "bg-white text-slate-900" : "text-slate-300"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {dateRange === "custom" && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(event) => setFromDate(event.target.value)}
-                  className="h-10 rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white focus:border-white/40 focus:outline-none"
-                />
-                <span className="text-slate-500">-</span>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(event) => setToDate(event.target.value)}
-                  className="h-10 rounded-lg border border-white/20 bg-[#0f1023] px-3 text-sm text-white focus:border-white/40 focus:outline-none"
-                />
-              </div>
-            )}
-
+          <div className="flex items-center justify-end">
             <p className="ml-auto text-sm text-slate-400">
               {totalRecords > 0
                 ? `แสดง ${startIndex}-${endIndex} จาก ${totalRecords} รายการ`
@@ -425,14 +320,6 @@ export default function CouponHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {isLoadingHistory && (
-                <tr className="border-t border-white/10">
-                  <td colSpan={3} className="px-3 py-10 text-center text-slate-400">
-                    กำลังโหลดข้อมูล...
-                  </td>
-                </tr>
-              )}
-
               {!isLoadingHistory && filteredData.length === 0 && (
                 <tr className="border-t border-white/10">
                   <td colSpan={3} className="px-3 py-12 text-center text-slate-400">
