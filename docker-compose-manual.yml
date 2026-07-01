@@ -12,15 +12,13 @@ services:
       - "3000:3000"
     
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=https://dlp-backofficebe-testnet.adldigitalservice.com
+      - NEXT_PUBLIC_API_URL=https://dlp-backoffice-testnet.ad!digitalservice.com
+      - MERCHANT_BACKEND_URL=https://dlp-backoffice-testnet.ad!digitalservice.com
       - NEXT_PUBLIC_USE_EMULATOR=false
-      - NEXTAUTH_SECRET=3nfTG^'o2P&ckx<}2X#+Y./ihOZEdng)
+      - NEXTAUTH_SECRET=your-secret-key-here
       - NEXTAUTH_URL=http://localhost:3000
-      - MERCHANT_BACKEND_URL=https://dlp-backofficebe-testnet.adldigitalservice.com
-      - MERCHANT_BACKEND=https://dlp-backofficebe-testnet.adldigitalservice.com
-    
     restart: unless-stopped
     
     healthcheck:
