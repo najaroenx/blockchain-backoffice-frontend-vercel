@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AddIcon from "@mui/icons-material/Add";
@@ -28,28 +28,52 @@ const heroSlides = [
   },
 ];
 
+type Merchant = {
+  id: string;
+  imageUrl: string;
+  name: string;
+  walletAddress?: string;
+  description?: string;
+};
+
+const IS_MOCK_MODE = process.env.NEXT_PUBLIC_IS_MOCK === "true";
+const ALLOWED_MOCK_MERCHANT_IDS = new Set([
+  "cmnibsqe701w32s01dmy9dw6y",
+  "cmmxc3v760003ze01xotjyeot",
+]);
+
 export default function MerchantPage() {
   const { execute } = useApiWithLoading();
-  const [merchants, setMerchants] = useState<any[]>([]);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Fetch merchants on mount
   useEffect(() => {
     const fetchMerchants = async () => {
-      const data = await execute(
+      const data = (await execute(
         () => api("/api/merchant", { method: "GET" }),
         {
           loadingText: "กำลังโหลดข้อมูล Merchant...",
           showSuccessOnComplete: false,
           redirectDelay: 5000,
         },
-      );
-      if (data) {
-        setMerchants(data);
+      )) as unknown;
+      if (Array.isArray(data)) {
+        setMerchants(data as Merchant[]);
       }
     };
     fetchMerchants();
-  }, []);
+  }, [execute]);
+
+  const visibleMerchants = useMemo(() => {
+    if (!IS_MOCK_MODE) {
+      return merchants;
+    }
+
+    return merchants.filter((merchant) =>
+      ALLOWED_MOCK_MERCHANT_IDS.has(merchant.id),
+    );
+  }, [merchants]);
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white">
@@ -161,9 +185,8 @@ export default function MerchantPage() {
               </div>
             </Link>
 
-            {merchants &&
-              merchants.length > 0 &&
-              merchants.map((merchant: any) => (
+            {visibleMerchants.length > 0 &&
+              visibleMerchants.map((merchant) => (
                 <div
                   key={merchant.id}
                   className="group bg-[#1a1a2e] rounded-xl border border-white/5 hover:border-purple-500/30 overflow-hidden transition-all hover:scale-[1.02] flex flex-col h-full"
