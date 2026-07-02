@@ -99,11 +99,17 @@ export async function POST(request: NextRequest) {
     const body: VerifyOTPRequest = await request.json();
     const { phoneNumber, merchantId, otpCode } = body;
 
-    // Step 1: Verify OTP code
-    const otpVerifyResult = await verifyOTPCode(phoneNumber, otpCode);
+    // Step 1: Verify OTP code (skip if NEXT_PUBLIC_SKIP_OTP_VERIFICATION is enabled)
+    if (process.env.NEXT_PUBLIC_SKIP_OTP_VERIFICATION === "true") {
+      console.log(
+        "⚠️ OTP verification skipped (NEXT_PUBLIC_SKIP_OTP_VERIFICATION enabled)",
+      );
+    } else {
+      const otpVerifyResult = await verifyOTPCode(phoneNumber, otpCode);
 
-    if (otpVerifyResult.statusCode === 400) {
-      return errorResponse("รหัส OTP ไม่ถูกต้อง", 400);
+      if (otpVerifyResult.statusCode === 400) {
+        return errorResponse("รหัส OTP ไม่ถูกต้อง", 400);
+      }
     }
 
     // Step 2: Check if customer exists

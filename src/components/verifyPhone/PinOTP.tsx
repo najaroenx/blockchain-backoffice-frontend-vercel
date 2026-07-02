@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -17,6 +17,10 @@ const notoSansThai = Noto_Sans_Thai({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
+
+// Temporary config: skip manual OTP entry and auto-verify on mount
+const SKIP_OTP_VERIFICATION =
+  process.env.NEXT_PUBLIC_SKIP_OTP_VERIFICATION === "true";
 
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60);
@@ -162,16 +166,14 @@ const PinOTP = ({
   }, [timeLeft]);
 
   // Handlers
-  const handleVerifyOTP = async () => {
-    if (!canSubmit) return;
-
+  const submitVerifyOTP = async (otpCode: string) => {
     setLoading(true);
     setError(null);
 
     try {
       console.log("Verifying OTP...", {
         phoneNumber,
-        verifyOtp,
+        otpCode,
         token,
         merchantId,
       });
@@ -180,7 +182,7 @@ const PinOTP = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phoneNumber,
-          otpCode: verifyOtp,
+          otpCode,
           token,
           merchantId: merchantId || merchantIds,
         }),
@@ -188,7 +190,7 @@ const PinOTP = ({
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Error");
 
-      setOtpCode(verifyOtp);
+      setOtpCode(otpCode);
       if (data.token) updateToken(data.token);
       setIsVerificationSuccess(true);
       setTimeout(() => onChangeStep(VerifyPhoneStep.SUCCESS), 2000);
@@ -198,6 +200,21 @@ const PinOTP = ({
       setLoading(false);
     }
   };
+
+  const handleVerifyOTP = async () => {
+    if (!canSubmit) return;
+    await submitVerifyOTP(verifyOtp);
+  };
+
+  // Temporary: auto-verify on mount without rendering the OTP form
+  const autoVerifyStarted = useRef(false);
+  useEffect(() => {
+    if (!SKIP_OTP_VERIFICATION) return;
+    if (autoVerifyStarted.current) return;
+    autoVerifyStarted.current = true;
+    submitVerifyOTP("000000");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleResendOTP = useCallback(async () => {
     setTimeLeft(OTP_TIMEOUT_SECONDS);
@@ -232,6 +249,26 @@ const PinOTP = ({
       setError(error.message || "เกิดข้อผิดพลาดในการส่ง OTP อีกครั้ง");
     }
   }, [phoneNumber, requestId]);
+
+  // Temporary: show a loading screen instead of the OTP form while auto-verifying
+  if (SKIP_OTP_VERIFICATION) {
+    return (
+      <div
+        className={`bg-white w-full h-full min-h-screen flex flex-col items-center justify-center p-6 ${notoSansThai.className}`}
+      >
+        {error ? (
+          <p className="text-red-500 font-semibold text-sm text-center">
+            {error}
+          </p>
+        ) : (
+          <>
+            <div className="w-10 h-10 border-4 border-gray-200 border-t-[#16C23C] rounded-full animate-spin" />
+            <p className="mt-4 text-sm text-gray-600">กำลังตรวจสอบ...</p>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
