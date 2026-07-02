@@ -6,7 +6,7 @@ const BACKEND_URL = process.env.MERCHANT_BACKEND || "http://localhost:4000";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { phoneNumber, requestId, merchantId } = body;
+    const { phoneNumber, requestId  } = body;
 
     // Validate phone number
     if (!phoneNumber || phoneNumber.length !== 10) {
