@@ -8,9 +8,9 @@ const VerifyPhoneSuccess = ({
 }: {
   onChangeStep: (step: VerifyPhoneStep) => void;
 }) => {
-  const { phoneNumber } = useVerifyPhone();
+  const { phoneNumber, callbackUri: contextCallbackUri } = useVerifyPhone();
   const searchParams = useSearchParams();
-  const callbackUri = searchParams.get("callbackUri");
+  const callbackUri = searchParams.get("callbackUri") || contextCallbackUri;
   return (
     <div className="bg-white w-full h-screen flex flex-col items-center p-4 relative">
       {/* Close button */}
@@ -68,18 +68,11 @@ const VerifyPhoneSuccess = ({
       <div className="fixed bottom-0 left-0 right-0 flex justify-center mb-6 px-4">
         <button
           onClick={() => {
-            console.log(
-              "Redirecting to callback URI:",
-              `${callbackUri}?phoneNumber=${phoneNumber}`
-            );
             if (callbackUri) {
-              console.log(
-                "Redirecting to callback URI:",
-                `${callbackUri}?phoneNumber=${phoneNumber}`
-              );
-              window.location.assign(
-                `${callbackUri}?phoneNumber=${phoneNumber}`
-              );
+              const separator = callbackUri.includes("?") ? "&" : "?";
+              const finalUrl = `${callbackUri}${separator}phoneNumber=${encodeURIComponent(phoneNumber || "")}`;
+              console.log("Redirecting to callback URI:", finalUrl);
+              window.location.assign(finalUrl);
             }
           }}
           className="bg-[#16C23C] w-full max-w-[327px] h-[56px] text-white text-base font-semibold rounded-xl flex items-center justify-center gap-2"
