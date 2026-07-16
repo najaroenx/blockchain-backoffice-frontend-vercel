@@ -104,7 +104,7 @@ export default function MarketplaceListPage() {
   };
 
   const filteredListings = listings.filter((listing) => {
-    const matchesSearch = listing.name
+    const matchesSearch = (listing.name || "")
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const status = (listing.status || "").toLowerCase();
